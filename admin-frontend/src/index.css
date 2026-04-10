@@ -1,0 +1,280 @@
+@import "tailwindcss";
+@import "react-datepicker/dist/react-datepicker.css";
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    background-color: #F0F9FF;
+    color: #0F172A;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root { min-height: 100vh; width: 100%; }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #dce8fb; border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: #7DD3FC; }
+  .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); }
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+}
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(2,132,199,0); }
+  50%       { box-shadow: 0 0 16px 4px rgba(2,132,199,0.2); }
+}
+
+.animate-slide-up    { animation: slideUp 0.28s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-fade-in     { animation: fadeIn 0.2s ease forwards; }
+.animate-fade-in-down{ animation: fadeInDown 0.2s ease forwards; }
+.animate-pulse-glow  { animation: pulse-glow 2s ease-in-out infinite; }
+
+/* ─── Global Form Controls ───────────────────────────────────────────────── */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+select,
+textarea {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #0F172A;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #0a3d95 !important;
+  box-shadow: 0 0 0 3px rgba(10,61,149,0.12) !important;
+}
+input::placeholder,
+textarea::placeholder { color: #94A3B8; font-weight: 400; }
+select option { background: #FFFFFF; color: #0F172A; }
+input[type="checkbox"] { accent-color: #0a3d95; width: 1rem; height: 1rem; }
+
+/* ─── React-DatePicker Light Theme ───────────────────────────────────────── */
+.react-datepicker-wrapper  { width: 100%; }
+.react-datepicker-popper   { z-index: 9999 !important; }
+
+.react-datepicker {
+  font-family: var(--font-sans) !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid #dce8fb !important;
+  border-radius: 14px !important;
+  color: #0F172A !important;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(2,132,199,0.08) !important;
+  overflow: hidden;
+}
+.react-datepicker__header {
+  background: linear-gradient(135deg,#0a3d95 0%,#072d6e 100%) !important;
+  border-bottom: 1px solid #072d6e !important;
+  border-radius: 14px 14px 0 0 !important;
+  padding: 14px 0 10px !important;
+}
+.react-datepicker__current-month,
+.react-datepicker__day-name { color: #fff !important; font-weight: 600; letter-spacing: 0.02em; }
+.react-datepicker__day     { color: #334155 !important; border-radius: 8px !important; transition: all 0.15s; }
+.react-datepicker__day:hover { background: #dce8fb !important; color: #0a3d95 !important; }
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background: linear-gradient(135deg,#0a3d95,#072d6e) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(10,61,149,0.35) !important;
+}
+.react-datepicker__day--in-range { background: #dce8fb !important; color: #0a3d95 !important; }
+.react-datepicker__day--outside-month { color: #94A3B8 !important; }
+.react-datepicker__day--disabled { color: #CBD5E1 !important; cursor: not-allowed; }
+.react-datepicker__navigation-icon::before { border-color: #fff !important; }
+.react-datepicker__navigation:hover .react-datepicker__navigation-icon::before { border-color: #dce8fb !important; }
+.react-datepicker__time-container { border-left: 1px solid #dce8fb !important; }
+.react-datepicker__time,
+.react-datepicker__time-box { background: #FFFFFF !important; }
+.react-datepicker__time-list-item { color: #334155 !important; transition: all 0.12s; }
+.react-datepicker__time-list-item:hover { background: #dce8fb !important; color: #0a3d95 !important; }
+.react-datepicker__time-list-item--selected {
+  background: linear-gradient(135deg,#0a3d95,#072d6e) !important;
+  color: #fff !important;
+}
+.react-datepicker__input-container { width: 100%; }
+.react-datepicker__input-container input {
+  width: 100% !important;
+  padding: 10px 14px !important;
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 10px !important;
+  color: #0F172A !important;
+  font-size: 14px !important;
+  font-family: var(--font-sans) !important;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.react-datepicker__input-container input:focus {
+  border-color: #0a3d95 !important;
+  box-shadow: 0 0 0 3px rgba(10,61,149,0.12) !important;
+}
+.react-datepicker__input-container input::placeholder { color: #94A3B8 !important; }
+.react-datepicker__triangle { display: none !important; }
+.react-datepicker__close-icon::after { background: #0a3d95 !important; }
+
+/* ─── TipTap Editor Light ────────────────────────────────────────────────── */
+.tiptap-editor-wrapper { border: 1px solid #CBD5E1; border-radius: 12px; overflow: hidden; background: #FFFFFF; }
+.tiptap-toolbar {
+  display: flex; flex-wrap: wrap; gap: 2px;
+  padding: 8px 10px; border-bottom: 1px solid #E2E8F0;
+  background: #F8FAFC;
+}
+.tiptap-toolbar-btn,
+.tiptap-toolbar button {
+  padding: 5px 7px; border-radius: 6px; border: none; cursor: pointer;
+  color: #64748B; background: transparent;
+  transition: all 0.15s; display: flex; align-items: center; justify-content: center;
+}
+.tiptap-toolbar-btn:hover,
+.tiptap-toolbar button:hover { background: #dce8fb; color: #0a3d95; }
+.tiptap-toolbar-btn.active,
+.tiptap-toolbar button.active { background: #dce8fb; color: #0a3d95; }
+
+.ProseMirror {
+  padding: 14px 16px; min-height: 160px; outline: none; color: #0F172A;
+  font-size: 14px; line-height: 1.7;
+}
+.ProseMirror p       { margin: 0.4em 0; }
+.ProseMirror h1      { font-size: 1.5em; font-weight: 700; color: #0F172A; margin: 0.6em 0 0.3em; }
+.ProseMirror h2      { font-size: 1.25em; font-weight: 600; color: #1E293B; margin: 0.5em 0 0.25em; }
+.ProseMirror h3      { font-size: 1.1em; font-weight: 600; color: #334155; margin: 0.4em 0 0.2em; }
+.ProseMirror ul, .ProseMirror ol { padding-left: 1.5em; }
+.ProseMirror li      { margin: 0.2em 0; }
+.ProseMirror blockquote {
+  border-left: 3px solid #0a3d95; padding-left: 1em;
+  color: #64748B; margin: 0.5em 0;
+}
+.ProseMirror strong { color: #0F172A; font-weight: 600; }
+.ProseMirror em { color: #334155; }
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #94A3B8; pointer-events: none; float: left; height: 0;
+}
+
+/* ─── Leaflet map light ──────────────────────────────────────────────────── */
+.leaflet-container { background: #F0F9FF !important; border-radius: 12px; border: 1px solid #dce8fb; }
+.leaflet-control-zoom a { background: #FFFFFF !important; color: #0a3d95 !important; border-color: #dce8fb !important; }
+.leaflet-control-zoom a:hover { background: #dce8fb !important; color: #072d6e !important; }
+.leaflet-popup-content-wrapper { background: #FFFFFF !important; color: #0F172A !important; border: 1px solid #dce8fb !important; box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important; }
+.leaflet-popup-tip { background: #FFFFFF !important; }
+
+/* Tag chips */
+.bg-purple-100  { background-color: #EDE9FE !important; }
+.text-purple-700 { color: #6D28D9 !important; }
+.hover\:bg-purple-50:hover  { background-color: #F5F3FF !important; }
+.hover\:border-purple-300:hover { border-color: #A78BFA !important; }
+.hover\:text-purple-700:hover { color: #6D28D9 !important; }
+
+/* ─── Typography weights ─────────────────────────────────────────────────── */
+h1, h2 { font-weight: 700; }
+h3      { font-weight: 600; }
+h4, h5, h6 { font-weight: 600; }
+nav a, nav button { font-weight: 500; }
+label { font-weight: 500; letter-spacing: 0.01em; }
+p, td, li { font-weight: 400; }
+
+/* ─── Skeleton shimmer ───────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg,#dce8fb 25%,#dce8fb 50%,#dce8fb 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+/* ─── Brightening shimmer-slide animation for CTA buttons ───────────────── */
+@keyframes shimmer-slide {
+  0%   { transform: translateX(-100%) skewX(-20deg); opacity: 0; }
+  30%  { opacity: 0.6; }
+  100% { transform: translateX(220%) skewX(-20deg); opacity: 0; }
+}
+
+/* Primary gradient buttons */
+button[type="submit"],
+button.btn-primary {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease, filter 0.18s ease;
+}
+button[type="submit"]::after,
+button.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset-y: 0; left: 0; width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+  transform: translateX(-100%) skewX(-20deg);
+  pointer-events: none;
+}
+button[type="submit"]:hover:not(:disabled),
+button.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px rgba(139,92,246,0.4);
+}
+button[type="submit"]:hover:not(:disabled)::after,
+button.btn-primary:hover:not(:disabled)::after {
+  animation: shimmer-slide 0.55s ease forwards;
+}
+button[type="submit"]:active:not(:disabled),
+button.btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  filter: brightness(0.95);
+}
+
+/* btn-shine class for Add/Create buttons */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.2s ease,
+              filter 0.18s ease;
+}
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  inset-y: 0; left: 0; width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+  transform: translateX(-100%) skewX(-20deg);
+  pointer-events: none;
+}
+.btn-shine:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px rgba(139,92,246,0.4);
+}
+.btn-shine:hover:not(:disabled)::after {
+  animation: shimmer-slide 0.55s ease forwards;
+}
+.btn-shine:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  filter: brightness(0.95);
+}
