@@ -45,7 +45,7 @@ export default function InstagramManager() {
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader title="Instagram Manager" action={
         <div className="flex gap-2">
           <button onClick={handleRefreshToken} disabled={refreshing} className="flex items-center gap-1.5 px-3 py-2 border border-slate-300 hover:bg-slate-50 text-sm rounded-lg disabled:opacity-60">

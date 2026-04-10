@@ -3,5 +3,5 @@ import PageHeader from '../../components/common/PageHeader'; import EventForm fr
 export default function EventsCreate() {
   const navigate = useNavigate(); const [loading, setLoading] = useState(false)
   const handleSubmit = async (data) => { setLoading(true); try { await eventsApi.create(data); toast.success('Created!'); navigate('/events/list') } catch (e) { toast.error(e.message) } finally { setLoading(false) } }
-  return <div className="max-w-3xl"><PageHeader title="Add Event" backTo="/events" /><EventForm onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Add Event" backTo="/events" /><EventForm onSubmit={handleSubmit} loading={loading} /></div>
 }

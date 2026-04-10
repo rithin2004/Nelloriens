@@ -3,5 +3,5 @@ import PageHeader from '../../components/common/PageHeader'; import SponsorForm 
 export default function SponsorshipsCreate() {
   const navigate = useNavigate(); const [loading, setLoading] = useState(false)
   const handleSubmit = async (data) => { setLoading(true); try { await sponsorshipsApi.create(data); toast.success('Created!'); navigate('/sponsorships/list') } catch (e) { toast.error(e.message) } finally { setLoading(false) } }
-  return <div className="max-w-3xl"><PageHeader title="Add Sponsor" backTo="/sponsorships" /><SponsorForm onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Add Sponsor" backTo="/sponsorships" /><SponsorForm onSubmit={handleSubmit} loading={loading} /></div>
 }

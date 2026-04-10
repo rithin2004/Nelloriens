@@ -74,7 +74,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="max-w-2xl space-y-5 animate-fade-in">
+    <div className="animate-fade-in space-y-5">
       <PageHeader title="Settings" />
 
       {/* Company Logo */}

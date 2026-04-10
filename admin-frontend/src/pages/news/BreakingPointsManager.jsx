@@ -11,7 +11,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner'
 
 const inp = 'flex-1 px-3 py-2 text-sm rounded-lg focus:outline-none transition-all'
 const inpStyle = { background: '#FFFFFF', border: '1px solid #CBD5E1' }
-const focusOn  = (e) => { e.target.style.borderColor = '#0a3d95'; e.target.style.boxShadow = '0 0 0 3px rgba(2,132,199,0.1)' }
+const focusOn  = (e) => { e.target.style.borderColor = '#0a3d95'; e.target.style.boxShadow = '0 0 0 3px rgba(10,61,149,0.1)' }
 const focusOff = (e) => { e.target.style.borderColor = '#CBD5E1'; e.target.style.boxShadow = '' }
 
 function SortablePoint({ item, onEdit, onDelete }) {
@@ -128,8 +128,8 @@ export default function BreakingPointsManager() {
   const cancelEdit = () => { setEditItem(null); setEditText('') }
 
   return (
-    <div className="max-w-2xl">
-      <PageHeader title="Breaking News Points" subtitle="Drag to reorder · shown in ticker on user side" backTo="/news" />
+    <div className="animate-fade-in">
+      <PageHeader title="Breaking News Points" subtitle="Drag to reorder · shown in ticker on user side" />
 
       {/* Add new */}
       <div
@@ -137,13 +137,13 @@ export default function BreakingPointsManager() {
         style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
       >
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Add New Point</p>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             value={addText}
             onChange={(e) => setAddText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleAdd()}
             placeholder="Enter breaking news text…"
-            className={inp}
+            className={`${inp} flex-1`}
             style={inpStyle}
             onFocus={focusOn}
             onBlur={focusOff}
@@ -151,11 +151,11 @@ export default function BreakingPointsManager() {
           <button
             onClick={handleAdd}
             disabled={adding || !addText.trim()}
-            className="flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all disabled:opacity-50 shrink-0"
+            className="flex items-center justify-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all disabled:opacity-50 shrink-0"
             style={{ background: 'linear-gradient(135deg,#DC2626,#B91C1C)', boxShadow: '0 4px 12px rgba(220,38,38,0.25)' }}
           >
             <Plus className="w-4 h-4" />
-            {adding ? 'Adding…' : 'Add'}
+            {adding ? 'Adding…' : 'Add Point'}
           </button>
         </div>
       </div>

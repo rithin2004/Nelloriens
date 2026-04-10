@@ -118,21 +118,10 @@ export default function SportForm({ defaultValues, onSubmit, loading }) {
           <input type="checkbox" id="sport-featured" name="isFeatured" {...register('isFeatured')} />
           <span className="text-sm" style={{ color: '#374151' }}>Is Featured</span>
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="sport-publishedat" className={lbl} style={lblStyle}>Published At *</label>
-            <DatePicker id="sport-publishedat" selected={publishedAt} onChange={setPublishedAt}
-              showTimeSelect dateFormat="dd/MM/yyyy HH:mm" className="w-full" />
-          </div>
-          <div>
-            <label htmlFor="sport-pubstatus" className={lbl} style={lblStyle}>Status *</label>
-            <select id="sport-pubstatus" name="status"
-              {...register('status', { required: 'Required' })} className={inp}>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
-            </select>
-          </div>
+        <div>
+          <label htmlFor="sport-publishedat" className={lbl} style={lblStyle}>Published At *</label>
+          <DatePicker id="sport-publishedat" selected={publishedAt} onChange={setPublishedAt}
+            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" className="w-full" />
         </div>
       </div>
 

@@ -180,14 +180,6 @@ export default function TransportForm({ defaultValues, onSubmit, loading }) {
             <div><label className={field}>Address</label><input {...register('address')} className={input} /></div>
           </div>
 
-          <div className={section}>
-            <label className={field}>Status *</label>
-            <select {...register('status', { required: true })} className={input}>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-            </select>
-          </div>
-
           <button type="submit" disabled={loading} className="w-full py-2.5 text-white font-semibold rounded-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50" style={{ background: 'linear-gradient(135deg,#8B5CF6,#6366F1)', boxShadow: '0 4px 16px rgba(139,92,246,0.3)' }}>
             {loading ? 'Saving...' : 'Save'}
           </button>

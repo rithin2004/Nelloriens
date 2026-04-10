@@ -44,14 +44,6 @@ export default function AdForm({ defaultValues, onSubmit, loading }) {
           </div>
         </div>
         <div><label className={field}>Priority</label><input {...register('priority')} type="number" className={input} placeholder="Higher = shown first" /></div>
-        <div>
-          <label className={field}>Status *</label>
-          <select {...register('status', { required: true })} className={input}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="expired">Expired</option>
-          </select>
-        </div>
       </div>
 
       <button type="submit" disabled={loading} className="w-full py-2.5 text-white font-semibold rounded-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50" style={{ background: "linear-gradient(135deg,#8B5CF6,#6366F1)", boxShadow: "0 4px 16px rgba(139,92,246,0.3)" }}>

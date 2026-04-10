@@ -155,21 +155,10 @@ export default function NewsForm({ defaultValues, onSubmit, loading }) {
 
       <div className={section} style={sectionStyle}>
         <h3 className="font-semibold text-slate-800">Publish Settings</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="news-publishedat" className={lbl} style={lblStyle}>Published At *</label>
-            <DatePicker id="news-publishedat" selected={publishedAt} onChange={setPublishedAt}
-              showTimeSelect dateFormat="dd/MM/yyyy HH:mm" className="w-full" />
-          </div>
-          <div>
-            <label htmlFor="news-status" className={lbl} style={lblStyle}>Status *</label>
-            <select id="news-status" name="status"
-              {...register('status', { required: 'Required' })} className={inp}>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
-            </select>
-          </div>
+        <div>
+          <label htmlFor="news-publishedat" className={lbl} style={lblStyle}>Published At *</label>
+          <DatePicker id="news-publishedat" selected={publishedAt} onChange={setPublishedAt}
+            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" className="w-full" />
         </div>
       </div>
 

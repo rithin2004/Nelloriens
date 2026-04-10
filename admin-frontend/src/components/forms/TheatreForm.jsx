@@ -63,14 +63,6 @@ export default function TheatreForm({ defaultValues, onSubmit, loading }) {
             {...register('googleMapsUrl')} className={inp} />
         </div>
 
-        <div>
-          <label htmlFor="th-status" className={lbl} style={lblStyle}>Status *</label>
-          <select id="th-status" name="status"
-            {...register('status', { required: true })} className={inp}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
       </div>
 
       <button type="submit" disabled={loading}

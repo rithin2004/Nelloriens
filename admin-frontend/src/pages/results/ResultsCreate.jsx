@@ -3,5 +3,5 @@ import PageHeader from '../../components/common/PageHeader'; import ResultForm f
 export default function ResultsCreate() {
   const navigate = useNavigate(); const [loading, setLoading] = useState(false)
   const handleSubmit = async (data) => { setLoading(true); try { await resultsApi.create(data); toast.success('Created!'); navigate('/results/list') } catch (e) { toast.error(e.message) } finally { setLoading(false) } }
-  return <div className="max-w-3xl"><PageHeader title="Add Result" backTo="/results" /><ResultForm onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Add Result" backTo="/results" /><ResultForm onSubmit={handleSubmit} loading={loading} /></div>
 }

@@ -19,5 +19,5 @@ export default function HistoryEdit() {
     finally { setLoading(false) }
   }
   if (!item) return <LoadingSpinner />
-  return <div className="max-w-3xl"><PageHeader title="Edit History" backTo="/history" /><HistoryForm defaultValues={item} onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Edit History" backTo="/history" /><HistoryForm defaultValues={item} onSubmit={handleSubmit} loading={loading} /></div>
 }

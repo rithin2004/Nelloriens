@@ -229,21 +229,10 @@ export default function JobForm({ defaultValues, onSubmit, loading }) {
           <input type="checkbox" id="job-featured" name="isFeatured" {...register('isFeatured')} />
           <span className="text-sm" style={{ color: '#374151' }}>Is Featured</span>
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="job-publishedat" className={lbl} style={lblStyle}>Published At *</label>
-            <DatePicker id="job-publishedat" selected={publishedAt} onChange={setPublishedAt}
-              showTimeSelect dateFormat="dd/MM/yyyy HH:mm" className="w-full" />
-          </div>
-          <div>
-            <label htmlFor="job-status" className={lbl} style={lblStyle}>Status *</label>
-            <select id="job-status" name="status"
-              {...register('status', { required: 'Required' })} className={inp}>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="expired">Expired</option>
-            </select>
-          </div>
+        <div>
+          <label htmlFor="job-publishedat" className={lbl} style={lblStyle}>Published At *</label>
+          <DatePicker id="job-publishedat" selected={publishedAt} onChange={setPublishedAt}
+            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" className="w-full" />
         </div>
       </div>
 

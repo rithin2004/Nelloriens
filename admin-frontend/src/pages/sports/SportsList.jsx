@@ -224,7 +224,7 @@ export default function SportsList() {
   ]
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         title="Sports"
         action={

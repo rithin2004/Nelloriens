@@ -45,8 +45,8 @@
   100% { background-position:  200% 0; }
 }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(2,132,199,0); }
-  50%       { box-shadow: 0 0 16px 4px rgba(2,132,199,0.2); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(10,61,149,0); }
+  50%       { box-shadow: 0 0 16px 4px rgba(10,61,149,0.2); }
 }
 
 .animate-slide-up    { animation: slideUp 0.28s cubic-bezier(0.16,1,0.3,1) forwards; }
@@ -88,7 +88,7 @@ input[type="checkbox"] { accent-color: #0a3d95; width: 1rem; height: 1rem; }
   border: 1px solid #dce8fb !important;
   border-radius: 14px !important;
   color: #0F172A !important;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(2,132,199,0.08) !important;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(10,61,149,0.08) !important;
   overflow: hidden;
 }
 .react-datepicker__header {

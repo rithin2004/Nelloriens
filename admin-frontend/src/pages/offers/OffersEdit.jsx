@@ -5,5 +5,5 @@ export default function OffersEdit() {
   useEffect(() => { offersApi.getById(id).then((r) => setItem(r.data)).catch(() => toast.error('Failed')) }, [id])
   const handleSubmit = async (data) => { setLoading(true); try { await offersApi.update(id, data); toast.success('Updated!'); navigate('/offers/list') } catch (e) { toast.error(e.message) } finally { setLoading(false) } }
   if (!item) return <LoadingSpinner />
-  return <div className="max-w-3xl"><PageHeader title="Edit Offer" backTo="/offers" /><OfferForm defaultValues={item} onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Edit Offer" backTo="/offers" /><OfferForm defaultValues={item} onSubmit={handleSubmit} loading={loading} /></div>
 }

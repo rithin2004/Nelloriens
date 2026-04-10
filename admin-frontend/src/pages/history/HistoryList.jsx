@@ -6,7 +6,6 @@ import { GripVertical, Pencil, Trash2, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { historyApi } from '../../services/api'
 import PageHeader from '../../components/common/PageHeader'
-import StatusBadge from '../../components/common/StatusBadge'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import FormModal from '../../components/common/FormModal'
 import HistoryForm from '../../components/forms/HistoryForm'
@@ -30,7 +29,6 @@ function SortableCard({ item, onEdit, onDelete }) {
         <p className="font-semibold text-slate-800 text-sm truncate">{item.title}</p>
         <p className="text-xs text-slate-500 mt-0.5">{item.eraPeriod}{item.yearLabel ? ` · ${item.yearLabel}` : ''}</p>
       </div>
-      <StatusBadge status={item.status} />
       <button
         onClick={() => onEdit(item._id)}
         className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 transition-colors"
@@ -137,7 +135,7 @@ export default function HistoryList() {
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         title="History"
         subtitle="Drag to reorder"

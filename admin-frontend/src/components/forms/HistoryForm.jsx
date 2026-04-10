@@ -77,15 +77,6 @@ export default function HistoryForm({ defaultValues, onSubmit, loading }) {
         </button>
       </div>
 
-      <div className={section} style={sectionStyle}>
-        <label htmlFor="hist-status" className={lbl} style={lblStyle}>Status *</label>
-        <select id="hist-status" name="status"
-          {...register('status', { required: 'Required' })} className={inp}>
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
-        </select>
-      </div>
-
       <button type="submit" disabled={loading}
         className="w-full py-2.5 text-white font-semibold rounded-lg transition-all disabled:opacity-50"
         style={{ background: 'linear-gradient(135deg,#8B5CF6,#6366F1)', boxShadow: '0 4px 16px rgba(139,92,246,0.3)' }}>

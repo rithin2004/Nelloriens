@@ -17,5 +17,5 @@ export default function MoviesEdit() {
     finally { setLoading(false) }
   }
   if (!item) return <LoadingSpinner />
-  return <div className="max-w-3xl"><PageHeader title="Edit Movie" backTo="/movies" /><MovieForm defaultValues={item} onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Edit Movie" backTo="/movies" /><MovieForm defaultValues={item} onSubmit={handleSubmit} loading={loading} /></div>
 }

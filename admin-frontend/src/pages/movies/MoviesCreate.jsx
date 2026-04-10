@@ -14,5 +14,5 @@ export default function MoviesCreate() {
     catch (e) { toast.error(e.message) }
     finally { setLoading(false) }
   }
-  return <div className="max-w-3xl"><PageHeader title="Add Movie" backTo="/movies" /><MovieForm onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Add Movie" backTo="/movies" /><MovieForm onSubmit={handleSubmit} loading={loading} /></div>
 }

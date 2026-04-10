@@ -63,7 +63,7 @@ export default function GlobalSearch() {
   const showDropdown = open && query.length >= 2
 
   return (
-    <div className="relative flex-1 max-w-xs sm:max-w-sm" ref={ref}>
+    <div className="relative w-full max-w-xs sm:max-w-sm" ref={ref}>
       {/* Input */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-white/60" />

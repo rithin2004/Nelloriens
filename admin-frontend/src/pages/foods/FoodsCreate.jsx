@@ -3,5 +3,5 @@ import PageHeader from '../../components/common/PageHeader'; import FoodForm fro
 export default function FoodsCreate() {
   const navigate = useNavigate(); const [loading, setLoading] = useState(false)
   const handleSubmit = async (data) => { setLoading(true); try { await foodsApi.create(data); toast.success('Created!'); navigate('/foods') } catch (e) { toast.error(e.message) } finally { setLoading(false) } }
-  return <div className="max-w-3xl"><PageHeader title="Add Food" backTo="/foods" /><FoodForm onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Add Food" backTo="/foods" /><FoodForm onSubmit={handleSubmit} loading={loading} /></div>
 }

@@ -20,7 +20,7 @@ export default function NewsCreate() {
   }
 
   return (
-    <div className="max-w-3xl">
+    <div className="animate-fade-in">
       <PageHeader title="Add News" backTo="/news" />
       <NewsForm onSubmit={handleSubmit} loading={loading} />
     </div>

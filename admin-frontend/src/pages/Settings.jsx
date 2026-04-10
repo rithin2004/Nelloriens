@@ -13,7 +13,7 @@ function Toggle({ checked, onChange, label, description }) {
       <button
         onClick={() => onChange(!checked)}
         className={`
-          relative inline-flex h-6 w-11 items-center rounded-full flex-shrink-0
+          relative inline-flex h-6 w-11 items-center rounded-full shrink-0
           transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1
           ${checked ? 'bg-indigo-600' : 'bg-slate-200'}
         `}

@@ -14,5 +14,5 @@ export default function HistoryCreate() {
     catch (e) { toast.error(e.message) }
     finally { setLoading(false) }
   }
-  return <div className="max-w-3xl"><PageHeader title="Add History" backTo="/history" /><HistoryForm onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Add History" backTo="/history" /><HistoryForm onSubmit={handleSubmit} loading={loading} /></div>
 }

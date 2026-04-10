@@ -5,7 +5,6 @@ import PageHeader from '../../components/common/PageHeader'
 import FormModal from '../../components/common/FormModal'
 import TheatreForm from '../../components/forms/TheatreForm'
 import ConfirmModal from '../../components/common/ConfirmModal'
-import StatusBadge from '../../components/common/StatusBadge'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import { moviesApi } from '../../services/api'
 
@@ -70,7 +69,7 @@ export default function TheatresManager() {
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         title="Theatres"
         backTo="/movies"
@@ -86,11 +85,11 @@ export default function TheatresManager() {
       />
 
       {loading ? <LoadingSpinner /> : (
-        <div className="rounded-xl overflow-hidden" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="rounded-xl overflow-hidden overflow-x-auto" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           <table className="w-full text-sm">
             <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
               <tr>
-                {['Name', 'Address', 'Phone', 'Screens', 'Status', ''].map((h) => (
+                {['Name', 'Address', 'Phone', 'Screens', ''].map((h) => (
                   <th key={h} className="text-left text-xs font-semibold uppercase tracking-wide px-4 py-3 whitespace-nowrap" style={{ color: '#64748B' }}>{h}</th>
                 ))}
               </tr>
@@ -98,7 +97,7 @@ export default function TheatresManager() {
             <tbody>
               {theatres.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-sm text-slate-400">
+                  <td colSpan={5} className="text-center py-12 text-sm text-slate-400">
                     No theatres yet. Click "Add Theatre" to create one.
                   </td>
                 </tr>
@@ -112,7 +111,6 @@ export default function TheatresManager() {
                   <td className="px-4 py-3 text-slate-600 max-w-48 truncate">{t.address}</td>
                   <td className="px-4 py-3 text-slate-600">{t.phone || '—'}</td>
                   <td className="px-4 py-3 text-slate-600">{t.screenCount || '—'}</td>
-                  <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
                       <button

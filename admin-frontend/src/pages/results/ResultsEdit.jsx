@@ -5,5 +5,5 @@ export default function ResultsEdit() {
   useEffect(() => { resultsApi.getById(id).then((r) => setItem(r.data)).catch(() => toast.error('Failed')) }, [id])
   const handleSubmit = async (data) => { setLoading(true); try { await resultsApi.update(id, data); toast.success('Updated!'); navigate('/results/list') } catch (e) { toast.error(e.message) } finally { setLoading(false) } }
   if (!item) return <LoadingSpinner />
-  return <div className="max-w-3xl"><PageHeader title="Edit Result" backTo="/results" /><ResultForm defaultValues={item} onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Edit Result" backTo="/results" /><ResultForm defaultValues={item} onSubmit={handleSubmit} loading={loading} /></div>
 }

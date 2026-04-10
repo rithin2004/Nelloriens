@@ -53,14 +53,6 @@ export default function OfferForm({ defaultValues, onSubmit, loading }) {
           <input type="checkbox" {...register('isFeatured')} className="w-4 h-4 accent-purple-600" />
           <span className="text-sm text-slate-700">Is Featured</span>
         </label>
-        <div>
-          <label className={field}>Status *</label>
-          <select {...register('status', { required: true })} className={input}>
-            <option value="active">Active</option>
-            <option value="expired">Expired</option>
-            <option value="draft">Draft</option>
-          </select>
-        </div>
       </div>
 
       <button type="submit" disabled={loading} className="w-full py-2.5 text-white font-semibold rounded-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50" style={{ background: "linear-gradient(135deg,#8B5CF6,#6366F1)", boxShadow: "0 4px 16px rgba(139,92,246,0.3)" }}>

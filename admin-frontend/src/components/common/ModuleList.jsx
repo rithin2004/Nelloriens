@@ -172,7 +172,7 @@ export default function ModuleList({
   ]
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         title={title}
         action={

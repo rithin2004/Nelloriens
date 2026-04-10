@@ -29,7 +29,7 @@ export default function NewsEdit() {
   if (!item) return <LoadingSpinner />
 
   return (
-    <div className="max-w-3xl">
+    <div className="animate-fade-in">
       <PageHeader title="Edit News" backTo="/news" />
       <NewsForm defaultValues={item} onSubmit={handleSubmit} loading={loading} />
     </div>

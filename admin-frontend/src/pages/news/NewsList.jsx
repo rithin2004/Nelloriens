@@ -214,7 +214,7 @@ export default function NewsList() {
   ]
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         title="News"
         action={

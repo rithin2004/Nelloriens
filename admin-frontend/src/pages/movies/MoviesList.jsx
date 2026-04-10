@@ -186,7 +186,7 @@ export default function MoviesList() {
   ]
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         title="Movies"
         action={

@@ -8,5 +8,5 @@ export default function JobsCreate() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const handleSubmit = async (data) => { setLoading(true); try { await jobsApi.create(data); toast.success('Job created!'); navigate('/jobs/list') } catch (e) { toast.error(e.message) } finally { setLoading(false) } }
-  return <div className="max-w-3xl"><PageHeader title="Add Job" backTo="/jobs" /><JobForm onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Add Job" backTo="/jobs" /><JobForm onSubmit={handleSubmit} loading={loading} /></div>
 }

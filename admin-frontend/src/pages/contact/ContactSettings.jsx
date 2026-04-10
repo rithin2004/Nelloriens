@@ -219,49 +219,50 @@ export default function ContactSettings() {
   const fullAddress = [s.address, s.city, s.state, s.pincode].filter(Boolean).join(', ') || null
 
   return (
-    <div className="max-w-2xl animate-fade-in space-y-5">
+    <div className="animate-fade-in">
       <PageHeader
         title="Contact Settings"
+        subtitle="Business info and social links shown on the public site"
         action={
           <button onClick={() => setEditOpen(true)}
-            className="btn-shine flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg"
+            className="flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all hover:opacity-90"
             style={{ background: `linear-gradient(135deg,#0a3d95,#072d6e)`, boxShadow: '0 4px 12px rgba(10,61,149,0.25)' }}>
-            <Pencil className="w-4 h-4" /> Edit
+            <Pencil className="w-4 h-4" /> Edit Contact Info
           </button>
         }
       />
 
-      <div style={card}>
-        <h3 className="font-bold text-slate-700 mb-1 pb-3" style={{ borderBottom: '1px solid #F1F5F9' }}>Basic Information</h3>
-        <InfoRow icon={Building2} iconColor="#7C3AED" label="Company Name"  value={s.label} />
-        <InfoRow icon={Mail}      iconColor="#2563EB" label="Email"         value={s.email} />
-        <InfoRow icon={Phone}     iconColor="#16A34A" label="Phone"         value={s.phone} />
-        <InfoRow icon={Phone}     iconColor="#25D366" label="WhatsApp"      value={s.whatsapp} />
-        <InfoRow icon={MapPin}    iconColor="#D97706" label="Address"       value={fullAddress} />
-        {(s.city || s.state || s.pincode) && (
-          <InfoRow icon={MapPin} iconColor="#D97706" label="City / State / Pincode"
-            value={[s.city, s.state, s.pincode].filter(Boolean).join(' · ')} />
-        )}
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Basic info */}
+        <div style={card}>
+          <h3 className="font-bold text-slate-700 mb-3 pb-3" style={{ borderBottom: '1px solid #F1F5F9' }}>Basic Information</h3>
+          <InfoRow icon={Building2} iconColor="#7C3AED" label="Company Name"  value={s.label} />
+          <InfoRow icon={Mail}      iconColor="#2563EB" label="Email"         value={s.email} />
+          <InfoRow icon={Phone}     iconColor="#16A34A" label="Phone"         value={s.phone} />
+          <InfoRow icon={Phone}     iconColor="#25D366" label="WhatsApp"      value={s.whatsapp} />
+          <InfoRow icon={MapPin}    iconColor="#D97706" label="Address"       value={fullAddress} />
+        </div>
 
-      <div style={card}>
-        <h3 className="font-bold text-slate-700 mb-1 pb-3" style={{ borderBottom: '1px solid #F1F5F9' }}>Social & External Links</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-          {socialLinks.map(({ key, label, Icon, color }) => (
-            <div key={key} className="flex items-center gap-3 py-2.5 px-2 rounded-lg"
-              style={{ borderBottom: '1px solid #F8FAFC' }}>
-              <Icon className="w-4 h-4 shrink-0" style={{ color }} />
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-slate-400">{label}</p>
-                {s[key]
-                  ? <a href={s[key]} target="_blank" rel="noreferrer"
-                      className="text-xs truncate block hover:underline text-sky-600" style={{ maxWidth: '180px' }}>
-                      {s[key].replace(/^https?:\/\//, '')}
-                    </a>
-                  : <p className="text-xs text-slate-300">Not set</p>}
+        {/* Social links */}
+        <div style={card}>
+          <h3 className="font-bold text-slate-700 mb-3 pb-3" style={{ borderBottom: '1px solid #F1F5F9' }}>Social &amp; External Links</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+            {socialLinks.map(({ key, label, Icon, color }) => (
+              <div key={key} className="flex items-center gap-3 py-2.5 px-2 rounded-lg"
+                style={{ borderBottom: '1px solid #F8FAFC' }}>
+                <Icon className="w-4 h-4 shrink-0" style={{ color }} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-slate-400">{label}</p>
+                  {s[key]
+                    ? <a href={s[key]} target="_blank" rel="noreferrer"
+                        className="text-xs truncate block hover:underline" style={{ color: '#0a3d95', maxWidth: '180px' }}>
+                        {s[key].replace(/^https?:\/\//, '')}
+                      </a>
+                    : <p className="text-xs text-slate-300">Not set</p>}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 

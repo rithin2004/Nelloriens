@@ -116,7 +116,7 @@ export default function FoodForm({ defaultValues, onSubmit, loading }) {
             <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square" style={{ border: '2px solid #dce8fb' }}>
               <img src={url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
               {/* Number badge */}
-              <span className="absolute top-1 left-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'rgba(2,132,199,0.85)' }}>{idx + 1}</span>
+              <span className="absolute top-1 left-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'rgba(10,61,149,0.85)' }}>{idx + 1}</span>
               <button
                 type="button"
                 onClick={() => removePhoto(idx)}
@@ -180,13 +180,6 @@ export default function FoodForm({ defaultValues, onSubmit, loading }) {
           <input type="checkbox" {...register('isFamous')} className="w-4 h-4 accent-purple-600" />
           <span className="text-sm text-slate-700">Is Famous (Iconic Nellore Dish)</span>
         </label>
-        <div>
-          <label className={lbl}>Status *</label>
-          <select {...register('status', { required: 'Required' })} className={inp}>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-          </select>
-        </div>
       </div>
 
       {/* ── Varieties ── */}

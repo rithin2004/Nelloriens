@@ -5,5 +5,5 @@ export default function EventsEdit() {
   useEffect(() => { eventsApi.getById(id).then((r) => setItem(r.data)).catch(() => toast.error('Failed')) }, [id])
   const handleSubmit = async (data) => { setLoading(true); try { await eventsApi.update(id, data); toast.success('Updated!'); navigate('/events/list') } catch (e) { toast.error(e.message) } finally { setLoading(false) } }
   if (!item) return <LoadingSpinner />
-  return <div className="max-w-3xl"><PageHeader title="Edit Event" backTo="/events" /><EventForm defaultValues={item} onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Edit Event" backTo="/events" /><EventForm defaultValues={item} onSubmit={handleSubmit} loading={loading} /></div>
 }

@@ -253,7 +253,7 @@ export default function FoodsList() {
               onClick={() => photoInputRef.current?.click()}
               disabled={photoUploading}
               className="flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-semibold rounded-lg disabled:opacity-50 transition-all"
-              style={{ background: 'linear-gradient(135deg,#0a3d95,#072d6e)', boxShadow: '0 4px 10px rgba(2,132,199,0.25)' }}
+              style={{ background: 'linear-gradient(135deg,#0a3d95,#072d6e)', boxShadow: '0 4px 10px rgba(10,61,149,0.25)' }}
             >
               {photoUploading ? <Loader className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
               {photoUploading ? 'Uploading…' : 'Add Photo'}

@@ -349,7 +349,7 @@ export default function AdminUsers() {
   const canAddMore  = total < MAX_USERS
 
   return (
-    <div className="max-w-4xl animate-fade-in">
+    <div className="animate-fade-in">
       <PageHeader
         title="Users & Permissions"
         backTo="/settings"
