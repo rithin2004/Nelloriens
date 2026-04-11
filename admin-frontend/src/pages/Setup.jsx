@@ -1,0 +1,130 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { setupApi } from '../services/api'
+import { Shield, Copy, Check, Eye, EyeOff } from 'lucide-react'
+import toast from 'react-hot-toast'
+
+const P  = '#0a3d95'
+const PL = '#dce8fb'
+const PB = '#eef3fd'
+
+export default function Setup() {
+  const navigate = useNavigate()
+  const [step, setStep] = useState('form')  // 'form' | 'success'
+  const [loading, setLoading] = useState(false)
+  const [showSecret, setShowSecret] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [resetLink, setResetLink] = useState('')
+  const [form, setForm] = useState({ name: '', email: '', phone: '', secret: '' })
+
+  const set = (field) => (e) => setForm((p) => ({ ...p, [field]: e.target.value }))
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!form.name || !form.email || !form.secret) {
+      toast.error('Name, email and secret are required')
+      return
+    }
+    setLoading(true)
+    try {
+      const r = await setupApi.createSuperadmin(form)
+      setResetLink(r.data.resetLink)
+      setStep('success')
+      toast.success('Superadmin created!')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Setup failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(resetLink)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const inp = {
+    className: 'w-full px-4 py-2.5 text-sm rounded-xl focus:outline-none transition-all text-slate-700',
+    style: { background: '#FFFFFF', border: '1px solid #CBD5E1' },
+    onFocus: (e) => { e.target.style.borderColor = P; e.target.style.boxShadow = '0 0 0 3px rgba(10,61,149,0.1)' },
+    onBlur:  (e) => { e.target.style.borderColor = '#CBD5E1'; e.target.style.boxShadow = '' },
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg,#f0f4ff 0%,#e8f0fe 100%)' }}>
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="inline-flex w-16 h-16 rounded-2xl items-center justify-center mb-4"
+            style={{ background: `linear-gradient(135deg,${P},#072d6e)`, boxShadow: '0 8px 24px rgba(10,61,149,0.3)' }}>
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800">Initial Setup</h1>
+          <p className="text-sm text-slate-500 mt-1">Create the superadmin account to get started</p>
+        </div>
+
+        <div className="rounded-2xl p-8" style={{ background: '#FFFFFF', border: `1px solid ${PL}`, boxShadow: '0 8px 32px rgba(10,61,149,0.1)' }}>
+          {step === 'form' ? (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Name *</label>
+                <input {...inp} placeholder="Full name" value={form.name} onChange={set('name')} required />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Email *</label>
+                <input {...inp} type="email" placeholder="admin@example.com" value={form.email} onChange={set('email')} required />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
+                <input {...inp} placeholder="+91 XXXXX XXXXX" value={form.phone} onChange={set('phone')} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Setup Secret *</label>
+                <div className="relative">
+                  <input {...inp} type={showSecret ? 'text' : 'password'}
+                    placeholder="Enter the SETUP_SECRET from .env"
+                    value={form.secret} onChange={set('secret')} required
+                    className="w-full px-4 py-2.5 pr-10 text-sm rounded-xl focus:outline-none transition-all text-slate-700" />
+                  <button type="button" onClick={() => setShowSecret(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+              <button type="submit" disabled={loading}
+                className="w-full py-3 text-sm font-bold text-white rounded-xl transition-all disabled:opacity-50 mt-2"
+                style={{ background: `linear-gradient(135deg,${P},#072d6e)`, boxShadow: '0 4px 14px rgba(10,61,149,0.4)' }}>
+                {loading ? 'Creating…' : 'Create Superadmin'}
+              </button>
+            </form>
+          ) : (
+            <div className="space-y-5">
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                  <Check className="w-6 h-6 text-green-600" />
+                </div>
+                <h2 className="font-bold text-slate-800">Superadmin created!</h2>
+                <p className="text-sm text-slate-500 mt-1">Share this link so the user can set their password.</p>
+              </div>
+              <div className="p-3 rounded-xl text-xs font-mono break-all" style={{ background: PB, border: `1px solid ${PL}` }}>
+                {resetLink}
+              </div>
+              <div className="flex gap-2">
+                <button onClick={copyLink}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-all"
+                  style={{ background: copied ? '#DCFCE7' : PL, color: copied ? '#15803D' : P, border: `1px solid ${copied ? '#BBF7D0' : PL}` }}>
+                  {copied ? <><Check className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy Link</>}
+                </button>
+                <button onClick={() => navigate('/login')}
+                  className="flex-1 py-2.5 text-sm font-semibold text-white rounded-xl transition-all"
+                  style={{ background: `linear-gradient(135deg,${P},#072d6e)` }}>
+                  Go to Login
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

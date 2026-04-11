@@ -47,7 +47,7 @@ function LeadDetailPopup({ lead, onClose, onStatusChange, onDelete }) {
   const handleStatus = async (status) => {
     setUpdating(true)
     try {
-      await leadsApi.updateStatus(lead._id, { status })
+      await leadsApi.update(lead._id, { status })
       toast.success('Status updated')
       onStatusChange(lead._id, status)
     } catch { toast.error('Failed to update') }
