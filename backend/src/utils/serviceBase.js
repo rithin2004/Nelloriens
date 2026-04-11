@@ -122,9 +122,3 @@ export class CategoryService {
   }
 }
 
-/** HTTP error handler for controllers */
-export function handleErr(res, err) {
-  const status = err.status || 500
-  if (status >= 500) console.error('[ERROR]', err)
-  return res.status(status).json({ success: false, message: err.message || 'Internal server error' })
-}

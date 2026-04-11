@@ -12,7 +12,7 @@ export const dashboardService = {
         return [col, snap.data().count]
       })
     )
-    const leadsSnap = await db.collection('contact_messages').count().get()
+    const leadsSnap = await db.collection('leads').count().get()
     return {
       ...Object.fromEntries(counts),
       leads: leadsSnap.data().count,
@@ -39,7 +39,7 @@ export const dashboardService = {
   },
 
   async getRecentLeads() {
-    const snap = await db.collection('contact_messages').orderBy('createdAt', 'desc').limit(5).get()
+    const snap = await db.collection('leads').orderBy('createdAt', 'desc').limit(5).get()
     return snap.docs.map(d => ({ _id: d.id, ...d.data() }))
   },
 
@@ -49,15 +49,15 @@ export const dashboardService = {
   },
 
   async getFeatured() {
-    const [news, events, tourism] = await Promise.all([
+    const [news, events, movies] = await Promise.all([
       db.collection('news').where('featured', '==', true).limit(5).get(),
       db.collection('events').where('featured', '==', true).limit(5).get(),
-      db.collection('tourism').where('featured', '==', true).limit(5).get(),
+      db.collection('movies').where('featured', '==', true).limit(5).get(),
     ])
     return {
-      news:    news.docs.map(d    => ({ _id: d.id, ...d.data() })),
-      events:  events.docs.map(d  => ({ _id: d.id, ...d.data() })),
-      tourism: tourism.docs.map(d => ({ _id: d.id, ...d.data() })),
+      news:   news.docs.map(d   => ({ _id: d.id, ...d.data() })),
+      events: events.docs.map(d => ({ _id: d.id, ...d.data() })),
+      movies: movies.docs.map(d => ({ _id: d.id, ...d.data() })),
     }
   },
 }

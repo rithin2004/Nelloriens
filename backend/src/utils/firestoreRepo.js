@@ -3,12 +3,19 @@
  * Wraps common Firestore operations so every module repository
  * uses a consistent, tested data-access layer.
  */
-import { db } from '../config/firebase.js'
+import { db }     from '../config/firebase.js'
+import { nextId } from './sequentialId.js'
 
 export class FirestoreRepo {
-  constructor(collection) {
-    this.col = collection
-    this.ref = db.collection(collection)
+  /**
+   * @param {string} collection  Firestore collection name
+   * @param {object} opts
+   * @param {string} [opts.idPrefix]  If set, IDs are generated as PREFIX00001 via sequential counter
+   */
+  constructor(collection, { idPrefix } = {}) {
+    this.col      = collection
+    this.ref      = db.collection(collection)
+    this.idPrefix = idPrefix || null
   }
 
   // ── Read ─────────────────────────────────────────────────────────────────
@@ -58,7 +65,14 @@ export class FirestoreRepo {
   async create(data) {
     const now     = new Date().toISOString()
     const payload = { ...data, createdAt: now, updatedAt: now }
-    const docRef  = await this.ref.add(payload)
+
+    if (this.idPrefix) {
+      const id = await nextId(this.idPrefix)
+      await this.ref.doc(id).set(payload)
+      return { _id: id, ...payload }
+    }
+
+    const docRef = await this.ref.add(payload)
     return { _id: docRef.id, ...payload }
   }
 

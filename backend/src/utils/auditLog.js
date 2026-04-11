@@ -9,7 +9,7 @@ export async function log(req, action, module, targetId = null, meta = {}) {
     await db.collection('audit_logs').add({
       uid:       req.user?.uid    || null,
       email:     req.user?.email  || null,
-      role:      req.user?.role   || null,
+      role:      req.user?.roleName || null,
       action,               // 'create' | 'update' | 'delete' | 'read' | 'login' etc.
       module,               // 'news' | 'jobs' | 'settings' etc.
       targetId:  targetId || null,

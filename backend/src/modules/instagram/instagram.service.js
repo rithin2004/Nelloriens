@@ -1,6 +1,6 @@
-import { instagramRepo }      from './instagram.repository.js'
-import { badReq, notFound }  from '../../utils/serviceBase.js'
-import { db }                from '../../config/firebase.js'
+import { instagramRepo }     from './instagram.repository.js'
+import { badReq, notFound } from '../../utils/serviceBase.js'
+import { db }               from '../../config/firebase.js'
 
 const IG_CONFIG_DOC = 'config/instagram'
 
@@ -10,15 +10,57 @@ async function getConfig() {
 }
 
 export const instagramService = {
+  // ── Status / Settings ──────────────────────────────────────────────────
+
   async getStatus() {
     const cfg = await getConfig()
+    return {
+      connected:   !!cfg.accessToken,
+      username:    cfg.username    || null,
+      tokenExpiry: cfg.tokenExpiry || null,
+      lastSync:    cfg.lastSync    || null,
+    }
+  },
+
+  async getSettings() {
+    const cfg = await getConfig()
+    // Never expose the raw access token in the response
     return {
       connected:    !!cfg.accessToken,
       username:     cfg.username     || null,
       tokenExpiry:  cfg.tokenExpiry  || null,
       lastSync:     cfg.lastSync     || null,
+      manualMode:   !cfg.accessToken,     // manual posts enabled when not connected
     }
   },
+
+  async connect(data) {
+    const { accessToken, username } = data
+    if (!accessToken?.trim()) badReq('accessToken is required')
+    const now     = new Date().toISOString()
+    const expiry  = new Date(Date.now() + 5184000 * 1000).toISOString() // ~60 days default
+    const payload = {
+      accessToken:  accessToken.trim(),
+      username:     username?.trim() || '',
+      tokenExpiry:  expiry,
+      connectedAt:  now,
+      updatedAt:    now,
+    }
+    await db.doc(IG_CONFIG_DOC).set(payload, { merge: true })
+    return { connected: true, username: payload.username, tokenExpiry: payload.tokenExpiry }
+  },
+
+  async disconnect() {
+    await db.doc(IG_CONFIG_DOC).set({
+      accessToken:  null,
+      username:     null,
+      tokenExpiry:  null,
+      updatedAt:    new Date().toISOString(),
+    }, { merge: true })
+    return { connected: false }
+  },
+
+  // ── Posts ──────────────────────────────────────────────────────────────
 
   async getPosts() {
     return instagramRepo.findAll({ orderBy: 'timestamp', order: 'desc' })
@@ -28,9 +70,10 @@ export const instagramService = {
     const cfg = await getConfig()
     if (!cfg.accessToken) badReq('Instagram not connected. Set access token first.')
 
-    // Fetch from Instagram Graph API
-    const url = `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&access_token=${cfg.accessToken}`
-    const resp = await fetch(url)
+    const syncUrl = new URL('https://graph.instagram.com/me/media')
+    syncUrl.searchParams.set('fields', 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp')
+    syncUrl.searchParams.set('access_token', cfg.accessToken)
+    const resp = await fetch(syncUrl.toString())
     if (!resp.ok) badReq('Failed to fetch Instagram posts')
     const json = await resp.json()
     if (json.error) badReq(json.error.message || 'Instagram API error')
@@ -58,6 +101,21 @@ export const instagramService = {
     return { synced: posts.length }
   },
 
+  // Manual post management (when Instagram not connected)
+  async createPost(data) {
+    const cfg = await getConfig()
+    if (cfg.accessToken) badReq('Instagram is connected — use sync to import posts')
+    return instagramRepo.create(data)
+  },
+
+  async updatePost(id, data) {
+    const cfg = await getConfig()
+    if (cfg.accessToken) badReq('Instagram is connected — manual editing is disabled')
+    const existing = await instagramRepo.findById(id)
+    if (!existing) notFound('Post not found')
+    return instagramRepo.update(id, data)
+  },
+
   async hidePost(id) {
     const item = await instagramRepo.findById(id)
     if (!item) notFound('Post not found')
@@ -68,8 +126,10 @@ export const instagramService = {
     const cfg = await getConfig()
     if (!cfg.accessToken) badReq('Instagram not connected')
 
-    const url  = `https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${cfg.accessToken}`
-    const resp = await fetch(url)
+    const refreshUrl = new URL('https://graph.instagram.com/refresh_access_token')
+    refreshUrl.searchParams.set('grant_type', 'ig_refresh_token')
+    refreshUrl.searchParams.set('access_token', cfg.accessToken)
+    const resp = await fetch(refreshUrl.toString())
     if (!resp.ok) badReq('Failed to refresh token')
     const json = await resp.json()
     if (json.error) badReq(json.error.message || 'Instagram token refresh failed')

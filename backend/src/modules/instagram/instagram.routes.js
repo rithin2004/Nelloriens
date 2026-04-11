@@ -1,17 +1,24 @@
-import { Router } from 'express'
-import { authenticate as auth } from '../../middlewares/auth.js'
-import { permit }               from '../../middlewares/permissions.js'
-import { instagramCtrl }        from './instagram.controller.js'
+import { Router }        from 'express'
+import { authenticate }  from '../../middlewares/auth.js'
+import { permit }        from '../../middlewares/permissions.js'
+import { asyncHandler }  from '../../utils/asyncHandler.js'
+import { instagramCtrl } from './instagram.controller.js'
 
-const router = new Router()
+const router = Router()
+const a = asyncHandler
 
-// Static routes before /:id
-router.get ('/status',        auth, permit('instagram','read'),   instagramCtrl.getStatus)
-router.get ('/posts',         auth, permit('instagram','read'),   instagramCtrl.getPosts)
-router.post('/sync',          auth, permit('instagram','create'), instagramCtrl.sync)
-router.post('/refresh-token', auth, permit('instagram','update'), instagramCtrl.refreshToken)
+// Settings (connect / disconnect Instagram account)
+router.get   ('/settings/get',        authenticate, permit('instagram','read'),   a(instagramCtrl.getSettings))
+router.post  ('/settings/connect',    authenticate, permit('instagram','update'), a(instagramCtrl.connect))
+router.delete('/settings/disconnect', authenticate, permit('instagram','update'), a(instagramCtrl.disconnect))
 
-// Dynamic
-router.delete('/:id', auth, permit('instagram','delete'), instagramCtrl.hidePost)
+// Status & posts
+router.get   ('/status',          authenticate, permit('instagram','read'),   a(instagramCtrl.getStatus))
+router.get   ('/posts/list',                                                   a(instagramCtrl.getPosts))
+router.post  ('/posts/create',    authenticate, permit('instagram','create'), a(instagramCtrl.createPost))
+router.put   ('/posts/update/:id',authenticate, permit('instagram','update'), a(instagramCtrl.updatePost))
+router.post  ('/sync',            authenticate, permit('instagram','create'), a(instagramCtrl.sync))
+router.post  ('/refresh-token',   authenticate, permit('instagram','update'), a(instagramCtrl.refreshToken))
+router.delete('/delete/:id',      authenticate, permit('instagram','delete'), a(instagramCtrl.hidePost))
 
 export default router

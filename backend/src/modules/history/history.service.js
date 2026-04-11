@@ -1,5 +1,5 @@
 import { historyRepo }               from './history.repository.js'
-import { CrudService, handleErr, badReq } from '../../utils/serviceBase.js'
+import { CrudService, badReq } from '../../utils/serviceBase.js'
 import { db }                        from '../../config/firebase.js'
 
 export const historyService = new CrudService(historyRepo, { entityName: 'History', orderBy: 'order', order: 'asc' })

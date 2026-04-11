@@ -2,10 +2,9 @@ import { FirestoreRepo } from '../../utils/firestoreRepo.js'
 import { db } from '../../config/firebase.js'
 
 class NewsRepository extends FirestoreRepo {
-  constructor() { super('news') }
+  constructor() { super('news', { idPrefix: 'NEWS' }) }
 
   async searchByTitle(query) {
-    // Firestore prefix search (case-sensitive, returns all then filter)
     const snap = await this.ref.orderBy('publishedAt', 'desc').get()
     const q    = query.toLowerCase()
     return snap.docs
@@ -19,11 +18,11 @@ class NewsRepository extends FirestoreRepo {
 }
 
 class NewsCategoryRepository extends FirestoreRepo {
-  constructor() { super('news_categories') }
+  constructor() { super('news_categories', { idPrefix: 'NCT' }) }
 }
 
 class BreakingPointRepository extends FirestoreRepo {
-  constructor() { super('breaking_points') }
+  constructor() { super('breaking_points', { idPrefix: 'BPT' }) }
 
   async findAllOrdered() {
     return this.findAll({ orderBy: 'order', order: 'asc' })

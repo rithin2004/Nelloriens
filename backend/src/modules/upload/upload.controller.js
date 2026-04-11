@@ -1,33 +1,30 @@
-import { uploadService } from './upload.service.js'
-import { handleErr }     from '../../utils/serviceBase.js'
-import multer            from 'multer'
+import multer from 'multer'
+import { uploadService, getModuleConfig } from './upload.service.js'
+import { badReq } from '../../utils/serviceBase.js'
 
-const upload = multer({
+// Memory storage — file.buffer available for magic byte check
+const multerUpload = multer({
   storage: multer.memoryStorage(),
-  limits:  { fileSize: 10 * 1024 * 1024 }, // 10MB
-  fileFilter(_req, file, cb) {
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
-      cb(null, true)
-    } else {
-      cb(new Error('Only images and PDFs are allowed'))
-    }
-  },
+  limits:  { fileSize: 50 * 1024 * 1024 }, // 50MB hard cap; per-module limits in service
 })
 
-export const uploadMiddleware = upload.single('file')
+export const uploadMiddleware = multerUpload.single('file')
 
 export const uploadCtrl = {
   async upload(req, res) {
-    try {
-      const data = await uploadService.upload(req.file)
-      res.status(201).json({ success: true, data })
-    } catch (err) { handleErr(res, err) }
+    const { module: moduleName } = req.params
+    if (!moduleName) badReq('module param is required')
+
+    const config = getModuleConfig(moduleName)
+    if (!config) badReq(`Unknown upload module: ${moduleName}`)
+
+    const result = await uploadService.upload(moduleName, req.file)
+    res.json({ success: true, url: result.url, fileName: result.fileName, size: result.size, mimeType: result.mimeType })
   },
 
   async deleteFile(req, res) {
-    try {
-      await uploadService.deleteByUrl(req.body?.url)
-      res.json({ success: true, message: 'Deleted' })
-    } catch (err) { handleErr(res, err) }
+    const { url } = req.body
+    await uploadService.deleteByUrl(url)
+    res.json({ success: true, message: 'File deleted' })
   },
 }

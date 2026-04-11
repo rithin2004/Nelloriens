@@ -1,27 +1,30 @@
-import { Router } from 'express'
+import { Router }       from 'express'
 import { authenticate } from '../../middlewares/auth.js'
 import { permit }       from '../../middlewares/permissions.js'
-import * as c from './jobs.controller.js'
+import { asyncHandler } from '../../utils/asyncHandler.js'
+import * as c           from './jobs.controller.js'
 
 const router = Router()
 const M = 'jobs'
+const a = asyncHandler
 
-// Static sub-paths first
-router.get   ('/categories',         authenticate, permit(M,'read'),   c.listCategories)
-router.post  ('/categories',         authenticate, permit(M,'create'), c.createCategory)
-router.put   ('/categories/:id',     authenticate, permit(M,'update'), c.updateCategory)
-router.delete('/categories/:id',     authenticate, permit(M,'delete'), c.deleteCategory)
+// Categories
+router.get   ('/categories/list',                          a(c.listCategories))
+router.post  ('/categories/create',       authenticate, permit(M,'create'), a(c.createCategory))
+router.put   ('/categories/update/:id',   authenticate, permit(M,'update'), a(c.updateCategory))
+router.delete('/categories/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteCategory))
 
-router.get   ('/locations',          authenticate, permit(M,'read'),   c.listLocations)
-router.post  ('/locations',          authenticate, permit(M,'create'), c.createLocation)
-router.put   ('/locations/:id',      authenticate, permit(M,'update'), c.updateLocation)
-router.delete('/locations/:id',      authenticate, permit(M,'delete'), c.deleteLocation)
+// Locations
+router.get   ('/locations/list',                          a(c.listLocations))
+router.post  ('/locations/create',        authenticate, permit(M,'create'), a(c.createLocation))
+router.put   ('/locations/update/:id',    authenticate, permit(M,'update'), a(c.updateLocation))
+router.delete('/locations/delete/:id',    authenticate, permit(M,'delete'), a(c.deleteLocation))
 
-// Dynamic :id last
-router.get   ('/',     authenticate, permit(M,'read'),   c.list)
-router.post  ('/',     authenticate, permit(M,'create'), c.create)
-router.get   ('/:id',  authenticate, permit(M,'read'),   c.getById)
-router.put   ('/:id',  authenticate, permit(M,'update'), c.update)
-router.delete('/:id',  authenticate, permit(M,'delete'), c.remove)
+// Jobs CRUD
+router.get   ('/list',                   a(c.list))
+router.get   ('/get/:id',                a(c.getById))
+router.post  ('/create',     authenticate, permit(M,'create'), a(c.create))
+router.put   ('/update/:id', authenticate, permit(M,'update'), a(c.update))
+router.delete('/delete/:id', authenticate, permit(M,'delete'), a(c.remove))
 
 export default router

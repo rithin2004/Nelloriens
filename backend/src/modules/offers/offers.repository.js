@@ -1,2 +1,3 @@
 import { FirestoreRepo } from '../../utils/firestoreRepo.js'
-export const offersRepo = new FirestoreRepo('offers')
+
+export const offersRepo = new FirestoreRepo('offers', { idPrefix: 'OFR' })

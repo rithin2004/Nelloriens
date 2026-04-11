@@ -1,34 +1,36 @@
-import { Router }      from 'express'
+import { Router }       from 'express'
 import { authenticate } from '../../middlewares/auth.js'
 import { permit }       from '../../middlewares/permissions.js'
+import { asyncHandler } from '../../utils/asyncHandler.js'
 import * as c           from './foods.controller.js'
 
 const router = Router()
 const M = 'foods'
+const a = asyncHandler
 
-// ── Photos — static before /:id ───────────────────────────────────────────
-router.get   ('/photos',         authenticate, permit(M,'read'),   c.listPhotos)
-router.post  ('/photos',         authenticate, permit(M,'create'), c.addPhoto)
-router.patch ('/photos/reorder', authenticate, permit(M,'update'), c.reorderPhotos)
-router.delete('/photos/:id',     authenticate, permit(M,'delete'), c.deletePhoto)
+// Photos
+router.get   ('/photos/list',                          a(c.listPhotos))
+router.post  ('/photos/create',       authenticate, permit(M,'create'), a(c.addPhoto))
+router.patch ('/photos/reorder',      authenticate, permit(M,'update'), a(c.reorderPhotos))
+router.delete('/photos/delete/:id',   authenticate, permit(M,'delete'), a(c.deletePhoto))
 
-// ── Varieties ─────────────────────────────────────────────────────────────
-router.get   ('/varieties',      authenticate, permit(M,'read'),   c.listVarieties)
-router.post  ('/varieties',      authenticate, permit(M,'create'), c.createVariety)
-router.put   ('/varieties/:id',  authenticate, permit(M,'update'), c.updateVariety)
-router.delete('/varieties/:id',  authenticate, permit(M,'delete'), c.deleteVariety)
+// Varieties
+router.get   ('/varieties/list',                          a(c.listVarieties))
+router.post  ('/varieties/create',       authenticate, permit(M,'create'), a(c.createVariety))
+router.put   ('/varieties/update/:id',   authenticate, permit(M,'update'), a(c.updateVariety))
+router.delete('/varieties/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteVariety))
 
-// ── Sweets ────────────────────────────────────────────────────────────────
-router.get   ('/sweets',         authenticate, permit(M,'read'),   c.listSweets)
-router.post  ('/sweets',         authenticate, permit(M,'create'), c.createSweet)
-router.put   ('/sweets/:id',     authenticate, permit(M,'update'), c.updateSweet)
-router.delete('/sweets/:id',     authenticate, permit(M,'delete'), c.deleteSweet)
+// Sweets
+router.get   ('/sweets/list',                          a(c.listSweets))
+router.post  ('/sweets/create',       authenticate, permit(M,'create'), a(c.createSweet))
+router.put   ('/sweets/update/:id',   authenticate, permit(M,'update'), a(c.updateSweet))
+router.delete('/sweets/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteSweet))
 
-// ── Foods CRUD ────────────────────────────────────────────────────────────
-router.get   ('/',    authenticate, permit(M,'read'),   c.list)
-router.post  ('/',    authenticate, permit(M,'create'), c.create)
-router.get   ('/:id', authenticate, permit(M,'read'),   c.getById)
-router.put   ('/:id', authenticate, permit(M,'update'), c.update)
-router.delete('/:id', authenticate, permit(M,'delete'), c.remove)
+// Foods CRUD
+router.get   ('/list',                   a(c.list))
+router.get   ('/get/:id',                a(c.getById))
+router.post  ('/create',     authenticate, permit(M,'create'), a(c.create))
+router.put   ('/update/:id', authenticate, permit(M,'update'), a(c.update))
+router.delete('/delete/:id', authenticate, permit(M,'delete'), a(c.remove))
 
 export default router

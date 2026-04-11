@@ -1,15 +1,17 @@
-import { Router }      from 'express'
+import { Router }       from 'express'
 import { authenticate } from '../../middlewares/auth.js'
 import { permit }       from '../../middlewares/permissions.js'
+import { asyncHandler } from '../../utils/asyncHandler.js'
 import * as c           from './offers.controller.js'
 
 const router = Router()
 const M = 'offers'
+const a = asyncHandler
 
-router.get   ('/',    authenticate, permit(M,'read'),   c.list)
-router.post  ('/',    authenticate, permit(M,'create'), c.create)
-router.get   ('/:id', authenticate, permit(M,'read'),   c.getById)
-router.put   ('/:id', authenticate, permit(M,'update'), c.update)
-router.delete('/:id', authenticate, permit(M,'delete'), c.remove)
+router.get   ('/list',                   a(c.list))
+router.get   ('/get/:id',                a(c.getById))
+router.post  ('/create',     authenticate, permit(M,'create'), a(c.create))
+router.put   ('/update/:id', authenticate, permit(M,'update'), a(c.update))
+router.delete('/delete/:id', authenticate, permit(M,'delete'), a(c.remove))
 
 export default router
