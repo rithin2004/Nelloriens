@@ -5,6 +5,7 @@ import AdminLayout from '../components/layout/Layout'
 import Login from '../pages/Login'
 import Setup from '../pages/Setup'
 import Dashboard from '../pages/Dashboard'
+import NotFound from '../pages/NotFound'
 
 // News
 import NewsList from '../pages/news/NewsList'
@@ -89,15 +90,15 @@ import SponsorshipsEdit from '../pages/sponsorships/SponsorshipsEdit'
 // Instagram
 import InstagramManager from '../pages/instagram/InstagramManager'
 
+// Activity
+import ActivityLog from '../pages/ActivityLog'
+
 // Profile
 import ProfilePage from '../pages/profile/ProfilePage'
 
 // Leads
 import LeadsList from '../pages/leads/LeadsList'
 
-// Settings
-import Settings from '../pages/settings/Settings'
-import AuditLogs from '../pages/settings/AuditLogs'
 
 // Users
 import UsersList from '../pages/users/UsersList'
@@ -230,17 +231,20 @@ export default function AppRoutes() {
 
       {/* Users */}
       <Route path="/users/list"       element={<PL><UsersList /></PL>} />
-      <Route path="/users/create"     element={<PL><UsersCreate /></PL>} />
-      <Route path="/users/update/:id" element={<PL><UsersEdit /></PL>} />
+      <Route path="/users/create"     element={<Navigate to="/users/list" replace />} />
+      <Route path="/users/update/:id" element={<Navigate to="/users/list" replace />} />
 
       {/* Roles */}
       <Route path="/roles/list"       element={<PL><RolesList /></PL>} />
-      <Route path="/roles/create"     element={<PL><RolesCreate /></PL>} />
-      <Route path="/roles/update/:id" element={<PL><RolesEdit /></PL>} />
+      <Route path="/roles/create"     element={<Navigate to="/roles/list" replace />} />
+      <Route path="/roles/update/:id" element={<Navigate to="/roles/list" replace />} />
 
-      {/* Settings */}
-      <Route path="/settings"            element={<PL><Settings /></PL>} />
-      <Route path="/settings/audit-logs" element={<PL><AuditLogs /></PL>} />
+      {/* Settings → redirect to Company since GA ID moved there */}
+      <Route path="/settings"            element={<Navigate to="/company" replace />} />
+      <Route path="/settings/audit-logs" element={<Navigate to="/activity" replace />} />
+
+      {/* Activity */}
+      <Route path="/activity" element={<PL><ActivityLog /></PL>} />
 
       {/* Profile */}
       <Route path="/profile" element={<PL><ProfilePage /></PL>} />
@@ -264,7 +268,7 @@ export default function AppRoutes() {
       <Route path="/users"        element={<Navigate to="/users/list" replace />} />
       <Route path="/roles"        element={<Navigate to="/roles/list" replace />} />
 
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<PL><NotFound /></PL>} />
     </Routes>
   )
 }

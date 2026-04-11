@@ -6,6 +6,7 @@ export default function JobsCategories() {
     <CategoryManager
       title="Job Categories"
       entityLabel="Category"
+      backTo="/jobs"
       getAll={() => jobsApi.getCategories()}
       create={(data) => jobsApi.createCategory(data)}
       update={(id, data) => jobsApi.updateCategory(id, data)}

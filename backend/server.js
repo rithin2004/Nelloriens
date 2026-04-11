@@ -36,6 +36,7 @@ import usersRoutes        from './src/modules/users/users.routes.js'
 import rolesRoutes        from './src/modules/roles/roles.routes.js'
 import companyRoutes      from './src/modules/company/company.routes.js'
 import leadsRoutes        from './src/modules/leads/leads.routes.js'
+import { startArchivalScheduler } from './src/utils/archival.js'
 
 const app = express()
 
@@ -142,4 +143,5 @@ const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
   console.log(`✓ Nelloriens API running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`)
   console.log(`✓ Swagger UI: http://localhost:${PORT}/docs`)
+  startArchivalScheduler()
 })

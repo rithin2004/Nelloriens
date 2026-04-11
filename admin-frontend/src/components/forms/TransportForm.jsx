@@ -159,7 +159,7 @@ export default function TransportForm({ defaultValues, onSubmit, loading }) {
             {/* Common to all */}
             <div><label className={field}>Contact Phone</label><input {...register('contactPhone')} className={input} /></div>
             <div><label className={field}>Description</label><RichTextEditor value={description} onChange={setDescription} /></div>
-            <ImageUpload label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
+            <ImageUpload module="transport" label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
           </div>
 
           {/* Route & Fare — shown for train/bus */}

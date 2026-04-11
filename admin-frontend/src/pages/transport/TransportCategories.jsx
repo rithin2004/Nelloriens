@@ -6,6 +6,7 @@ export default function TransportCategories() {
     <CategoryManager
       title="Transport Categories"
       entityLabel="Category"
+      backTo="/transport"
       getAll={() => transportApi.getCategories()}
       create={(data) => transportApi.createCategory(data)}
       update={(id, data) => transportApi.updateCategory(id, data)}

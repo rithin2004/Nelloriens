@@ -7,7 +7,8 @@ import { usersCtrl }    from './users.controller.js'
 const router = Router()
 const a = asyncHandler
 
-router.get   ('/me',                authenticate,                          a(usersCtrl.me))   // own profile — no permission required
+router.get   ('/me',                authenticate,                          a(usersCtrl.me))       // own profile — no permission required
+router.patch ('/me',                authenticate,                          a(usersCtrl.updateMe)) // update own name/phone
 router.get   ('/list',              authenticate, permit('users','read'),   a(usersCtrl.list))
 router.get   ('/get/:id',           authenticate, permit('users','read'),   a(usersCtrl.getById))
 router.post  ('/create',            authenticate, permit('users','create'), a(usersCtrl.create))

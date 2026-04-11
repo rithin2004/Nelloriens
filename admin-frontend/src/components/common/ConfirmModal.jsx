@@ -1,10 +1,12 @@
+import { createPortal } from 'react-dom'
+
 export default function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, loading }) {
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(4px)' }}
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{ background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(4px)', zIndex: 9999 }}
     >
       <div
         className="w-full max-w-sm rounded-2xl p-6 animate-slide-up"
@@ -31,6 +33,7 @@ export default function ConfirmModal({ isOpen, title, message, onConfirm, onCanc
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

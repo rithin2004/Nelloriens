@@ -51,7 +51,7 @@ export default function EventForm({ defaultValues, onSubmit, loading }) {
           </div>
         </div>
         <div><label className={field}>Venue Name *</label><input {...register('venueName', { required: 'Required' })} className={input} /></div>
-        <ImageUpload label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="events" label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
         <div><label className={field}>Description *</label><RichTextEditor value={description} onChange={setDescription} /></div>
       </div>
 

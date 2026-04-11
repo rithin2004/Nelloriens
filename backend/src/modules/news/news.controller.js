@@ -84,6 +84,6 @@ export async function deleteBreakingPoint(req, res) {
 }
 
 export async function reorderBreakingPoints(req, res) {
-  await svc.reorderBreakingPoints(req.body.items)
+  await svc.reorderBreakingPoints(req.body.ids)
   res.json({ success: true, message: 'Reordered' })
 }

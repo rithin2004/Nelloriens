@@ -5,6 +5,7 @@ import { Eye, EyeOff, Loader, ArrowLeft, Mail } from 'lucide-react'
 import { sendPasswordResetEmail } from 'firebase/auth'
 import { auth } from '../utils/firebase'
 import { useAuth } from '../hooks/useAuth'
+import { companyApi } from '../services/api'
 import toast from 'react-hot-toast'
 
 export default function Login() {
@@ -23,6 +24,13 @@ export default function Login() {
     setError('')
     try {
       await login(email, password)
+      try {
+        const r = await companyApi.get()
+        if (!r.data?._exists) {
+          navigate('/onboarding/company', { replace: true })
+          return
+        }
+      } catch {}
       navigate('/dashboard')
     } catch {
       setError('Invalid email or password')

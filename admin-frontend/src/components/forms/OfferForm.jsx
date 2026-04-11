@@ -31,7 +31,7 @@ export default function OfferForm({ defaultValues, onSubmit, loading }) {
             {['Food', 'Shopping', 'Medical', 'Education', 'Other'].map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <ImageUpload label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="offers" label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
         <div><label className={field}>Description *</label><textarea {...register('description', { required: true })} rows={3} className={input} /></div>
         <div className="grid grid-cols-2 gap-4">
           <div>

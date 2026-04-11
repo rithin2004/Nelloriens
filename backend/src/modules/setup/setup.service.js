@@ -66,9 +66,6 @@ export async function createSuperadmin(data) {
     displayName: name.trim(),
   })
 
-  // ── Generate password set link ─────────────────────────────────────────
-  const resetLink = await auth.generatePasswordResetLink(email.trim())
-
   // ── Create superadmin user doc at USR00001 ─────────────────────────────
   await db.collection('users').doc(SUPERADMIN_USER_ID).set({
     firebaseUid: userRecord.uid,
@@ -82,9 +79,10 @@ export async function createSuperadmin(data) {
     updatedAt:   now,
   })
 
+  // Password reset email is sent by the frontend via Firebase client SDK
+  // (sendPasswordResetEmail) — no link is generated or exposed here.
   return {
     user: { _id: SUPERADMIN_USER_ID, email: email.trim(), name: name.trim() },
-    resetLink,
   }
 }
 

@@ -6,6 +6,7 @@ export default function UpdatesCategories() {
     <CategoryManager
       title="Updates Categories"
       entityLabel="Category"
+      backTo="/updates"
       getAll={() => updatesApi.getCategories()}
       create={(data) => updatesApi.createCategory(data)}
       update={(id, data) => updatesApi.updateCategory(id, data)}

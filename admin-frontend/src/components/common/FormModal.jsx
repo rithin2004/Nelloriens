@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 export default function FormModal({ isOpen, onClose, title, subtitle, children, maxWidth = 'max-w-2xl' }) {
   useEffect(() => {
@@ -16,10 +17,10 @@ export default function FormModal({ isOpen, onClose, title, subtitle, children, 
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(6px)' }}
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{ background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(6px)', zIndex: 9999 }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
@@ -48,6 +49,7 @@ export default function FormModal({ isOpen, onClose, title, subtitle, children, 
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

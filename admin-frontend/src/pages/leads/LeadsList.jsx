@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { leadsApi } from '../../services/api'
+import { leadsApi, companyApi } from '../../services/api'
 import { useDebounce } from '../../hooks/useDebounce'
 import PageHeader from '../../components/common/PageHeader'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -188,7 +188,7 @@ function exportCSV(data) {
   URL.revokeObjectURL(url)
 }
 
-function exportPDF(data) {
+function exportPDF(data, companyName = 'Admin') {
   const rows = data.map((l) => `
     <tr>
       <td>${l.name || '—'}</td>
@@ -212,7 +212,7 @@ function exportPDF(data) {
       tr:nth-child(even) td { background: #eef3fd; }
       @media print { body { padding: 0; } }
     </style></head><body>
-    <h2>Nelloriens — Leads Report</h2>
+    <h2>${companyName} — Leads Report</h2>
     <p>Exported on ${new Date().toLocaleString()} · Total: ${data.length} leads</p>
     <table>
       <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Subject</th><th>Message</th><th>Status</th><th>Date</th></tr></thead>
@@ -227,6 +227,11 @@ function exportPDF(data) {
 export default function LeadsList() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [companyName, setCompanyName] = useState('Admin')
+
+  useEffect(() => {
+    companyApi.get().then((r) => { if (r.data?.name) setCompanyName(r.data.name) }).catch(() => {})
+  }, [])
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
@@ -269,7 +274,7 @@ export default function LeadsList() {
       const r = await leadsApi.getAll({ limit: 9999, search: debouncedSearch, status: status || undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined })
       const allData = r.data.items || r.data || []
       if (format === 'csv') exportCSV(allData)
-      else exportPDF(allData)
+      else exportPDF(allData, companyName)
     } catch { toast.error('Export failed') }
     finally { setExporting(false) }
   }
@@ -321,7 +326,7 @@ export default function LeadsList() {
             id="search-leads" name="search" autoComplete="off"
             value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search name, email, message..."
-            className="pl-9 pr-3 py-2 text-sm rounded-lg focus:outline-none w-64 transition-all text-slate-700"
+            className="pl-9 pr-3 py-2 text-sm rounded-lg focus:outline-none w-full sm:w-64 transition-all text-slate-700"
             style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
           />
         </div>

@@ -3,11 +3,11 @@ import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Newspaper, Briefcase, GraduationCap, Trophy,
   UtensilsCrossed, Landmark, Hotel, CalendarDays, Film,
-  Bus, Tag, MapPin, Phone, Bell, Megaphone, Heart,
-  ChevronLeft, ChevronRight, Inbox, Zap,
+  Bus, Tag, MapPin, Bell, Megaphone, Heart,
+  ChevronLeft, ChevronRight, Inbox, Zap, Building2, Users,
 } from 'lucide-react'
 import { InstagramIcon } from '../common/SocialIcon'
-import { settingsApi } from '../../services/api'
+import { settingsApi, companyApi } from '../../services/api'
 
 const P = '#0a3d95'
 
@@ -44,12 +44,18 @@ const navGroups = [
   {
     label: 'Manage',
     items: [
-      { label: 'Contact',      to: '/contact/list',   icon: Phone },
-      { label: 'Leads',        to: '/leads',          icon: Inbox },
-      { label: 'Updates',      to: '/updates/list',   icon: Bell },
-      { label: 'Ads',          to: '/ads/list',       icon: Megaphone },
+      { label: 'Company',      to: '/company',           icon: Building2 },
+      { label: 'Leads',        to: '/leads',             icon: Inbox },
+      { label: 'Updates',      to: '/updates/list',      icon: Bell },
+      { label: 'Ads',          to: '/ads/list',          icon: Megaphone },
       { label: 'Sponsorships', to: '/sponsorships/list', icon: Heart },
-      { label: 'Instagram',    to: '/instagram',      icon: (p) => <InstagramIcon {...p} /> },
+      { label: 'Instagram',    to: '/instagram',         icon: (p) => <InstagramIcon {...p} /> },
+    ],
+  },
+  {
+    label: 'Admin',
+    items: [
+      { label: 'Users', to: '/users/list', icon: Users },
     ],
   },
 ]
@@ -115,10 +121,14 @@ export function NavGroups({ isOpen }) {
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(true)
   const [logoUrl, setLogoUrl] = useState('')
+  const [companyName, setCompanyName] = useState('Nelloriens')
 
   useEffect(() => {
     settingsApi.getSiteConfig()
       .then((r) => { if (r.data?.logoUrl) setLogoUrl(r.data.logoUrl) })
+      .catch(() => {})
+    companyApi.get()
+      .then((r) => { if (r.data?.name) { setCompanyName(r.data.name); if (r.data.logoUrl) setLogoUrl(r.data.logoUrl) } })
       .catch(() => {})
   }, [])
 
@@ -143,7 +153,7 @@ export default function Sidebar() {
             N
           </div>
         )}
-        {isOpen && <span className="text-white font-bold text-base tracking-tight">Nelloriens</span>}
+        {isOpen && <span className="text-white font-bold text-base tracking-tight truncate">{companyName}</span>}
       </div>
 
       {/* Nav */}

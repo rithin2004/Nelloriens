@@ -18,6 +18,11 @@ export const usersCtrl = {
     res.json({ success: true, data })
   },
 
+  /** PATCH /users/me — update own name and/or phone */
+  async updateMe(req, res) {
+    const data = await usersService.updateMe(req.user.uid, req.body)
+    res.json({ success: true, data })
+  },
 
   async list(req, res) {
     res.json({ success: true, ...(await usersService.list(req.query)) })

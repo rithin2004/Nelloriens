@@ -76,7 +76,7 @@ export default function UsersCreate() {
                 <select className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
                   value={form.roleId} onChange={set('roleId')} required>
                   <option value="">Select role…</option>
-                  {roles.map((r) => <option key={r._id} value={r._id}>{r.name}</option>)}
+                  {roles.filter((r) => r._id !== 'ROL00001').map((r) => <option key={r._id} value={r._id}>{r.name}</option>)}
                 </select>
               </div>
               <div className="flex gap-3 pt-2">

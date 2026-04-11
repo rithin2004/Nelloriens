@@ -7,7 +7,7 @@ const P  = '#0a3d95'
 const PL = '#dce8fb'
 const PB = '#eef3fd'
 
-export default function ImageUpload({ value, onChange, label = 'Image', altValue = '', onAltChange }) {
+export default function ImageUpload({ module, value, onChange, label = 'Image', altValue = '', onAltChange }) {
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef(null)
 
@@ -19,7 +19,7 @@ export default function ImageUpload({ value, onChange, label = 'Image', altValue
     fd.append('file', file)
     try {
       setUploading(true)
-      const res = await uploadApi.upload(fd)
+      const res = await uploadApi.upload(module, fd)
       onChange(res.data.url)
     } catch (err) {
       toast.error('Upload failed: ' + err.message)

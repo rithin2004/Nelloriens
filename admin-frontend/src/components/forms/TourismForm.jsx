@@ -43,7 +43,7 @@ export default function TourismForm({ defaultValues, onSubmit, loading }) {
           </select>
         </div>
         <div><label className={field}>Description *</label><RichTextEditor value={description} onChange={setDescription} /></div>
-        <ImageUpload label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="tourism" label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
       </div>
 
       <div className={section}>

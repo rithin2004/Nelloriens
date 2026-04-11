@@ -29,7 +29,7 @@ export default function StayForm({ defaultValues, onSubmit, loading }) {
       <div className={section}>
         <h3 className="font-semibold text-slate-800">Hotel Details</h3>
         <div><label className={field}>Hotel Name *</label><input {...register('hotelName', { required: 'Required' })} className={input} /></div>
-        <ImageUpload label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="stays" label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
         <div><label className={field}>Description *</label><textarea {...register('description', { required: 'Required' })} rows={3} className={input} /></div>
         <div><label className={field}>Address *</label><input {...register('address', { required: 'Required' })} className={input} /></div>
       </div>

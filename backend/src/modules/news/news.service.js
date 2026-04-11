@@ -3,19 +3,28 @@ import { newsRepo, newsCatRepo, bpRepo } from './news.repository.js'
 // ── Articles ───────────────────────────────────────────────────────────────
 
 export async function listNews({ page, limit, search, category, isImportant }) {
+  const safeLimit = Math.min(parseInt(limit) || 20, 100)
+  const safePage  = Math.max(parseInt(page)  || 1, 1)
+
+  // Fetch all ordered server-side; filter/paginate in memory.
+  // Avoids the Firestore composite index requirement that arises when combining
+  // equality filters (category, isImportant) with orderBy('publishedAt').
+  let items = await newsRepo.findAll({ orderBy: 'publishedAt', order: 'desc' })
+
   if (search) {
-    const all = await newsRepo.searchByTitle(search)
-    const lim = Math.min(parseInt(limit) || 20, 100)
-    const pg  = Math.max(parseInt(page) || 1, 1)
-    const items = all.slice((pg - 1) * lim, pg * lim)
-    return { items, total: all.length, page: pg, totalPages: Math.max(1, Math.ceil(all.length / lim)) }
+    const q = search.toLowerCase()
+    items = items.filter(n => n.title?.toLowerCase().includes(q) || n.slug?.toLowerCase().includes(q))
   }
+  if (category)              items = items.filter(n => n.category === category)
+  if (isImportant === 'true') items = items.filter(n => n.isImportant === true)
 
-  const filters = []
-  if (category)                  filters.push(['category', '==', category])
-  if (isImportant === 'true')    filters.push(['isImportant', '==', true])
-
-  return newsRepo.paginate({ page, limit, orderBy: 'publishedAt', order: 'desc', filters })
+  const total = items.length
+  return {
+    items:      items.slice((safePage - 1) * safeLimit, safePage * safeLimit),
+    total,
+    page:       safePage,
+    totalPages: Math.max(1, Math.ceil(total / safeLimit)),
+  }
 }
 
 export async function getNewsById(id) {
@@ -98,9 +107,15 @@ export async function deleteBreakingPoint(id) {
   const existing = await bpRepo.findById(id)
   if (!existing) throw { status: 404, message: 'Breaking point not found' }
   await bpRepo.delete(id)
+  // Close the gap so remaining items stay sequentially ordered from 1
+  await bpRepo.resequence()
 }
 
-export async function reorderBreakingPoints(items) {
-  if (!Array.isArray(items)) throw { status: 400, message: 'items array required' }
-  await bpRepo.reorder(items)
+export async function reorderBreakingPoints(ids) {
+  if (!Array.isArray(ids)) throw { status: 400, message: 'ids must be an array' }
+  if (!ids.length)         throw { status: 400, message: 'ids array is empty' }
+  // Validate: the sent IDs must match the full current collection
+  const all = await bpRepo.findAllOrdered()
+  if (ids.length !== all.length) throw { status: 400, message: `Expected ${all.length} ids, got ${ids.length}` }
+  await bpRepo.reorder(ids)
 }

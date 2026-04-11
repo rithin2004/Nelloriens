@@ -53,7 +53,7 @@ export default function UpdateForm({ defaultValues, onSubmit, loading }) {
           </select>
         </div>
         <div><label className={field}>Redirect URL</label><input {...register('redirectUrl')} type="url" className={input} /></div>
-        <ImageUpload label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="updates" label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
         <div>
           <label className={field}>
             Date &amp; Time

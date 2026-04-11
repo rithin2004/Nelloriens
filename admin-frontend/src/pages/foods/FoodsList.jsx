@@ -177,7 +177,7 @@ export default function FoodsList() {
     if (!over || active.id === over.id) return
     const newOrder = arrayMove(photos, photos.findIndex(p => p._id === active.id), photos.findIndex(p => p._id === over.id))
     setPhotos(newOrder)
-    try { await foodsApi.reorderPhotos(newOrder.map((p, i) => ({ id: p._id, order: i }))) }
+    try { await foodsApi.reorderPhotos(newOrder.map((p) => p._id)) }
     catch { toast.error('Reorder failed'); fetchPhotos() }
   }
 

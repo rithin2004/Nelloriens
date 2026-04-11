@@ -17,7 +17,7 @@ export default function PageHeader({ title, subtitle, action, backTo }) {
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="text-xl font-bold text-slate-800 leading-tight">{title}</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 leading-tight">{title}</h1>
           {subtitle && <p className="text-sm mt-0.5 text-slate-500 leading-tight">{subtitle}</p>}
         </div>
       </div>

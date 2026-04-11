@@ -1,16 +1,47 @@
 import { historyRepo }               from './history.repository.js'
-import { CrudService, badReq } from '../../utils/serviceBase.js'
+import { CrudService, badReq, notFound } from '../../utils/serviceBase.js'
 import { db }                        from '../../config/firebase.js'
 
-export const historyService = new CrudService(historyRepo, { entityName: 'History', orderBy: 'order', order: 'asc' })
+const _base = new CrudService(historyRepo, { entityName: 'History', orderBy: 'order', order: 'asc' })
 
-export async function reorderHistory(items) {
-  if (!Array.isArray(items) || items.length === 0) badReq('items array is required')
+export const historyService = {
+  list:    (...args) => _base.list(...args),
+  getById: (...args) => _base.getById(...args),
+  update:  (...args) => _base.update(...args),
+
+  async create(data) {
+    // Append after the last item's order — safe even if gaps exist in data
+    const all       = await historyRepo.findAll({ orderBy: 'order', order: 'asc' })
+    const nextOrder = all.length === 0 ? 1 : all[all.length - 1].order + 1
+    return historyRepo.create({ ...data, order: nextOrder })
+  },
+
+  async remove(id) {
+    const existing = await historyRepo.findById(id)
+    if (!existing) notFound('History item not found')
+    await historyRepo.delete(id)
+    // Resequence remaining items so orders are 1…n with no gaps
+    const remaining = await historyRepo.findAll({ orderBy: 'order', order: 'asc' })
+    if (remaining.length > 0) {
+      const batch = db.batch()
+      const now   = new Date().toISOString()
+      remaining.forEach((item, idx) => {
+        batch.update(db.collection('history').doc(item._id), { order: idx + 1, updatedAt: now })
+      })
+      await batch.commit()
+    }
+    return existing
+  },
+}
+
+export async function reorderHistory(ids) {
+  if (!Array.isArray(ids) || ids.length === 0) badReq('ids array is required')
+  const all = await historyRepo.findAll({ orderBy: 'order', order: 'asc' })
+  if (ids.length !== all.length) badReq(`Expected ${all.length} ids, got ${ids.length}`)
   const batch = db.batch()
-  const col   = db.collection('history')
-  items.forEach(({ id, order }) => {
-    if (!id) return
-    batch.update(col.doc(id), { order: Number(order), updatedAt: new Date().toISOString() })
+  const now   = new Date().toISOString()
+  ids.forEach((id, idx) => {
+    batch.update(db.collection('history').doc(id), { order: idx + 1, updatedAt: now })
   })
   await batch.commit()
 }

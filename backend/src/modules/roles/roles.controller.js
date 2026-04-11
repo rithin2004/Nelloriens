@@ -3,6 +3,11 @@ import { badReq, forbidden }                from '../../utils/serviceBase.js'
 
 const SUPERADMIN_ROLE_ID = 'ROL00001'
 
+/** Normalize a role name to detect superadmin variants like super_admin, Super Admin, SUPERADMIN etc. */
+function isSuperadminName(name) {
+  return name.toLowerCase().replace(/[\s_\-]/g, '') === 'superadmin'
+}
+
 export const rolesCtrl = {
   async list(req, res) {
     res.json({ success: true, ...(await rolesService.list(req.query)) })
@@ -15,6 +20,7 @@ export const rolesCtrl = {
   async create(req, res) {
     const { name, permissions = {} } = req.body
     if (!name?.trim()) badReq('name is required')
+    if (isSuperadminName(name)) forbidden('Cannot create a role named superadmin')
     validatePermissions(permissions)
     const role = await rolesService.create({ name: name.trim(), permissions })
     res.status(201).json({ success: true, data: role })
@@ -24,6 +30,7 @@ export const rolesCtrl = {
     if (req.params.id === SUPERADMIN_ROLE_ID) forbidden('Superadmin role cannot be modified')
     const { name, permissions } = req.body
     if (name !== undefined && !name?.trim()) badReq('name cannot be empty')
+    if (name !== undefined && isSuperadminName(name)) forbidden('Cannot rename a role to superadmin')
     if (permissions !== undefined) validatePermissions(permissions)
 
     const updates = {}

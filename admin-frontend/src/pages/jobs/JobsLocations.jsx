@@ -6,6 +6,7 @@ export default function JobsLocations() {
     <CategoryManager
       title="Job Locations"
       entityLabel="Location"
+      backTo="/jobs"
       getAll={() => jobsApi.getLocations()}
       create={(data) => jobsApi.createLocation(data)}
       update={(id, data) => jobsApi.updateLocation(id, data)}

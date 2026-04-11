@@ -272,6 +272,7 @@ export default function SportsList() {
       {/* Filters */}
       <div className="flex gap-3 mb-4 flex-wrap">
         <input
+          id="search-sports" name="search" autoComplete="off"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1) }}
           placeholder="Search…"

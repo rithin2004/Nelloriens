@@ -197,7 +197,7 @@ export default function ModuleList({
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1) }}
           placeholder={`Search ${title.toLowerCase()}…`}
-          className={`${inp} w-64`} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
+          className={`${inp} w-full sm:w-64`} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
         />
         {extraFilters.map(({ key, label, options }) => (
           <select key={key} value={extraFilterVals[key] || ''}

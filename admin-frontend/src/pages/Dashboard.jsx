@@ -61,17 +61,17 @@ function SectionCard({ icon: Icon, iconColor, title, children, action }) {
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const [stats,          setStats]          = useState({})
-  const [recentLeads,    setRecentLeads]    = useState([])
-  const [recentUpdates,  setRecentUpdates]  = useState([])
-  const [featured,       setFeatured]       = useState({})
-  const [loading,        setLoading]        = useState(true)
+  const [stats,           setStats]          = useState({})
+  const [recentLeads,     setRecentLeads]    = useState([])
+  const [recentActivity,  setRecentActivity] = useState([])
+  const [featured,        setFeatured]       = useState({})
+  const [loading,         setLoading]        = useState(true)
 
   useEffect(() => {
     Promise.all([
       dashboardApi.getStats().then((r) => setStats(r.data)).catch(() => {}),
       dashboardApi.getRecentLeads().then((r) => setRecentLeads(r.data || [])).catch(() => {}),
-      dashboardApi.getRecentUpdates().then((r) => setRecentUpdates(r.data || [])).catch(() => {}),
+      dashboardApi.getActivity({ page: 1, limit: 5 }).then((r) => setRecentActivity(r.data?.items || [])).catch(() => {}),
       dashboardApi.getFeatured().then((r) => setFeatured(r.data || {})).catch(() => {}),
     ]).finally(() => setLoading(false))
   }, [])
@@ -130,38 +130,45 @@ export default function Dashboard() {
           )}
         </SectionCard>
 
-        {/* Recent Updates */}
+        {/* Recent Activity */}
         <SectionCard
           icon={Bell}
           iconColor="#D97706"
-          title="Recent Updates"
+          title="Recent Activity"
           action={
-            <button onClick={() => navigate('/updates/list')}
+            <button onClick={() => navigate('/activity')}
               className="text-xs font-medium transition-colors hover:underline"
               style={{ color: P }}>
               View all
             </button>
           }
         >
-          {recentUpdates.length === 0 ? (
-            <p className="px-5 py-10 text-center text-sm text-slate-400">No updates yet</p>
+          {recentActivity.length === 0 ? (
+            <p className="px-5 py-10 text-center text-sm text-slate-400">No activity yet</p>
           ) : (
             <ul>
-              {recentUpdates.slice(0, 5).map((item, i) => (
-                <li key={i} className="flex items-center gap-3 px-5 py-3 transition-colors cursor-pointer"
-                  style={{ borderBottom: '1px solid #F8FAFC' }}
-                  onClick={() => navigate(`/updates/update/${item._id}`)}
-                  onMouseEnter={(e) => e.currentTarget.style.background = PB}
-                  onMouseLeave={(e) => e.currentTarget.style.background = ''}>
-                  {item.thumbnail ? (
-                    <img src={item.thumbnail} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" />
-                  ) : (
-                    <div className="w-9 h-9 rounded-lg shrink-0" style={{ background: PL }} />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-700 truncate">{item.title}</p>
-                    <p className="text-xs text-slate-400">{timeAgo(item.createdAt)}</p>
+              {recentActivity.map((item, i) => (
+                <li key={i} className="flex items-center gap-3 px-5 py-3"
+                  style={{ borderBottom: '1px solid #F8FAFC' }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold"
+                    style={{ background: `linear-gradient(135deg,${P},#072d6e)` }}>
+                    {item.email?.[0]?.toUpperCase() || '?'}
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-700 truncate">
+                      <span className="font-medium">{item.email || 'Unknown'}</span>
+                      {' '}
+                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                        item.action === 'delete' ? 'bg-red-100 text-red-600' :
+                        item.action === 'create' ? 'bg-green-100 text-green-600' :
+                        'bg-blue-100 text-blue-600'
+                      }`}>{item.action}</span>
+                      {' '}
+                      <span className="text-slate-500 capitalize">{item.module}</span>
+                    </p>
+                    {item.meta?.title && <p className="text-xs text-slate-400 truncate">{item.meta.title}</p>}
+                  </div>
+                  <span className="text-xs text-slate-400 shrink-0">{timeAgo(item.createdAt)}</span>
                 </li>
               ))}
             </ul>

@@ -6,6 +6,30 @@ const SUPERADMIN_USER_ID = 'USR00001'
 const SUPERADMIN_ROLE_ID = 'ROL00001'
 
 export const usersService = {
+  /**
+   * Update the calling user's own profile.
+   * Only name and phone are editable — email and role changes are admin-only.
+   */
+  async updateMe(firebaseUid, data) {
+    const snaps = await db.collection('users').where('firebaseUid', '==', firebaseUid).limit(1).get()
+    if (snaps.empty) notFound('User not found')
+
+    const doc = snaps.docs[0]
+    const updates = {}
+
+    if (data.name  !== undefined) updates.name  = data.name.trim()
+    if (data.phone !== undefined) updates.phone = data.phone.trim()
+
+    if (!Object.keys(updates).length) badReq('Nothing to update')
+
+    // Keep Firebase Auth displayName in sync
+    if (updates.name) {
+      await auth.updateUser(firebaseUid, { displayName: updates.name })
+    }
+
+    return usersRepo.update(doc.id, updates)
+  },
+
   async list(query = {}) {
     const { page = 1, limit = 20, search = '' } = query
     const safeLimit = Math.min(Math.max(parseInt(limit) || 20, 1), 100)
@@ -46,6 +70,11 @@ export const usersService = {
     if (!name?.trim())  badReq('name is required')
     if (!roleId)        badReq('roleId is required')
 
+    // Only one superadmin is allowed — prevent assigning the superadmin role to new users
+    if (roleId === SUPERADMIN_ROLE_ID) forbidden('Cannot assign the superadmin role to new users')
+
+    const normalEmail = email.trim().toLowerCase()
+
     // Verify role exists
     const roleSnap = await db.collection('roles').doc(roleId).get()
     if (!roleSnap.exists) badReq(`Role ${roleId} not found`)
@@ -54,7 +83,7 @@ export const usersService = {
     let userRecord
     try {
       userRecord = await auth.createUser({
-        email:       email.trim(),
+        email:       normalEmail,
         displayName: name.trim(),
       })
     } catch (err) {
@@ -65,7 +94,7 @@ export const usersService = {
     // Generate password reset/set link
     let resetLink
     try {
-      resetLink = await auth.generatePasswordResetLink(email.trim())
+      resetLink = await auth.generatePasswordResetLink(normalEmail)
     } catch {
       // Non-fatal — clean up and surface error
       await auth.deleteUser(userRecord.uid).catch(() => {})
@@ -79,7 +108,7 @@ export const usersService = {
       const now = new Date().toISOString()
       user = await usersRepo.create({
         firebaseUid: userRecord.uid,
-        email:       email.trim(),
+        email:       normalEmail,
         name:        name.trim(),
         phone:       phone.trim(),
         roleId,
@@ -103,10 +132,18 @@ export const usersService = {
     const { name, phone, roleId, active } = data
     const updates = {}
 
+    // Superadmin user: role and active status are locked
+    if (id === SUPERADMIN_USER_ID) {
+      if (roleId !== undefined) forbidden('Superadmin role cannot be changed')
+      if (active !== undefined && Boolean(active) === false) forbidden('Superadmin account cannot be deactivated')
+    }
+
     if (name     !== undefined) updates.name   = name.trim()
     if (phone    !== undefined) updates.phone  = phone.trim()
     if (active   !== undefined) updates.active = Boolean(active)
     if (roleId   !== undefined) {
+      // No other user can be assigned the superadmin role
+      if (roleId === SUPERADMIN_ROLE_ID) forbidden('Cannot assign the superadmin role')
       const roleSnap = await db.collection('roles').doc(roleId).get()
       if (!roleSnap.exists) badReq(`Role ${roleId} not found`)
       updates.roleId   = roleId

@@ -48,7 +48,7 @@ export default function HistoryForm({ defaultValues, onSubmit, loading }) {
           <RichTextEditor value={description} onChange={setDescription} />
         </div>
 
-        <ImageUpload label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="history" label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
 
         <div>
           <label htmlFor="hist-year" className={lbl} style={lblStyle}>Year Label</label>

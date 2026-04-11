@@ -6,6 +6,7 @@ export default function SportsCategories() {
     <CategoryManager
       title="Sport Categories"
       entityLabel="Category"
+      backTo="/sports"
       getAll={() => sportsApi.getCategories()}
       create={(data) => sportsApi.createCategory(data)}
       update={(id, data) => sportsApi.updateCategory(id, data)}

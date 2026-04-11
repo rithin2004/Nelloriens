@@ -6,6 +6,7 @@ export default function TourismCategories() {
     <CategoryManager
       title="Tourism Categories"
       entityLabel="Category"
+      backTo="/tourism"
       getAll={() => tourismApi.getCategories()}
       create={(data) => tourismApi.createCategory(data)}
       update={(id, data) => tourismApi.updateCategory(id, data)}

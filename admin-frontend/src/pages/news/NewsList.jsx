@@ -258,10 +258,11 @@ export default function NewsList() {
       {/* Filters */}
       <div className="flex gap-3 mb-4 flex-wrap">
         <input
+          id="search-news" name="search" autoComplete="off"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1) }}
           placeholder="Search by title…"
-          className={`${inp} w-64`}
+          className={`${inp} w-full sm:w-64`}
           style={inpStyle}
           onFocus={inpFocus}
           onBlur={inpBlur}

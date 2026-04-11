@@ -83,7 +83,7 @@ export default function ResultForm({ defaultValues, onSubmit, loading }) {
           <RichTextEditor value={details} onChange={setDetails} />
         </div>
 
-        <ImageUpload label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="results" label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>

@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setupApi } from '../services/api'
-import { Shield, Copy, Check, Eye, EyeOff } from 'lucide-react'
+import { sendPasswordResetEmail } from 'firebase/auth'
+import { auth } from '../utils/firebase'
+import { Shield, Check, Eye, EyeOff, Mail } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const P  = '#0a3d95'
@@ -13,8 +15,7 @@ export default function Setup() {
   const [step, setStep] = useState('form')  // 'form' | 'success'
   const [loading, setLoading] = useState(false)
   const [showSecret, setShowSecret] = useState(false)
-  const [copied, setCopied] = useState(false)
-  const [resetLink, setResetLink] = useState('')
+  const [createdEmail, setCreatedEmail] = useState('')
   const [form, setForm] = useState({ name: '', email: '', phone: '', secret: '' })
 
   const set = (field) => (e) => setForm((p) => ({ ...p, [field]: e.target.value }))
@@ -27,21 +28,17 @@ export default function Setup() {
     }
     setLoading(true)
     try {
-      const r = await setupApi.createSuperadmin(form)
-      setResetLink(r.data.resetLink)
+      await setupApi.createSuperadmin(form)
+      // Send password-set email via Firebase client SDK (uses Firebase's own template)
+      await sendPasswordResetEmail(auth, form.email.trim())
+      setCreatedEmail(form.email.trim())
       setStep('success')
       toast.success('Superadmin created!')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Setup failed')
+      toast.error(err.response?.data?.message || err.message || 'Setup failed')
     } finally {
       setLoading(false)
     }
-  }
-
-  const copyLink = () => {
-    navigator.clipboard.writeText(resetLink)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
   }
 
   const inp = {
@@ -100,27 +97,23 @@ export default function Setup() {
           ) : (
             <div className="space-y-5">
               <div className="text-center">
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
-                  <Check className="w-6 h-6 text-green-600" />
+                <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                  <Mail className="w-7 h-7 text-green-600" />
                 </div>
-                <h2 className="font-bold text-slate-800">Superadmin created!</h2>
-                <p className="text-sm text-slate-500 mt-1">Share this link so the user can set their password.</p>
+                <h2 className="font-bold text-slate-800">Check your inbox!</h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  A password-set link has been sent to
+                </p>
+                <p className="text-sm font-semibold text-slate-700 mt-0.5">{createdEmail}</p>
               </div>
-              <div className="p-3 rounded-xl text-xs font-mono break-all" style={{ background: PB, border: `1px solid ${PL}` }}>
-                {resetLink}
+              <div className="p-3 rounded-xl text-xs text-slate-600" style={{ background: PB, border: `1px solid ${PL}` }}>
+                <strong>Didn't receive it?</strong> Check your spam / junk folder. The link expires after 1 hour.
               </div>
-              <div className="flex gap-2">
-                <button onClick={copyLink}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-all"
-                  style={{ background: copied ? '#DCFCE7' : PL, color: copied ? '#15803D' : P, border: `1px solid ${copied ? '#BBF7D0' : PL}` }}>
-                  {copied ? <><Check className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy Link</>}
-                </button>
-                <button onClick={() => navigate('/login')}
-                  className="flex-1 py-2.5 text-sm font-semibold text-white rounded-xl transition-all"
-                  style={{ background: `linear-gradient(135deg,${P},#072d6e)` }}>
-                  Go to Login
-                </button>
-              </div>
+              <button onClick={() => navigate('/login')}
+                className="w-full py-2.5 text-sm font-semibold text-white rounded-xl transition-all"
+                style={{ background: `linear-gradient(135deg,${P},#072d6e)` }}>
+                Go to Login
+              </button>
             </div>
           )}
         </div>

@@ -195,6 +195,9 @@ input[type="checkbox"] { accent-color: #0a3d95; width: 1rem; height: 1rem; }
 .hover\:border-purple-300:hover { border-color: #A78BFA !important; }
 .hover\:text-purple-700:hover { color: #6D28D9 !important; }
 
+/* ─── z-index utilities ──────────────────────────────────────────────────── */
+.z-200 { z-index: 9999 !important; }
+
 /* ─── Typography weights ─────────────────────────────────────────────────── */
 h1, h2 { font-weight: 700; }
 h3      { font-weight: 600; }

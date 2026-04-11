@@ -104,7 +104,7 @@ export default function SportForm({ defaultValues, onSubmit, loading }) {
             {...register('externalScoreUrl')} placeholder="Cricbuzz/ESPN" className={inp} />
         </div>
 
-        <ImageUpload label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="sports" label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
 
         <div>
           <label htmlFor="sport-shortdesc" className={lbl} style={lblStyle}>Short Description</label>

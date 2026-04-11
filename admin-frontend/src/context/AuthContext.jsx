@@ -19,8 +19,14 @@ export function AuthProvider({ children }) {
         try {
           const res = await usersApi.me()
           setUserDoc(res.data?.data || res.data)
-        } catch {
-          // Non-fatal — UI will still render but role-gated features may be hidden
+        } catch (err) {
+          // 404 = Firestore user doc is gone (e.g. setup was re-run while logged in)
+          // 403 = auth middleware rejected the token
+          // Force logout so SetupGuard redirects to /setup
+          if (err.response?.status === 404 || err.response?.status === 403) {
+            await signOut(auth).catch(() => {})
+          }
+          // Other errors (network, 500) are non-fatal — keep the session alive
         }
       } else {
         setUser(null)

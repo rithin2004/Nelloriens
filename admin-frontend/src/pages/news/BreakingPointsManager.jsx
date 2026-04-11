@@ -64,6 +64,7 @@ export default function BreakingPointsManager() {
   const [deleting, setDeleting] = useState(false)
 
   // inline add/edit
+  const [showAdd, setShowAdd]   = useState(false)
   const [addText, setAddText]   = useState('')
   const [adding, setAdding]     = useState(false)
   const [editItem, setEditItem] = useState(null)   // { _id, text }
@@ -88,6 +89,7 @@ export default function BreakingPointsManager() {
     try {
       await newsApi.createBreakingPoint({ text: addText.trim() })
       setAddText('')
+      setShowAdd(false)
       toast.success('Point added')
       fetchData()
     } catch (e) { toast.error(e?.response?.data?.message || 'Failed to add') }
@@ -120,7 +122,7 @@ export default function BreakingPointsManager() {
     const newOrder  = arrayMove(items, oldIndex, newIndex)
     setItems(newOrder)
     try {
-      await newsApi.reorderBreakingPoints(newOrder.map((i, idx) => ({ id: i._id, order: idx })))
+      await newsApi.reorderBreakingPoints(newOrder.map((i) => i._id))
     } catch { toast.error('Reorder failed'); fetchData() }
   }
 
@@ -129,36 +131,60 @@ export default function BreakingPointsManager() {
 
   return (
     <div className="animate-fade-in">
-      <PageHeader title="Breaking News Points" subtitle="Drag to reorder · shown in ticker on user side" />
-
-      {/* Add new */}
-      <div
-        className="mb-5 p-4 rounded-xl"
-        style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
-      >
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Add New Point</p>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <input
-            value={addText}
-            onChange={(e) => setAddText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleAdd()}
-            placeholder="Enter breaking news text…"
-            className={`${inp} flex-1`}
-            style={inpStyle}
-            onFocus={focusOn}
-            onBlur={focusOff}
-          />
+      <PageHeader
+        title="Breaking News Points"
+        subtitle="Drag to reorder · shown in ticker on user side"
+        action={
           <button
-            onClick={handleAdd}
-            disabled={adding || !addText.trim()}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all disabled:opacity-50 shrink-0"
+            onClick={() => { setShowAdd(true); setAddText('') }}
+            className="btn-shine flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg"
             style={{ background: 'linear-gradient(135deg,#DC2626,#B91C1C)', boxShadow: '0 4px 12px rgba(220,38,38,0.25)' }}
           >
-            <Plus className="w-4 h-4" />
-            {adding ? 'Adding…' : 'Add Point'}
+            <Plus className="w-4 h-4" /> Add Point
           </button>
+        }
+      />
+
+      {/* Add new — shown when button clicked */}
+      {showAdd && (
+        <div
+          className="mb-5 p-4 rounded-xl"
+          style={{ background: '#FFFFFF', border: '2px solid #DC2626', boxShadow: '0 0 0 4px rgba(220,38,38,0.06)' }}
+        >
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              value={addText}
+              onChange={(e) => setAddText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) handleAdd()
+                if (e.key === 'Escape') { setShowAdd(false); setAddText('') }
+              }}
+              placeholder="Enter breaking news text…"
+              autoFocus
+              className={`${inp} flex-1`}
+              style={inpStyle}
+              onFocus={focusOn}
+              onBlur={focusOff}
+            />
+            <button
+              onClick={handleAdd}
+              disabled={adding || !addText.trim()}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all disabled:opacity-50 shrink-0"
+              style={{ background: 'linear-gradient(135deg,#DC2626,#B91C1C)', boxShadow: '0 4px 12px rgba(220,38,38,0.25)' }}
+            >
+              <Plus className="w-4 h-4" />
+              {adding ? 'Adding…' : 'Add Point'}
+            </button>
+            <button
+              onClick={() => { setShowAdd(false); setAddText('') }}
+              className="px-3 py-2 text-sm rounded-lg text-slate-500 hover:bg-slate-100 transition-colors shrink-0"
+              style={{ border: '1px solid #E2E8F0' }}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* List */}
       {loading ? <LoadingSpinner /> : (

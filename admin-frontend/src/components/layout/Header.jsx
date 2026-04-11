@@ -27,6 +27,7 @@ const pageTitles = {
   '/ads':          'Ads',
   '/sponsorships': 'Sponsorships',
   '/instagram':    'Instagram',
+  '/company':      'Company',
   '/profile':      'My Profile',
   '/settings':     'Settings',
 }

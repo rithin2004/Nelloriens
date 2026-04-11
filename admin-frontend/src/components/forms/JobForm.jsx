@@ -204,7 +204,7 @@ export default function JobForm({ defaultValues, onSubmit, loading }) {
           <DatePicker id="job-lastdate" selected={lastDate} onChange={setLastDate}
             dateFormat="dd/MM/yyyy" className="w-full" placeholderText="Select date" isClearable />
         </div>
-        <ImageUpload label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="jobs" label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
       </div>
 
       <div className={section} style={sectionStyle}>

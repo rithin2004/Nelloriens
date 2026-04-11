@@ -21,7 +21,7 @@ export default function MovieForm({ defaultValues, onSubmit, loading }) {
   const [runningUntil, setRunningUntil] = useState(defaultValues?.runningUntil ? new Date(defaultValues.runningUntil) : null)
 
   useEffect(() => {
-    moviesApi.getTheatres().then((r) => setTheatres(r.data || [])).catch(() => {})
+    moviesApi.getTheatres().then((r) => setTheatres(r.data?.items || [])).catch(() => {})
   }, [])
 
   const addTiming = () => setTimings([...timings, ''])
@@ -91,7 +91,7 @@ export default function MovieForm({ defaultValues, onSubmit, loading }) {
           </button>
         </div>
 
-        <ImageUpload label="Movie Poster" value={poster} onChange={setPoster} />
+        <ImageUpload module="movies" label="Movie Poster" value={poster} onChange={setPoster} />
 
         <div className="grid grid-cols-2 gap-4">
           <div>

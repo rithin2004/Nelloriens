@@ -82,7 +82,7 @@ export default function HistoryList() {
     const newOrder = arrayMove(items, oldIndex, newIndex)
     setItems(newOrder)
     try {
-      await historyApi.reorder(newOrder.map((i, idx) => ({ id: i._id, order: idx })))
+      await historyApi.reorder(newOrder.map((i) => i._id))
     } catch { toast.error('Reorder failed'); fetchData() }
   }
 

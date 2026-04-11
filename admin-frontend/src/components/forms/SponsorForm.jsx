@@ -24,7 +24,7 @@ export default function SponsorForm({ defaultValues, onSubmit, loading }) {
     <form onSubmit={handleSubmit(submit)} className="space-y-5">
       <div className={section}>
         <div><label className={field}>Sponsor Name *</label><input {...register('sponsorName', { required: true })} className={input} /></div>
-        <ImageUpload label="Logo *" value={logo} onChange={setLogo} />
+        <ImageUpload module="sponsorships" label="Logo *" value={logo} onChange={setLogo} />
         <div>
           <label className={field}>Sponsor Type *</label>
           <select {...register('sponsorType', { required: true })} className={input}>

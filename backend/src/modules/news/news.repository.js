@@ -29,14 +29,31 @@ class BreakingPointRepository extends FirestoreRepo {
   }
 
   async getNextOrder() {
-    const snap = await db.collection('breaking_points').orderBy('order', 'desc').limit(1).get()
-    return snap.empty ? 0 : (snap.docs[0].data().order ?? 0) + 1
+    // Use last item's order + 1 (not count) so a gap caused by any data
+    // inconsistency can never produce a collision on the next insert.
+    const all = await this.findAllOrdered()
+    return all.length === 0 ? 1 : all[all.length - 1].order + 1
   }
 
-  async reorder(items) {
+  // Reassign orders 1, 2, 3… to all remaining items after a deletion.
+  async resequence() {
+    const all   = await this.findAllOrdered()
+    if (all.length === 0) return
     const batch = db.batch()
-    items.forEach(({ id, order }) => {
-      batch.update(db.collection('breaking_points').doc(id), { order })
+    const now   = new Date().toISOString()
+    all.forEach((item, idx) => {
+      batch.update(db.collection('breaking_points').doc(item._id), { order: idx + 1, updatedAt: now })
+    })
+    await batch.commit()
+  }
+
+  // Accept an ordered array of IDs; backend assigns order = position + 1.
+  async reorder(ids) {
+    if (!ids.length) return
+    const batch = db.batch()
+    const now   = new Date().toISOString()
+    ids.forEach((id, idx) => {
+      batch.update(db.collection('breaking_points').doc(id), { order: idx + 1, updatedAt: now })
     })
     await batch.commit()
   }

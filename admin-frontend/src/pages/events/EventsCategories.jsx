@@ -6,6 +6,7 @@ export default function EventsCategories() {
     <CategoryManager
       title="Event Categories"
       entityLabel="Category"
+      backTo="/events"
       getAll={() => eventsApi.getCategories()}
       create={(data) => eventsApi.createCategory(data)}
       update={(id, data) => eventsApi.updateCategory(id, data)}

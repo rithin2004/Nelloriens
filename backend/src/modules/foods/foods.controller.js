@@ -46,7 +46,7 @@ export async function deletePhoto(req, res) {
 }
 
 export async function reorderPhotos(req, res) {
-  await photosService.reorder(req.body.items)
+  await photosService.reorder(req.body.ids)
   res.json({ success: true, message: 'Reordered' })
 }
 

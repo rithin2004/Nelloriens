@@ -71,7 +71,7 @@ export default function NewsForm({ defaultValues, onSubmit, loading }) {
           </select>
           {errors.category && <p className="text-xs mt-1" style={{ color: '#DC2626' }}>{errors.category.message}</p>}
         </div>
-        <ImageUpload label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="news" label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
         <div>
           <label htmlFor="news-shortdesc" className={lbl} style={lblStyle}>
             Short Description * <span style={{ color: '#475569', fontWeight: 400 }}>(max 300)</span>

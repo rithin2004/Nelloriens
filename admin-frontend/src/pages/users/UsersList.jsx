@@ -1,39 +1,106 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { usersApi } from '../../services/api'
+import { usersApi, rolesApi } from '../../services/api'
+import { useDebounce } from '../../hooks/useDebounce'
 import PageHeader from '../../components/common/PageHeader'
+import FormModal from '../../components/common/FormModal'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import Pagination from '../../components/common/Pagination'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import toast from 'react-hot-toast'
-import { Plus, Pencil, Trash2, Link2, Search, Users } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, Users, ShieldCheck, Loader } from 'lucide-react'
 
 const P  = '#0a3d95'
 const PL = '#dce8fb'
 const PB = '#eef3fd'
 
+const inp    = 'w-full px-3 py-2.5 text-sm rounded-xl focus:outline-none transition-all text-slate-700'
+const inpS   = { background: '#FFFFFF', border: '1px solid #CBD5E1' }
+const inpLocked = { background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#94A3B8' }
+const lbl    = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5'
+const focusOn  = (e) => { e.target.style.borderColor = P; e.target.style.boxShadow = '0 0 0 3px rgba(10,61,149,0.1)' }
+const focusOff = (e) => { e.target.style.borderColor = '#CBD5E1'; e.target.style.boxShadow = '' }
+
 export default function UsersList() {
   const navigate = useNavigate()
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [page, setPage] = useState(1)
+  const [data,       setData]       = useState([])
+  const [loading,    setLoading]    = useState(true)
+  const [page,       setPage]       = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal] = useState(0)
-  const [search, setSearch] = useState('')
-  const [deleteId, setDeleteId] = useState(null)
-  const [deleting, setDeleting] = useState(false)
-  const [resetLinkMap, setResetLinkMap] = useState({})
+  const [total,      setTotal]      = useState(0)
+  const [search,        setSearch]     = useState('')
+  const debouncedSearch = useDebounce(search)
+  const [roles,         setRoles]      = useState([])
+
+  // Create modal
+  const [createOpen, setCreateOpen] = useState(false)
+  const [createForm, setCreateForm] = useState({ name: '', email: '', phone: '', roleId: '' })
+  const [creating,   setCreating]   = useState(false)
+
+  // Edit modal
+  const [editOpen, setEditOpen] = useState(false)
+  const [editId,   setEditId]   = useState(null)
+  const [editForm, setEditForm] = useState({ name: '', phone: '', roleId: '', active: true })
+  const [saving,   setSaving]   = useState(false)
+
+  // Delete confirm
+  const [deleteId,  setDeleteId]  = useState(null)
+  const [deleting,  setDeleting]  = useState(false)
 
   const fetchData = () => {
     setLoading(true)
-    usersApi.getAll({ page, limit: 20, search: search || undefined })
+    usersApi.getAll({ page, limit: 20, search: debouncedSearch || undefined })
       .then((r) => { setData(r.data.items || []); setTotalPages(r.data.totalPages || 1); setTotal(r.data.total || 0) })
       .catch(() => toast.error('Failed to load users'))
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchData() }, [page, search])
+  useEffect(() => { fetchData() }, [page, debouncedSearch])
 
+  useEffect(() => {
+    rolesApi.getAll({ limit: 100 })
+      .then((r) => setRoles((r.data.items || []).filter((r) => r._id !== 'ROL00001')))
+      .catch(() => {})
+  }, [])
+
+  // ── Create ────────��──────────────────────────��──────────────────────────────
+  const openCreate = () => { setCreateForm({ name: '', email: '', phone: '', roleId: '' }); setCreateOpen(true) }
+
+  const handleCreate = async (e) => {
+    e.preventDefault()
+    if (!createForm.roleId) { toast.error('Role is required'); return }
+    setCreating(true)
+    try {
+      await usersApi.create(createForm)
+      toast.success('User created!')
+      setCreateOpen(false)
+      fetchData()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Create failed')
+    } finally { setCreating(false) }
+  }
+
+  // ── Edit ───────────────────────────��────────────────────────────────────────
+  const openEdit = async (user) => {
+    setEditId(user._id)
+    setEditForm({ name: user.name || '', phone: user.phone || '', roleId: user.roleId || '', active: user.active !== false })
+    setEditOpen(true)
+  }
+
+  const handleEdit = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await usersApi.update(editId, { ...editForm, active: editForm.active === true || editForm.active === 'true' })
+      toast.success('User updated')
+      setEditOpen(false)
+      fetchData()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Update failed')
+    } finally { setSaving(false) }
+  }
+
+  // ── Delete ───────��──────────────────────────────���───────────────────────��───
   const handleDelete = async () => {
     setDeleting(true)
     try { await usersApi.delete(deleteId); toast.success('User deleted'); setDeleteId(null); fetchData() }
@@ -41,18 +108,7 @@ export default function UsersList() {
     finally { setDeleting(false) }
   }
 
-  const handleResetLink = async (id) => {
-    try {
-      const r = await usersApi.getResetLink(id)
-      setResetLinkMap((p) => ({ ...p, [id]: r.data.resetLink }))
-      navigator.clipboard.writeText(r.data.resetLink)
-      toast.success('Reset link copied to clipboard')
-    } catch { toast.error('Failed to get reset link') }
-  }
-
-  const inpStyle = { background: '#FFFFFF', border: '1px solid #CBD5E1' }
-  const inpFocus = (e) => { e.target.style.borderColor = P; e.target.style.boxShadow = '0 0 0 3px rgba(10,61,149,0.1)' }
-  const inpBlur  = (e) => { e.target.style.borderColor = '#CBD5E1'; e.target.style.boxShadow = '' }
+  const isSuperadminEdit = editId === 'USR00001'
 
   return (
     <div className="animate-fade-in">
@@ -60,11 +116,18 @@ export default function UsersList() {
         title="Users"
         subtitle={total > 0 ? `${total} admin users` : undefined}
         action={
-          <button onClick={() => navigate('/users/create')}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-xl transition-all"
-            style={{ background: `linear-gradient(135deg,${P},#072d6e)`, boxShadow: '0 4px 14px rgba(10,61,149,0.3)' }}>
-            <Plus className="w-4 h-4" /> Add User
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => navigate('/roles/list')}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl transition-all"
+              style={{ border: `1px solid ${PL}`, background: PB, color: P }}>
+              <ShieldCheck className="w-4 h-4" /> Manage Roles
+            </button>
+            <button onClick={openCreate}
+              className="btn-shine flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-xl"
+              style={{ background: `linear-gradient(135deg,${P},#072d6e)`, boxShadow: '0 4px 14px rgba(10,61,149,0.3)' }}>
+              <Plus className="w-4 h-4" /> Add User
+            </button>
+          </div>
         }
       />
 
@@ -73,8 +136,8 @@ export default function UsersList() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search name, email…"
-            className="pl-9 pr-3 py-2 text-sm rounded-lg focus:outline-none w-64 transition-all text-slate-700"
-            style={inpStyle} onFocus={inpFocus} onBlur={inpBlur} />
+            className="pl-9 pr-3 py-2 text-sm rounded-lg focus:outline-none w-full sm:w-64 transition-all text-slate-700"
+            style={inpS} onFocus={focusOn} onBlur={focusOff} />
         </div>
       </div>
 
@@ -95,65 +158,155 @@ export default function UsersList() {
                 </tr>
               </thead>
               <tbody>
-                {data.map((u) => (
-                  <tr key={u._id} style={{ borderBottom: '1px solid #F1F5F9' }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = PB}
-                    onMouseLeave={(e) => e.currentTarget.style.background = ''}>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                          style={{ background: `linear-gradient(135deg,${P},#072d6e)` }}>
-                          {u.name?.[0]?.toUpperCase() || '?'}
+                {data.map((u) => {
+                  const isSA = u._id === 'USR00001'
+                  return (
+                    <tr key={u._id} style={{ borderBottom: '1px solid #F1F5F9' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = PB}
+                      onMouseLeave={(e) => e.currentTarget.style.background = ''}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                            style={{ background: `linear-gradient(135deg,${P},#072d6e)` }}>
+                            {u.name?.[0]?.toUpperCase() || '?'}
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-800">{u.name}</p>
+                            <p className="text-xs text-slate-400">{u._id}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-slate-800">{u.name}</p>
-                          <p className="text-xs text-slate-400">{u._id}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-500">{u.email}</td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                        style={{ background: PL, color: P }}>{u.roleName || u.roleId || '—'}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                        style={{ background: u.active !== false ? '#DCFCE7' : '#FEE2E2', color: u.active !== false ? '#15803D' : '#DC2626' }}>
-                        {u.active !== false ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1">
-                        <button onClick={() => handleResetLink(u._id)} title="Copy reset link"
-                          className="p-1.5 rounded-lg text-slate-400 transition-colors"
-                          onMouseEnter={(e) => { e.currentTarget.style.color = '#0891b2'; e.currentTarget.style.background = '#CFFAFE' }}
-                          onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.background = 'transparent' }}>
-                          <Link2 className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => navigate(`/users/update/${u._id}`)} title="Edit"
-                          className="p-1.5 rounded-lg text-slate-400 transition-colors"
-                          onMouseEnter={(e) => { e.currentTarget.style.color = P; e.currentTarget.style.background = PB }}
-                          onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.background = 'transparent' }}>
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        {u._id !== 'USR00001' && (
-                          <button onClick={() => setDeleteId(u._id)} title="Delete"
-                            className="p-1.5 rounded-lg text-slate-400 transition-colors"
-                            onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.background = '#FEE2E2' }}
-                            onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.background = 'transparent' }}>
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500">{u.email}</td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                          style={{ background: PL, color: P }}>{u.roleName || u.roleId || '—'}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                          style={{ background: u.active !== false ? '#DCFCE7' : '#FEE2E2', color: u.active !== false ? '#15803D' : '#DC2626' }}>
+                          {u.active !== false ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {!isSA && (
+                          <div className="flex gap-1">
+                            <button onClick={() => openEdit(u)} title="Edit"
+                              className="p-1.5 rounded-lg text-slate-400 transition-colors"
+                              onMouseEnter={(e) => { e.currentTarget.style.color = P; e.currentTarget.style.background = PB }}
+                              onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.background = 'transparent' }}>
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setDeleteId(u._id)} title="Delete"
+                              className="p-1.5 rounded-lg text-slate-400 transition-colors"
+                              onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.background = '#FEE2E2' }}
+                              onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.background = 'transparent' }}>
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
           {totalPages > 1 && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
         </div>
       )}
+
+      {/* ── Create Modal ── */}
+      <FormModal isOpen={createOpen} onClose={() => setCreateOpen(false)} title="Add User" maxWidth="max-w-md">
+        <form onSubmit={handleCreate} className="space-y-4">
+          <div>
+            <label className={lbl}>Name *</label>
+            <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+              value={createForm.name} onChange={(e) => setCreateForm((p) => ({ ...p, name: e.target.value }))} required />
+          </div>
+          <div>
+            <label className={lbl}>Email *</label>
+            <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+              type="email" value={createForm.email}
+              onChange={(e) => setCreateForm((p) => ({ ...p, email: e.target.value }))} required />
+          </div>
+          <div>
+            <label className={lbl}>Phone</label>
+            <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+              value={createForm.phone} onChange={(e) => setCreateForm((p) => ({ ...p, phone: e.target.value }))} />
+          </div>
+          <div>
+            <label className={lbl}>Role *</label>
+            <select className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+              value={createForm.roleId} onChange={(e) => setCreateForm((p) => ({ ...p, roleId: e.target.value }))} required>
+              <option value="">Select role…</option>
+              {roles.map((r) => <option key={r._id} value={r._id}>{r.name}</option>)}
+            </select>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setCreateOpen(false)}
+              className="px-4 py-2 text-sm rounded-lg text-slate-600 hover:bg-slate-100"
+              style={{ border: '1px solid #E2E8F0' }}>Cancel</button>
+            <button type="submit" disabled={creating}
+              className="px-5 py-2 text-sm font-semibold text-white rounded-lg disabled:opacity-50 flex items-center gap-2"
+              style={{ background: `linear-gradient(135deg,${P},#072d6e)` }}>
+              {creating && <Loader className="w-4 h-4 animate-spin" />}
+              {creating ? 'Creating…' : 'Create User'}
+            </button>
+          </div>
+        </form>
+      </FormModal>
+
+      {/* ── Edit Modal ── */}
+      <FormModal isOpen={editOpen} onClose={() => setEditOpen(false)} title="Edit User" maxWidth="max-w-md">
+        <form onSubmit={handleEdit} className="space-y-4">
+          <div>
+            <label className={lbl}>Name</label>
+            <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+              value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} />
+          </div>
+          <div>
+            <label className={lbl}>Phone</label>
+            <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+              value={editForm.phone} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} />
+          </div>
+          <div>
+            <label className={lbl}>Role</label>
+            {isSuperadminEdit ? (
+              <input className={inp} style={inpLocked} value="Superadmin" readOnly />
+            ) : (
+              <select className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                value={editForm.roleId} onChange={(e) => setEditForm((p) => ({ ...p, roleId: e.target.value }))}>
+                <option value="">Select role…</option>
+                {roles.map((r) => <option key={r._id} value={r._id}>{r.name}</option>)}
+              </select>
+            )}
+          </div>
+          <div>
+            <label className={lbl}>Status</label>
+            {isSuperadminEdit ? (
+              <input className={inp} style={inpLocked} value="Active (locked)" readOnly />
+            ) : (
+              <select className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                value={editForm.active ? 'true' : 'false'}
+                onChange={(e) => setEditForm((p) => ({ ...p, active: e.target.value === 'true' }))}>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            )}
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setEditOpen(false)}
+              className="px-4 py-2 text-sm rounded-lg text-slate-600 hover:bg-slate-100"
+              style={{ border: '1px solid #E2E8F0' }}>Cancel</button>
+            <button type="submit" disabled={saving}
+              className="px-5 py-2 text-sm font-semibold text-white rounded-lg disabled:opacity-50 flex items-center gap-2"
+              style={{ background: `linear-gradient(135deg,${P},#072d6e)` }}>
+              {saving && <Loader className="w-4 h-4 animate-spin" />}
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </FormModal>
 
       <ConfirmModal isOpen={!!deleteId} title="Delete User"
         message="This will permanently delete this user and their Firebase account."

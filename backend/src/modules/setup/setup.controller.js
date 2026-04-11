@@ -9,10 +9,9 @@ export const setupCtrl = {
   async bootstrap(req, res) {
     const result = await createSuperadmin(req.body)
     res.status(201).json({
-      success:   true,
-      message:   'Superadmin created. Share the reset link so they can set their password.',
-      user:      result.user,
-      resetLink: result.resetLink,
+      success: true,
+      message: 'Superadmin created. A password-set email has been sent to their inbox.',
+      user:    result.user,
     })
   },
 }

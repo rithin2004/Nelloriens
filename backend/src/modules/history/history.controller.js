@@ -28,6 +28,6 @@ export async function remove(req, res) {
 }
 
 export async function reorder(req, res) {
-  await reorderHistory(req.body.items)
+  await reorderHistory(req.body.ids)
   res.json({ success: true, message: 'Reordered' })
 }

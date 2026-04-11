@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { NavGroups } from './Sidebar'
-import { settingsApi } from '../../services/api'
+import { companyApi } from '../../services/api'
 
 const P = '#0a3d95'
 
 export default function MobileSidebar({ isOpen, onClose }) {
-  const [logoUrl, setLogoUrl] = useState('')
+  const [logoUrl,     setLogoUrl]     = useState('')
+  const [companyName, setCompanyName] = useState('Admin')
 
   useEffect(() => {
-    settingsApi.getSiteConfig()
-      .then((r) => { if (r.data?.logoUrl) setLogoUrl(r.data.logoUrl) })
+    companyApi.get()
+      .then((r) => {
+        if (r.data?.logoUrl) setLogoUrl(r.data.logoUrl)
+        if (r.data?.name)    setCompanyName(r.data.name)
+      })
       .catch(() => {})
   }, [])
 
@@ -47,7 +51,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
                 N
               </div>
             )}
-            <span className="text-white font-bold text-base tracking-tight">Nelloriens</span>
+            <span className="text-white font-bold text-base tracking-tight truncate">{companyName}</span>
           </div>
           <button
             onClick={onClose}

@@ -69,6 +69,7 @@ export default function GlobalSearch() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-white/60" />
         <input
           ref={inputRef}
+          id="global-search" name="q"
           type="search"
           value={query}
           autoComplete="off"

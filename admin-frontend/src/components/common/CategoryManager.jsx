@@ -28,6 +28,7 @@ const inpBlur  = (e) => { e.target.style.borderColor = '#CBD5E1'; e.target.style
 export default function CategoryManager({
   title,
   entityLabel = 'Item',
+  backTo,
   getAll,
   create,
   update,
@@ -67,8 +68,9 @@ export default function CategoryManager({
     setAdding(true)
     try {
       await create({ [nameKey]: addName.trim() })
+      const name = addName.trim()
       setAddName(''); setShowAdd(false)
-      toast.success(`${entityLabel} created`)
+      toast.success(`${entityLabel} "${name}" created`)
       fetchData()
     } catch (e) { toast.error(e?.response?.data?.message || 'Failed') }
     finally { setAdding(false) }
@@ -79,8 +81,9 @@ export default function CategoryManager({
     setSaving(true)
     try {
       await update(id, { [nameKey]: editName.trim() })
+      const name = editName.trim()
       setEditId(null)
-      toast.success('Updated')
+      toast.success(`${entityLabel} "${name}" updated`)
       fetchData()
     } catch (e) { toast.error(e?.response?.data?.message || 'Failed') }
     finally { setSaving(false) }
@@ -105,6 +108,7 @@ export default function CategoryManager({
     <div className="animate-fade-in">
       <PageHeader
         title={title}
+        backTo={backTo}
         subtitle={`${items.length} ${items.length === 1 ? entityLabel.toLowerCase() : entityLabel.toLowerCase() + 's'}`}
         action={
           <button
@@ -123,6 +127,8 @@ export default function CategoryManager({
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           <input
+            id={`search-${entityLabel.toLowerCase().replace(/\s+/g,'-')}s`}
+            name="search" autoComplete="off"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={`Search ${entityLabel.toLowerCase()}s…`}

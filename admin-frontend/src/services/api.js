@@ -19,7 +19,7 @@ export const newsApi = {
   createBreakingPoint:  (data)       => api.post('/news/breaking-points/create', data),
   updateBreakingPoint:  (id, data)   => api.put(`/news/breaking-points/update/${id}`, data),
   deleteBreakingPoint:  (id)         => api.delete(`/news/breaking-points/delete/${id}`),
-  reorderBreakingPoints:(items)      => api.patch('/news/breaking-points/reorder', { items }),
+  reorderBreakingPoints:(ids)        => api.patch('/news/breaking-points/reorder', { ids }),
 }
 
 // ── Jobs ───────────────────────────────────────────────────────────────────
@@ -80,7 +80,7 @@ export const foodsApi = {
   getPhotos:    ()       => api.get('/foods/photos/list'),
   addPhoto:     (data)   => api.post('/foods/photos/create', data),
   deletePhoto:  (id)     => api.delete(`/foods/photos/delete/${id}`),
-  reorderPhotos:(items)  => api.patch('/foods/photos/reorder', { items }),
+  reorderPhotos:(ids)    => api.patch('/foods/photos/reorder', { ids }),
   // Varieties
   getVarieties:   ()           => api.get('/foods/varieties/list'),
   createVariety:  (data)       => api.post('/foods/varieties/create', data),
@@ -100,7 +100,7 @@ export const historyApi = {
   create:   (data)   => api.post('/history/create', data),
   update:   (id, data) => api.put(`/history/update/${id}`, data),
   delete:   (id)     => api.delete(`/history/delete/${id}`),
-  reorder:  (items)  => api.patch('/history/reorder', { items }),
+  reorder:  (ids)    => api.patch('/history/reorder', { ids }),
 }
 
 // ── Stays ──────────────────────────────────────────────────────────────────
@@ -232,11 +232,10 @@ export const instagramApi = {
 
 // ── Dashboard ──────────────────────────────────────────────────────────────
 export const dashboardApi = {
-  getStats:         ()       => api.get('/dashboard/stats'),
-  getActivity:      (params) => api.get('/dashboard/activity', { params }),
-  getRecentLeads:   ()       => api.get('/dashboard/recent-leads'),
-  getRecentUpdates: ()       => api.get('/dashboard/recent-updates'),
-  getFeatured:      ()       => api.get('/dashboard/featured'),
+  getStats:       ()       => api.get('/dashboard/stats'),
+  getActivity:    (params) => api.get('/dashboard/activity', { params }),
+  getRecentLeads: ()       => api.get('/dashboard/recent-leads'),
+  getFeatured:    ()       => api.get('/dashboard/featured'),
 }
 
 // ── Search ─────────────────────────────────────────────────────────────────
@@ -262,6 +261,7 @@ export const settingsApi = {
 // ── Users ──────────────────────────────────────────────────────────────────
 export const usersApi = {
   me:              ()       => api.get('/users/me'),
+  updateMe:        (data)   => api.patch('/users/me', data),
   getAll:          (params) => api.get('/users/list', { params }),
   getById:         (id)     => api.get(`/users/get/${id}`),
   create:          (data)   => api.post('/users/create', data),

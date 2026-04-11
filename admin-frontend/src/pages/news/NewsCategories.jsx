@@ -6,6 +6,7 @@ export default function NewsCategories() {
     <CategoryManager
       title="News Categories"
       entityLabel="Category"
+      backTo="/news"
       getAll={() => newsApi.getCategories()}
       create={(data) => newsApi.createCategory(data)}
       update={(id, data) => newsApi.updateCategory(id, data)}
