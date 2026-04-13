@@ -1320,7 +1320,7 @@ export const paths = {
     get: {
       tags: ['Settings'],
       summary: 'Get site-level configuration',
-      description: 'Returns site-wide settings like SEO defaults, feature flags, and analytics IDs.',
+      description: 'Returns site-wide settings like SEO defaults and feature flags. Note: Google Analytics ID is stored on the company document — use GET /company/get to retrieve it.',
       security: auth,
       responses: { ...ok('Site config document.'), ...fail },
     },
@@ -1350,6 +1350,83 @@ export const paths = {
         { name: 'module', in: 'query', schema: { type: 'string' }, description: 'Filter by module name (e.g. news, jobs, users).' },
       ],
       responses: { ...paginatedOk, ...fail },
+    },
+  },
+
+  // ───────────────────────────────────────────────────────────────────��─────
+  // RECYCLE BIN
+  // Soft-deleted content — list, restore, or permanently purge.
+  // Items auto-archived after 90 days; permanently deleted after 15 days in bin.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  '/recycle-bin/stats': {
+    get: {
+      tags: ['RecycleBin'],
+      summary: 'Get item counts per module',
+      description: 'Returns the number of soft-deleted items in each content module. Useful for showing a badge count on the Recycle Bin nav item.',
+      security: auth,
+      responses: { ...ok('Recycle bin stats by module.'), ...fail },
+    },
+  },
+
+  '/recycle-bin/list': {
+    get: {
+      tags: ['RecycleBin'],
+      summary: 'List all items in the Recycle Bin',
+      description:
+        'Returns soft-deleted items across all (or a filtered) content module.\n\n' +
+        'Each item includes:\n' +
+        '- `module` — which collection it came from\n' +
+        '- `deleteReason` — `"manual"` (admin deleted) or `"expired"` (auto-archived after 90 days)\n' +
+        '- `expiresAt` — ISO timestamp when it will be permanently deleted (15 days after `deletedAt`)\n\n' +
+        'Requires `recyclebin` permission level `read` or above.',
+      security: auth,
+      parameters: [
+        ...pagQ,
+        { name: 'module', in: 'query', schema: { type: 'string', enum: ['news','jobs','results','sports','foods','history','stays','events','movies','theatres','transport','offers','tourism','updates','ads','sponsorships'] }, description: 'Filter by content module.' },
+      ],
+      responses: { ...paginatedOk, ...fail },
+    },
+  },
+
+  '/recycle-bin/restore/{module}/{id}': {
+    post: {
+      tags: ['RecycleBin'],
+      summary: 'Restore an item from the Recycle Bin',
+      description: 'Clears `deletedAt` and makes the item live again. The item will reappear in its original module list.\n\nRequires `recyclebin` permission level `read_write` or above.',
+      security: auth,
+      parameters: [
+        { name: 'module', in: 'path', required: true, schema: { type: 'string' }, description: 'Module name (e.g. news, jobs).' },
+        { name: 'id',     in: 'path', required: true, schema: { type: 'string' }, description: 'Document ID (e.g. NEWS00042).' },
+      ],
+      responses: { ...ok('Item restored.'), ...fail },
+    },
+  },
+
+  '/recycle-bin/purge/{module}/{id}': {
+    delete: {
+      tags: ['RecycleBin'],
+      summary: 'Permanently delete a single item',
+      description: 'Permanently removes the document from Firestore. **This cannot be undone.** Requires `recyclebin` permission level `full`.',
+      security: auth,
+      parameters: [
+        { name: 'module', in: 'path', required: true, schema: { type: 'string' }, description: 'Module name (e.g. news, jobs).' },
+        { name: 'id',     in: 'path', required: true, schema: { type: 'string' }, description: 'Document ID.' },
+      ],
+      responses: { ...ok('Item permanently deleted.'), ...fail },
+    },
+  },
+
+  '/recycle-bin/purge-all': {
+    delete: {
+      tags: ['RecycleBin'],
+      summary: 'Empty the Recycle Bin (all or one module)',
+      description: 'Permanently deletes all soft-deleted items. Pass `?module=news` to limit to one module. **This cannot be undone.** Requires `recyclebin` permission level `full`.',
+      security: auth,
+      parameters: [
+        { name: 'module', in: 'query', schema: { type: 'string' }, description: 'Limit purge to a specific module. Omit to purge everything.' },
+      ],
+      responses: { ...ok('All items purged.'), ...fail },
     },
   },
 }

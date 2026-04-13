@@ -93,6 +93,9 @@ import InstagramManager from '../pages/instagram/InstagramManager'
 // Activity
 import ActivityLog from '../pages/ActivityLog'
 
+// Recycle Bin
+import RecycleBin from '../pages/RecycleBin'
+
 // Profile
 import ProfilePage from '../pages/profile/ProfilePage'
 
@@ -102,13 +105,9 @@ import LeadsList from '../pages/leads/LeadsList'
 
 // Users
 import UsersList from '../pages/users/UsersList'
-import UsersCreate from '../pages/users/UsersCreate'
-import UsersEdit from '../pages/users/UsersEdit'
 
 // Roles
 import RolesList from '../pages/roles/RolesList'
-import RolesCreate from '../pages/roles/RolesCreate'
-import RolesEdit from '../pages/roles/RolesEdit'
 
 // Company
 import CompanySettings from '../pages/company/CompanySettings'
@@ -245,6 +244,9 @@ export default function AppRoutes() {
 
       {/* Activity */}
       <Route path="/activity" element={<PL><ActivityLog /></PL>} />
+
+      {/* Recycle Bin */}
+      <Route path="/recycle-bin" element={<PL><RecycleBin /></PL>} />
 
       {/* Profile */}
       <Route path="/profile" element={<PL><ProfilePage /></PL>} />

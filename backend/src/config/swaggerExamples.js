@@ -182,6 +182,7 @@ export const schemas = {
           sponsorships: 'read',
           instagram:    'read_write',
           leads:        'read',
+          recyclebin:   'full',
           users:        'none',
           roles:        'none',
           company:      'read',
@@ -799,14 +800,13 @@ export const schemas = {
 
   SiteConfigRequest: {
     type: 'object',
-    description: 'Partial update — only provided fields are changed. Stores site-wide configuration.',
+    description: 'Partial update — only provided fields are changed. Stores site-wide configuration. Note: Google Analytics ID is managed via PUT /company/update (gaId field), not here.',
     properties: {
-      siteName:          { type: 'string', example: 'Nelloriens' },
-      siteTagline:       { type: 'string', example: 'Your Window to Nellore' },
-      googleAnalyticsId: { type: 'string', example: 'G-XXXXXXXXXX' },
-      facebookPixelId:   { type: 'string', example: '1234567890123456' },
-      maintenanceMode:   { type: 'boolean', example: false, description: 'Enables a maintenance banner on the public site.' },
-      defaultMetaImage:  { type: 'string', example: 'https://storage.googleapis.com/nelloriens.appspot.com/company/og-default.jpg' },
+      siteName:         { type: 'string', example: 'Nelloriens' },
+      siteTagline:      { type: 'string', example: 'Your Window to Nellore' },
+      facebookPixelId:  { type: 'string', example: '1234567890123456' },
+      maintenanceMode:  { type: 'boolean', example: false, description: 'Enables a maintenance banner on the public site.' },
+      defaultMetaImage: { type: 'string', example: 'https://storage.googleapis.com/nelloriens.appspot.com/company/og-default.jpg' },
     },
   },
 }

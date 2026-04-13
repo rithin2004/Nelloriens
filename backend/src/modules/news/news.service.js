@@ -6,16 +6,16 @@ export async function listNews({ page, limit, search, category, isImportant }) {
   const safeLimit = Math.min(parseInt(limit) || 20, 100)
   const safePage  = Math.max(parseInt(page)  || 1, 1)
 
-  // Fetch all ordered server-side; filter/paginate in memory.
-  // Avoids the Firestore composite index requirement that arises when combining
-  // equality filters (category, isImportant) with orderBy('publishedAt').
   let items = await newsRepo.findAll({ orderBy: 'publishedAt', order: 'desc' })
+
+  // Exclude soft-deleted items
+  items = items.filter(n => !n.deletedAt)
 
   if (search) {
     const q = search.toLowerCase()
     items = items.filter(n => n.title?.toLowerCase().includes(q) || n.slug?.toLowerCase().includes(q))
   }
-  if (category)              items = items.filter(n => n.category === category)
+  if (category)               items = items.filter(n => n.category === category)
   if (isImportant === 'true') items = items.filter(n => n.isImportant === true)
 
   const total = items.length
@@ -29,7 +29,7 @@ export async function listNews({ page, limit, search, category, isImportant }) {
 
 export async function getNewsById(id) {
   const article = await newsRepo.findById(id)
-  if (!article) throw { status: 404, message: 'News article not found' }
+  if (!article || article.deletedAt) throw { status: 404, message: 'News article not found' }
   return article
 }
 
@@ -40,25 +40,31 @@ export async function createNewsArticle(data) {
 
 export async function updateNewsArticle(id, data) {
   const existing = await newsRepo.findById(id)
-  if (!existing) throw { status: 404, message: 'News article not found' }
+  if (!existing || existing.deletedAt) throw { status: 404, message: 'News article not found' }
   return newsRepo.update(id, data)
 }
 
-export async function deleteNewsArticle(id) {
+export async function deleteNewsArticle(id, requestUser = null) {
   const existing = await newsRepo.findById(id)
-  if (!existing) throw { status: 404, message: 'News article not found' }
-  await newsRepo.delete(id)
+  if (!existing || existing.deletedAt) throw { status: 404, message: 'News article not found' }
+  await newsRepo.softDelete(id, {
+    deletedBy:    requestUser?.uid || null,
+    deleteReason: 'manual',
+  })
   return existing
 }
 
-export async function bulkDeleteNews(ids) {
+export async function bulkDeleteNews(ids, requestUser = null) {
   if (!Array.isArray(ids) || !ids.length) throw { status: 400, message: 'ids array required' }
-  return newsRepo.batchDelete(ids)
+  return newsRepo.batchSoftDelete(ids, {
+    deletedBy:    requestUser?.uid || null,
+    deleteReason: 'manual',
+  })
 }
 
 export async function bulkPublishNews(ids) {
   if (!Array.isArray(ids) || !ids.length) throw { status: 400, message: 'ids array required' }
-  return newsRepo.batchPublish(ids)
+  return newsRepo.batchUpdate(ids, { publishedAt: new Date().toISOString() })
 }
 
 // ── Categories ─────────────────────────────────────────────────────────────
@@ -107,14 +113,12 @@ export async function deleteBreakingPoint(id) {
   const existing = await bpRepo.findById(id)
   if (!existing) throw { status: 404, message: 'Breaking point not found' }
   await bpRepo.delete(id)
-  // Close the gap so remaining items stay sequentially ordered from 1
   await bpRepo.resequence()
 }
 
 export async function reorderBreakingPoints(ids) {
   if (!Array.isArray(ids)) throw { status: 400, message: 'ids must be an array' }
   if (!ids.length)         throw { status: 400, message: 'ids array is empty' }
-  // Validate: the sent IDs must match the full current collection
   const all = await bpRepo.findAllOrdered()
   if (ids.length !== all.length) throw { status: 400, message: `Expected ${all.length} ids, got ${ids.length}` }
   await bpRepo.reorder(ids)

@@ -2,10 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/Nelloriens.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="noindex, nofollow" />
-    <title>Admin Panel</title>
+
+    <!-- Security: block all search engines and crawlers from this private admin panel -->
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+    <meta name="googlebot" content="noindex, nofollow" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/Nelloriens.png" />
+    <link rel="apple-touch-icon" href="/Nelloriens.png" />
+
+    <!-- Basic meta -->
+    <title>Admin Panel — Nelloriens</title>
+    <meta name="description" content="Nelloriens admin panel — manage content, users, and settings." />
+    <meta name="author" content="Nelloriens" />
+
+    <!-- Prevent caching of admin pages on shared devices -->
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#0a3d95" />
+    <meta name="msapplication-TileColor" content="#0a3d95" />
+
+    <!-- Open Graph (for when someone shares the login URL — kept minimal & generic) -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:title"       content="Nelloriens Admin" />
+    <meta property="og:description" content="Nelloriens content management system." />
+    <meta property="og:image"       content="/Nelloriens.png" />
+
+    <!-- Disable phone number detection on iOS -->
+    <meta name="format-detection" content="telephone=no" />
   </head>
   <body>
     <div id="root"></div>

@@ -1,7 +1,12 @@
 import { createPortal } from 'react-dom'
 
-export default function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, loading }) {
+export default function ConfirmModal({
+  isOpen, title, message, onConfirm, onCancel, loading,
+  confirmLabel, confirmStyle,
+}) {
   if (!isOpen) return null
+
+  const defaultConfirmStyle = { background: 'linear-gradient(135deg,#EF4444,#DC2626)', boxShadow: '0 4px 12px rgba(239,68,68,0.25)' }
 
   return createPortal(
     <div
@@ -27,9 +32,9 @@ export default function ConfirmModal({ isOpen, title, message, onConfirm, onCanc
             onClick={onConfirm}
             disabled={loading}
             className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-60"
-            style={{ background: 'linear-gradient(135deg,#EF4444,#DC2626)', boxShadow: '0 4px 12px rgba(239,68,68,0.25)' }}
+            style={confirmStyle || defaultConfirmStyle}
           >
-            {loading ? 'Deleting...' : 'Delete'}
+            {loading ? 'Please wait...' : (confirmLabel || 'Delete')}
           </button>
         </div>
       </div>

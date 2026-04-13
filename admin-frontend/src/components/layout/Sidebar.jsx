@@ -4,10 +4,10 @@ import {
   LayoutDashboard, Newspaper, Briefcase, GraduationCap, Trophy,
   UtensilsCrossed, Landmark, Hotel, CalendarDays, Film,
   Bus, Tag, MapPin, Bell, Megaphone, Heart,
-  ChevronLeft, ChevronRight, Inbox, Zap, Building2, Users,
+  ChevronLeft, ChevronRight, Inbox, Zap, Building2, Users, Trash2,
 } from 'lucide-react'
 import { InstagramIcon } from '../common/SocialIcon'
-import { settingsApi, companyApi } from '../../services/api'
+import { companyApi } from '../../services/api'
 
 const P = '#0a3d95'
 
@@ -55,7 +55,8 @@ const navGroups = [
   {
     label: 'Admin',
     items: [
-      { label: 'Users', to: '/users/list', icon: Users },
+      { label: 'Users',        to: '/users/list',    icon: Users  },
+      { label: 'Recycle Bin',  to: '/recycle-bin',   icon: Trash2 },
     ],
   },
 ]
@@ -124,11 +125,11 @@ export default function Sidebar() {
   const [companyName, setCompanyName] = useState('Nelloriens')
 
   useEffect(() => {
-    settingsApi.getSiteConfig()
-      .then((r) => { if (r.data?.logoUrl) setLogoUrl(r.data.logoUrl) })
-      .catch(() => {})
     companyApi.get()
-      .then((r) => { if (r.data?.name) { setCompanyName(r.data.name); if (r.data.logoUrl) setLogoUrl(r.data.logoUrl) } })
+      .then((r) => {
+        if (r.data?.name)    setCompanyName(r.data.name)
+        if (r.data?.logoUrl) setLogoUrl(r.data.logoUrl)
+      })
       .catch(() => {})
   }, [])
 

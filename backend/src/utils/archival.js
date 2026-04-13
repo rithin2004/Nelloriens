@@ -1,40 +1,43 @@
 /**
- * Content Archival & Purge
+ * Content Archival & Recycle Bin Purge
  *
- * Schedule:
- *   - Archive: docs older than 90 days → moved to `{collection}_archive`, tagged archivedAt
- *   - Purge:   docs in archive older than 30 days (archivedAt) → permanently deleted
+ * Two scheduled jobs run daily at midnight:
  *
- * Skips all category / location / config / system collections.
- * Firestore batch limit = 500 ops; we stay well under it per flush.
+ * 1. archiveOldContent()
+ *    Content older than 90 days (createdAt) → soft-deleted with deleteReason 'expired'.
+ *    The item moves to the Recycle Bin where admins can restore it for 15 more days.
+ *
+ * 2. purgeExpiredBin()
+ *    Items in the Recycle Bin (deletedAt set) for more than 15 days → permanently deleted.
+ *
+ * Only content collections are affected. Categories, locations, users, roles,
+ * company, settings, and leads are never auto-archived.
  */
 
 import { db } from '../config/firebase.js'
 
-// Content collections subject to archival — categories, theatres, leads, etc. are excluded
-const CONTENT_COLLECTIONS = [
-  'news',
-  'jobs',
-  'results',
-  'sports',
-  'stays',
-  'events',
-  'movies',
-  'transport',
-  'offers',
-  'tourism',
-  'updates',
-  'ads',
-  'sponsorships',
-  'history',
-  'foods_sweets',
-  'foods_photos',
+export const CONTENT_MODULES = [
+  { module: 'news',         collection: 'news',         titleField: 'title'     },
+  { module: 'jobs',         collection: 'jobs',         titleField: 'title'     },
+  { module: 'results',      collection: 'results',      titleField: 'examName'  },
+  { module: 'sports',       collection: 'sports',       titleField: 'title'     },
+  { module: 'foods',        collection: 'foods',        titleField: 'foodName'  },
+  { module: 'history',      collection: 'history',      titleField: 'title'     },
+  { module: 'stays',        collection: 'stays',        titleField: 'hotelName' },
+  { module: 'events',       collection: 'events',       titleField: 'title'     },
+  { module: 'movies',       collection: 'movies',       titleField: 'title'     },
+  { module: 'theatres',     collection: 'theatres',     titleField: 'name'      },
+  { module: 'transport',    collection: 'transport',    titleField: 'title'     },
+  { module: 'offers',       collection: 'offers',       titleField: 'title'     },
+  { module: 'tourism',      collection: 'tourism',      titleField: 'title'     },
+  { module: 'updates',      collection: 'updates',      titleField: 'title'     },
+  { module: 'ads',          collection: 'ads',          titleField: 'title'     },
+  { module: 'sponsorships', collection: 'sponsorships', titleField: 'title'     },
 ]
 
-const ARCHIVE_SUFFIX  = '_archive'
-const ARCHIVE_DAYS    = 90   // days in live collection before archiving
-const PURGE_DAYS      = 30   // days in archive before permanent deletion
-const BATCH_SIZE      = 200  // Firestore batch limit is 500 ops; keep headroom
+const ARCHIVE_DAYS = 90   // days until live content is auto-moved to Recycle Bin
+const PURGE_DAYS   = 15   // days a Recycle Bin item is kept before permanent deletion
+const BATCH_SIZE   = 200  // Firestore batch limit is 500 ops; keep headroom
 
 /** ISO string for `daysAgo` days in the past */
 function cutoffISO(daysAgo) {
@@ -42,89 +45,86 @@ function cutoffISO(daysAgo) {
 }
 
 /**
- * Move content older than ARCHIVE_DAYS from each live collection
- * into `{collection}_archive`, tagging each doc with `archivedAt`.
+ * Auto-archive: content older than ARCHIVE_DAYS → soft-deleted with reason 'expired'.
+ * Admins can still see & restore these items from the Recycle Bin for PURGE_DAYS more days.
  */
 export async function archiveOldContent() {
   const cutoff    = cutoffISO(ARCHIVE_DAYS)
-  const archivedAt = new Date().toISOString()
+  const now       = new Date().toISOString()
   let   totalMoved = 0
 
-  for (const col of CONTENT_COLLECTIONS) {
+  for (const { module, collection } of CONTENT_MODULES) {
     try {
-      const snap = await db.collection(col)
+      // Fetch docs older than the cutoff that are NOT already soft-deleted
+      const snap = await db.collection(collection)
         .where('createdAt', '<', cutoff)
         .get()
 
-      if (snap.empty) continue
+      // In-memory filter: skip already-deleted items
+      const toArchive = snap.docs.filter(d => !d.data().deletedAt)
+      if (!toArchive.length) continue
 
-      const docs    = snap.docs
-      const archCol = db.collection(col + ARCHIVE_SUFFIX)
-
-      // Process in batches: each doc = 1 write (archive) + 1 delete (live)
-      for (let i = 0; i < docs.length; i += BATCH_SIZE) {
-        const chunk = docs.slice(i, i + BATCH_SIZE)
+      for (let i = 0; i < toArchive.length; i += BATCH_SIZE) {
+        const chunk = toArchive.slice(i, i + BATCH_SIZE)
         const batch = db.batch()
-
-        for (const doc of chunk) {
-          batch.set(archCol.doc(doc.id), { ...doc.data(), archivedAt })
-          batch.delete(db.collection(col).doc(doc.id))
-        }
-
+        chunk.forEach(doc => {
+          batch.update(doc.ref, {
+            deletedAt:    now,
+            deletedBy:    null,       // system action
+            deleteReason: 'expired',
+            updatedAt:    now,
+          })
+        })
         await batch.commit()
         totalMoved += chunk.length
       }
 
-      if (docs.length > 0) {
-        console.log(`[archival] Archived ${docs.length} docs from '${col}'`)
-      }
+      console.log(`[archival] Auto-archived ${toArchive.length} items from '${collection}'`)
     } catch (err) {
-      console.error(`[archival] Error archiving '${col}':`, err.message)
+      console.error(`[archival] Error archiving '${collection}':`, err.message)
     }
   }
 
   if (totalMoved > 0) {
-    console.log(`[archival] Total archived: ${totalMoved} documents`)
+    console.log(`[archival] Total auto-archived: ${totalMoved} items`)
   }
 }
 
 /**
- * Permanently delete archive docs whose `archivedAt` is older than PURGE_DAYS.
+ * Purge: items in Recycle Bin for more than PURGE_DAYS → permanently deleted.
  */
-export async function purgeArchived() {
-  const cutoff   = cutoffISO(PURGE_DAYS)
+export async function purgeExpiredBin() {
+  const cutoff  = cutoffISO(PURGE_DAYS)
   let   totalDel = 0
 
-  for (const col of CONTENT_COLLECTIONS) {
-    const archColName = col + ARCHIVE_SUFFIX
-
+  for (const { collection } of CONTENT_MODULES) {
     try {
-      const snap = await db.collection(archColName)
-        .where('archivedAt', '<', cutoff)
-        .get()
+      const snap = await db.collection(collection).get()
 
-      if (snap.empty) continue
+      // In-memory filter: deleted and expired
+      const toDelete = snap.docs.filter(d => {
+        const data = d.data()
+        return data.deletedAt && data.deletedAt < cutoff
+      })
 
-      const docs = snap.docs
+      if (!toDelete.length) continue
 
-      for (let i = 0; i < docs.length; i += BATCH_SIZE) {
-        const chunk = docs.slice(i, i + BATCH_SIZE)
+      for (let i = 0; i < toDelete.length; i += BATCH_SIZE) {
+        const chunk = toDelete.slice(i, i + BATCH_SIZE)
         const batch = db.batch()
-        chunk.forEach((doc) => batch.delete(doc.ref))
+        chunk.forEach(doc => batch.delete(doc.ref))
         await batch.commit()
         totalDel += chunk.length
       }
 
-      if (docs.length > 0) {
-        console.log(`[archival] Purged ${docs.length} docs from '${archColName}'`)
-      }
+      console.log(`[archival] Purged ${toDelete.length} expired items from '${collection}'`)
     } catch (err) {
-      console.error(`[archival] Error purging '${archColName}':`, err.message)
+      console.error(`[archival] Error purging '${collection}':`, err.message)
     }
   }
 
   if (totalDel > 0) {
-    console.log(`[archival] Total purged: ${totalDel} documents`)
+    console.log(`[archival] Total purged: ${totalDel} items`)
   }
 }
 
@@ -135,7 +135,7 @@ export function startArchivalScheduler() {
   const runAll = async () => {
     console.log('[archival] Running scheduled archive & purge…')
     await archiveOldContent()
-    await purgeArchived()
+    await purgeExpiredBin()
     console.log('[archival] Done.')
   }
 
@@ -143,8 +143,8 @@ export function startArchivalScheduler() {
   runAll().catch((err) => console.error('[archival] Startup run failed:', err.message))
 
   // Schedule at next midnight, then every 24 h
-  const now          = new Date()
-  const nextMidnight = new Date(now)
+  const now             = new Date()
+  const nextMidnight    = new Date(now)
   nextMidnight.setHours(24, 0, 0, 0)
   const msUntilMidnight = nextMidnight - now
 

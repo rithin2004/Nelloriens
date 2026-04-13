@@ -113,4 +113,36 @@ export class FirestoreRepo {
     const snap = await this.ref.doc(id).get()
     return snap.exists
   }
+
+  // ── Soft delete (Recycle Bin) ─────────────────────────────────────────────
+
+  /**
+   * Soft-delete a document: sets deletedAt/deletedBy/deleteReason instead of removing.
+   * The document stays in the same collection but is excluded from all list/get queries.
+   */
+  async softDelete(id, { deletedBy = null, deleteReason = 'manual' } = {}) {
+    const now = new Date().toISOString()
+    await this.ref.doc(id).update({ deletedAt: now, deletedBy, deleteReason, updatedAt: now })
+    return true
+  }
+
+  /**
+   * Restore a soft-deleted document back to live state.
+   */
+  async restore(id) {
+    const now = new Date().toISOString()
+    await this.ref.doc(id).update({ deletedAt: null, deletedBy: null, deleteReason: null, updatedAt: now })
+    return true
+  }
+
+  /**
+   * Batch soft-delete multiple documents.
+   */
+  async batchSoftDelete(ids, { deletedBy = null, deleteReason = 'manual' } = {}) {
+    const batch = db.batch()
+    const now   = new Date().toISOString()
+    ids.forEach(id => batch.update(this.ref.doc(id), { deletedAt: now, deletedBy, deleteReason, updatedAt: now }))
+    await batch.commit()
+    return ids.length
+  }
 }

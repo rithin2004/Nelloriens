@@ -36,6 +36,7 @@ import usersRoutes        from './src/modules/users/users.routes.js'
 import rolesRoutes        from './src/modules/roles/roles.routes.js'
 import companyRoutes      from './src/modules/company/company.routes.js'
 import leadsRoutes        from './src/modules/leads/leads.routes.js'
+import recycleBinRoutes   from './src/modules/recyclebin/recyclebin.routes.js'
 import { startArchivalScheduler } from './src/utils/archival.js'
 
 const app = express()
@@ -124,6 +125,7 @@ app.use('/users',        usersRoutes)
 app.use('/roles',        rolesRoutes)
 app.use('/company',      companyRoutes)
 app.use('/leads',        leadsRoutes)
+app.use('/recycle-bin',  recycleBinRoutes)
 
 // ── 404 handler ───────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ success: false, message: 'Route not found' }))

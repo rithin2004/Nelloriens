@@ -26,13 +26,13 @@ export async function updateNews(req, res) {
 export async function deleteNews(req, res) {
   const item = await svc.deleteNewsArticle(req.params.id)
   await log(req, 'delete', 'news', req.params.id, { title: item.title })
-  res.json({ success: true, message: 'Deleted' })
+  res.json({ success: true, message: 'Moved to Recycle Bin' })
 }
 
 export async function bulkDelete(req, res) {
-  const count = await svc.bulkDeleteNews(req.body.ids)
+  const count = await svc.bulkDeleteNews(req.body.ids, req.user)
   await log(req, 'bulk_delete', 'news', null, { count })
-  res.json({ success: true, message: `Deleted ${count} articles` })
+  res.json({ success: true, message: `Moved ${count} articles to Recycle Bin` })
 }
 
 export async function bulkPublish(req, res) {

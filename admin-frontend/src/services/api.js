@@ -297,6 +297,15 @@ export const leadsApi = {
   delete:  (id)           => api.delete(`/leads/delete/${id}`),
 }
 
+// ── Recycle Bin ────────────────────────────────────────────────────────────
+export const recycleBinApi = {
+  list:     (params)           => api.get('/recycle-bin/list',  { params }),
+  stats:    ()                 => api.get('/recycle-bin/stats'),
+  restore:  (module, id)       => api.post(`/recycle-bin/restore/${module}/${id}`),
+  purge:    (module, id)       => api.delete(`/recycle-bin/purge/${module}/${id}`),
+  purgeAll: (module)           => api.delete('/recycle-bin/purge-all', { params: module ? { module } : {} }),
+}
+
 // ── Setup ──────────────────────────────────────────────────────────────────
 export const setupApi = {
   getStatus:       ()     => api.get('/setup/status'),
