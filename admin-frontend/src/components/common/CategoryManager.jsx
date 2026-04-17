@@ -125,6 +125,9 @@ export default function CategoryManager({
       {/* Search bar */}
       <div className="mb-4">
         <div className="relative w-full sm:w-72">
+          <label htmlFor={`search-${entityLabel.toLowerCase().replace(/\s+/g,'-')}s`} className="sr-only">
+            Search {entityLabel.toLowerCase()}s
+          </label>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           <input
             id={`search-${entityLabel.toLowerCase().replace(/\s+/g,'-')}s`}
@@ -148,7 +151,9 @@ export default function CategoryManager({
             <Tag className="w-4 h-4" style={{ color: P }} />
             <span className="text-sm font-semibold" style={{ color: P }}>New {entityLabel}</span>
           </div>
+          <label htmlFor="category-add-name" className="sr-only">New {entityLabel} name</label>
           <input
+            id="category-add-name" name="categoryName" autoComplete="off"
             value={addName}
             onChange={(e) => setAddName(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') setShowAdd(false) }}
@@ -220,7 +225,9 @@ export default function CategoryManager({
                 {editId === item._id ? (
                   /* ── Edit mode ── */
                   <>
+                    <label htmlFor={`category-edit-${item._id}`} className="sr-only">Edit {entityLabel} name</label>
                     <input
+                      id={`category-edit-${item._id}`} name="categoryName" autoComplete="off"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       onKeyDown={(e) => {

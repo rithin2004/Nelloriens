@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { rolesApi } from '../../services/api'
+import useRolesStore from '../../store/rolesStore'
 import PageHeader from '../../components/common/PageHeader'
 import FormModal from '../../components/common/FormModal'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -45,8 +46,6 @@ function PermissionsSummary({ permissions = {} }) {
 }
 
 export default function RolesList() {
-  const [data,     setData]     = useState([])
-  const [loading,  setLoading]  = useState(true)
   const [deleteId, setDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -63,15 +62,10 @@ export default function RolesList() {
   const [editPerms, setEditPerms] = useState({})
   const [saving,    setSaving]    = useState(false)
 
-  const fetchData = () => {
-    setLoading(true)
-    rolesApi.getAll({ limit: 100 })
-      .then((r) => setData(r.data.items || []))
-      .catch(() => toast.error('Failed to load roles'))
-      .finally(() => setLoading(false))
-  }
+  // Data from Zustand store — updated by useSSE in Layout automatically
+  const { items: data, loading, fetch } = useRolesStore()
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetch({ limit: 100 }) }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Create ────────────────────────────────────────��───────────────────────
   const openCreate = () => { setCreateName(''); setCreatePerms({}); setCreateOpen(true) }
@@ -84,7 +78,7 @@ export default function RolesList() {
       await rolesApi.create({ name: createName.trim(), permissions: createPerms })
       toast.success('Role created')
       setCreateOpen(false)
-      fetchData()
+      // No fetchData() — listener updates automatically
     } catch (err) {
       toast.error(err.response?.data?.message || 'Create failed')
     } finally { setCreating(false) }
@@ -105,7 +99,7 @@ export default function RolesList() {
       await rolesApi.update(editId, { name: editName.trim(), permissions: editPerms })
       toast.success('Role updated')
       setEditOpen(false)
-      fetchData()
+      // No fetchData() — listener updates automatically
     } catch (err) {
       toast.error(err.response?.data?.message || 'Update failed')
     } finally { setSaving(false) }
@@ -114,7 +108,7 @@ export default function RolesList() {
   // ── Delete ──────────────��─────────────────────────────────────────────────
   const handleDelete = async () => {
     setDeleting(true)
-    try { await rolesApi.delete(deleteId); toast.success('Role deleted'); setDeleteId(null); fetchData() }
+    try { await rolesApi.delete(deleteId); toast.success('Role deleted'); setDeleteId(null) }
     catch (err) { toast.error(err.response?.data?.message || 'Delete failed') }
     finally { setDeleting(false) }
   }

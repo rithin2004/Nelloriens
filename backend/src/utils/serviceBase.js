@@ -1,5 +1,9 @@
 /**
  * Base service helpers used by all module services.
+ *
+ * RULE 9 NOTE: All deleted items now live in the 'recyclebin' collection.
+ * The original collection never contains soft-deleted documents, so no
+ * deletedAt filtering is needed anywhere in list/getById/update.
  */
 import { FirestoreRepo } from './firestoreRepo.js'
 
@@ -25,9 +29,6 @@ export function handleErr(res, err) {
  * Generic CRUD service factory.
  * Wraps a FirestoreRepo with standard list/get/create/update/remove operations.
  * Each module can extend or override as needed.
- *
- * All list/getById/remove operations automatically exclude soft-deleted items
- * (documents where deletedAt is set).
  */
 export class CrudService {
   /**
@@ -37,6 +38,7 @@ export class CrudService {
    * @param {string}        opts.searchField Field to search in (default 'title')
    * @param {string}        opts.orderBy     Default sort field (default 'createdAt')
    * @param {string}        opts.order       'asc'|'desc' (default 'desc')
+   * @param {string}        opts.titleField  Field used as display title in recyclebin (default 'title')
    * @param {function}      opts.validate    (data) => void — throw if invalid
    * @param {function}      opts.extraFilters (query) => [[field, op, value], ...] — additional JS filters
    */
@@ -46,6 +48,7 @@ export class CrudService {
     this.searchField = opts.searchField || 'title'
     this.orderBy     = opts.orderBy     || 'createdAt'
     this.order       = opts.order       || 'desc'
+    this.titleField  = opts.titleField  || 'title'
     this.validate    = opts.validate    || (() => {})
     this.extraFilters= opts.extraFilters|| (() => [])
   }
@@ -55,19 +58,17 @@ export class CrudService {
     const lim = Math.min(parseInt(limit) || 20, 100)
     const pg  = Math.max(parseInt(page)  || 1,  1)
 
-    // Always fetch all, filter in memory — avoids composite Firestore index requirements
-    // and naturally excludes soft-deleted items in one pass.
+    // Fetch all — deleted items are in 'recyclebin', not here, so no deletedAt filter needed
     let items = await this.repo.findAll({ orderBy: this.orderBy, order: this.order })
-
-    // Exclude soft-deleted items
-    items = items.filter(item => !item.deletedAt)
 
     // Apply extra equality filters from query params
     for (const [field, op, value] of this.extraFilters(query)) {
       if (value !== undefined && value !== null && value !== '') {
-        if (op === '==')  items = items.filter(item => item[field] === value)
+        if      (op === '==') items = items.filter(item => item[field] === value)
         else if (op === '!=') items = items.filter(item => item[field] !== value)
         else if (op === 'in') items = items.filter(item => Array.isArray(value) && value.includes(item[field]))
+        else if (op === '>=') items = items.filter(item => item[field] >= value)
+        else if (op === '<=') items = items.filter(item => item[field] <= value)
       }
     }
 
@@ -87,33 +88,46 @@ export class CrudService {
 
   async getById(id) {
     const item = await this.repo.findById(id)
-    if (!item || item.deletedAt) notFound(`${this.entityName} not found`)
+    if (!item) notFound(`${this.entityName} not found`)
     return item
   }
 
   async create(data) {
-    this.validate(data)
-    return this.repo.create(data)
+    // _reservedId is sent by the frontend (pre-reserved via /upload/reserve-id) so
+    // the file is already named after the content ID before the document is created.
+    // Strip it from the stored payload — it's only used to set the document ID.
+    const { _reservedId, ...rest } = data
+    this.validate(rest)
+    return this.repo.create(rest, _reservedId || null)
   }
 
   async update(id, data) {
     const existing = await this.repo.findById(id)
-    if (!existing || existing.deletedAt) notFound(`${this.entityName} not found`)
+    if (!existing) notFound(`${this.entityName} not found`)
     this.validate(data)
     return this.repo.update(id, data)
   }
 
   /**
-   * Soft-delete: moves the item to the Recycle Bin instead of permanently deleting.
+   * Move the item to the Recycle Bin (RULE 9).
+   * Copies full document to 'recyclebin' collection, hard-deletes from source.
    * @param {string} id
    * @param {object} requestUser — req.user from the authenticated request (optional)
    */
+  /**
+   * Atomically increment a view/count field (RULE 11).
+   * No auth required — called from public endpoints.
+   */
+  async incrementViews(id, field) {
+    await this.repo.incrementField(id, field)
+  }
+
   async remove(id, requestUser = null) {
     const existing = await this.repo.findById(id)
-    if (!existing || existing.deletedAt) notFound(`${this.entityName} not found`)
+    if (!existing) notFound(`${this.entityName} not found`)
     await this.repo.softDelete(id, {
-      deletedBy:    requestUser?.uid || null,
-      deleteReason: 'manual',
+      deletedBy: requestUser?.uid || null,
+      reason:    'manual',
     })
     return existing
   }

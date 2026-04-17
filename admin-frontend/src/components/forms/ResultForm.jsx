@@ -13,7 +13,7 @@ const section = 'rounded-xl p-5 space-y-4'
 const sectionStyle = { background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }
 const inp = 'w-full px-3 py-2.5 rounded-lg text-sm'
 
-export default function ResultForm({ defaultValues, onSubmit, loading }) {
+export default function ResultForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues })
   const [categories, setCategories] = useState([])
   const [details, setDetails] = useState(defaultValues?.fullDetails || '')
@@ -83,7 +83,7 @@ export default function ResultForm({ defaultValues, onSubmit, loading }) {
           <RichTextEditor value={details} onChange={setDetails} />
         </div>
 
-        <ImageUpload module="results" label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="results" label="Thumbnail" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -100,14 +100,40 @@ export default function ResultForm({ defaultValues, onSubmit, loading }) {
       </div>
 
       <div className={section} style={sectionStyle}>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" id="result-featured" name="isFeatured" {...register('isFeatured')} />
-          <span className="text-sm" style={{ color: '#374151' }}>Is Featured</span>
-        </label>
         <div>
           <label htmlFor="result-publishedat" className={lbl} style={lblStyle}>Published At *</label>
           <DatePicker id="result-publishedat" selected={publishedAt} onChange={setPublishedAt}
             showTimeSelect dateFormat="dd/MM/yyyy HH:mm" className="w-full" />
+        </div>
+      </div>
+
+      <div className={section} style={sectionStyle}>
+        <h3 className="font-semibold text-slate-800">Location & Scope</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="result-scope" className={lbl} style={lblStyle}>Scope *</label>
+            <select id="result-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+              <option value="nellore">Nellore</option>
+              <option value="worldwide">Worldwide</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="result-city" className={lbl} style={lblStyle}>City</label>
+            <input id="result-city" name="city" autoComplete="address-level2"
+              {...register('city')} className={inp} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="result-location" className={lbl} style={lblStyle}>Location</label>
+            <input id="result-location" name="location" autoComplete="off"
+              {...register('location')} className={inp} />
+          </div>
+          <div>
+            <label htmlFor="result-region" className={lbl} style={lblStyle}>Region</label>
+            <input id="result-region" name="region" autoComplete="off"
+              {...register('region')} className={inp} />
+          </div>
         </div>
       </div>
 

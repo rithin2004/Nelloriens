@@ -6,6 +6,7 @@ import FormModal from '../../components/common/FormModal'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import AdForm from '../../components/forms/AdForm'
 import { adsApi } from '../../services/api'
+import useAdsStore from '../../store/adsStore'
 
 const P  = '#0a3d95'
 const PL = '#dce8fb'
@@ -150,7 +151,7 @@ export default function AdsList() {
         </div>
       ) : (
         !settingsLoading && (
-          <ModuleList title="Manual Ads" api={adsApi} FormComponent={AdForm} />
+          <ModuleList title="Manual Ads" collectionName="ads" store={useAdsStore} api={adsApi} FormComponent={AdForm} idPrefix="ADS" />
         )
       )}
 

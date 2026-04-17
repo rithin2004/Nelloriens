@@ -32,4 +32,8 @@ router.post  ('/create',     authenticate, permit(M,'create'), a(c.createNews))
 router.put   ('/update/:id', authenticate, permit(M,'update'), a(c.updateNews))
 router.delete('/delete/:id', authenticate, permit(M,'delete'), a(c.deleteNews))
 
+// Public view increments — no auth (RULE 11)
+router.post('/:id/views',      a(c.incrementPageViews))
+router.post('/:id/card-views', a(c.incrementCardViews))
+
 export default router

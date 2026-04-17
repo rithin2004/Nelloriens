@@ -17,7 +17,8 @@ export const photosService = {
     if (all.length >= PHOTOS_MAX) badReq(`Maximum of ${PHOTOS_MAX} photos allowed`)
     // Append after the last item's order value — safe even if gaps exist
     const nextOrder = all.length === 0 ? 1 : all[all.length - 1].order + 1
-    return photosRepo.create({ ...data, order: nextOrder })
+    const { _reservedId, ...rest } = data
+    return photosRepo.create({ ...rest, order: nextOrder }, _reservedId || null)
   },
 
   async remove(id) {
@@ -51,6 +52,9 @@ export const photosService = {
 
 // ── Varieties ──────────────────────────────────────────────────────────────
 export const varietiesService = {
+  async incrementViews(id, field) {
+    await varietiesRepo.incrementField(id, field)
+  },
   async list() {
     return varietiesRepo.findAll({ orderBy: 'name', order: 'asc' })
   },
@@ -61,7 +65,25 @@ export const varietiesService = {
   async update(id, data) {
     const item = await varietiesRepo.findById(id)
     if (!item) notFound('Variety not found')
-    return varietiesRepo.update(id, data)
+
+    // RULE 33 / RULE 13 — popular max 6 globally (field name: 'popular')
+    if (data.popular === true && !item.popular) {
+      const all     = await varietiesRepo.findAll({})
+      const popular = all.filter(v => v.popular === true && v._id !== id)
+      if (popular.length >= 6) {
+        if (!data.replaceId) {
+          const err      = new Error('Maximum 6 Popular food varieties reached. Choose one to replace.')
+          err.status       = 409
+          err.code         = 'MAX_LIMIT_REACHED'
+          err.currentItems = popular
+          throw err
+        }
+        await varietiesRepo.update(data.replaceId, { popular: false })
+      }
+    }
+
+    const { replaceId, ...cleanData } = data
+    return varietiesRepo.update(id, cleanData)
   },
   async remove(id) {
     const item = await varietiesRepo.findById(id)
@@ -72,6 +94,9 @@ export const varietiesService = {
 
 // ── Sweets (max 8) ─────────────────────────────────────────────────────────
 export const sweetsService = {
+  async incrementViews(id, field) {
+    await sweetsRepo.incrementField(id, field)
+  },
   async list() {
     return sweetsRepo.findAll({ orderBy: 'name', order: 'asc' })
   },

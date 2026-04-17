@@ -1,11 +1,14 @@
-import { useEffect, useState, useCallback } from 'react'
-import { Trash2, RotateCcw, AlertTriangle, Clock, Package, Info, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Trash2, RotateCcw, Clock, Package, Info, ChevronLeft, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { recycleBinApi } from '../services/api'
+import useRecycleBinStore from '../store/recycleBinStore'
 import PageHeader from '../components/common/PageHeader'
 import ConfirmModal from '../components/common/ConfirmModal'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import { formatDate } from '../utils/helpers'
+
+const PAGE_SIZE = 20
 
 const P  = '#0a3d95'
 const PL = '#dce8fb'
@@ -14,31 +17,38 @@ const PB = '#eef3fd'
 const MODULE_LABELS = {
   news: 'News', jobs: 'Jobs', results: 'Results', sports: 'Sports',
   foods: 'Foods', history: 'History', stays: 'Stays', events: 'Events',
-  movies: 'Movies', theatres: 'Theatres', transport: 'Transport',
+  movies: 'Movies', movie_trailers: 'Movie Trailers', theatres: 'Theatres', transport: 'Transport',
   offers: 'Offers', tourism: 'Tourism', updates: 'Updates',
-  ads: 'Ads', sponsorships: 'Sponsorships',
+  ads: 'Ads', sponsorships: 'Sponsorships', instagram: 'Instagram', leads: 'Leads',
+  influencer_events: 'Influencer Events', realestate: 'Real Estate',
 }
 
 const MODULE_COLORS = {
-  news: { bg: '#EFF6FF', color: '#1D4ED8' },
-  jobs: { bg: '#F0FDF4', color: '#15803D' },
-  results: { bg: '#FFF7ED', color: '#C2410C' },
-  sports: { bg: '#FDF4FF', color: '#7E22CE' },
-  foods: { bg: '#FFF1F2', color: '#BE123C' },
-  history: { bg: '#F8FAFC', color: '#475569' },
-  stays: { bg: '#F0FDFA', color: '#0F766E' },
-  events: { bg: '#FFFBEB', color: '#B45309' },
-  movies: { bg: '#FDF2F8', color: '#9D174D' },
-  theatres: { bg: '#FEF3C7', color: '#92400E' },
-  transport: { bg: '#EFF6FF', color: '#1E40AF' },
-  offers: { bg: '#FFF1F2', color: '#DC2626' },
-  tourism: { bg: '#F0FDF4', color: '#166534' },
-  updates: { bg: '#EEF2FF', color: '#3730A3' },
-  ads: { bg: '#FFF7ED', color: '#EA580C' },
-  sponsorships: { bg: '#FDF4FF', color: '#6D28D9' },
+  news:         { bg: '#EFF6FF', color: '#1D4ED8' },
+  jobs:         { bg: '#F0FDF4', color: '#15803D' },
+  results:      { bg: '#FFF7ED', color: '#C2410C' },
+  sports:       { bg: '#FDF4FF', color: '#7E22CE' },
+  foods:        { bg: '#FFF1F2', color: '#BE123C' },
+  history:      { bg: '#F8FAFC', color: '#475569' },
+  stays:        { bg: '#F0FDFA', color: '#0F766E' },
+  events:       { bg: '#FFFBEB', color: '#B45309' },
+  movies:         { bg: '#FDF2F8', color: '#9D174D' },
+  movie_trailers: { bg: '#FDF2F8', color: '#BE185D' },
+  theatres:       { bg: '#FEF3C7', color: '#92400E' },
+  transport:    { bg: '#EFF6FF', color: '#1E40AF' },
+  offers:       { bg: '#FFF1F2', color: '#DC2626' },
+  tourism:      { bg: '#F0FDF4', color: '#166534' },
+  updates:      { bg: '#EEF2FF', color: '#3730A3' },
+  ads:          { bg: '#FFF7ED', color: '#EA580C' },
+  sponsorships:      { bg: '#FDF4FF', color: '#6D28D9' },
+  instagram:         { bg: '#FDF2F8', color: '#BE185D' },
+  leads:             { bg: '#F0FDF4', color: '#166534' },
+  influencer_events: { bg: '#FFFBEB', color: '#B45309' },
+  realestate:        { bg: '#F0FDF4', color: '#065F46' },
 }
 
 function timeUntilExpiry(expiresAt) {
+  if (!expiresAt) return '—'
   const diff = new Date(expiresAt) - new Date()
   if (diff <= 0) return 'Expires soon'
   const days  = Math.floor(diff / (1000 * 60 * 60 * 24))
@@ -48,58 +58,40 @@ function timeUntilExpiry(expiresAt) {
 }
 
 function isExpiringSoon(expiresAt) {
+  if (!expiresAt) return false
   const diff = new Date(expiresAt) - new Date()
-  return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000 // less than 3 days
+  return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000
 }
 
 export default function RecycleBin() {
-  const [data,          setData]          = useState([])
-  const [loading,       setLoading]       = useState(true)
-  const [page,          setPage]          = useState(1)
-  const [totalPages,    setTotalPages]    = useState(1)
-  const [total,         setTotal]         = useState(0)
-  const [moduleFilter,  setModuleFilter]  = useState('')
-  const [stats,         setStats]         = useState(null)
+  const [page,         setPage]         = useState(1)
+  const [moduleFilter, setModuleFilter] = useState('')
+
+  // Data from Zustand store — updated by useSSE in Layout automatically
+  const { items: data, totalPages, loading, stats, fetch, fetchStats } = useRecycleBinStore()
 
   // Restore state
-  const [restoreItem,   setRestoreItem]   = useState(null)
-  const [restoring,     setRestoring]     = useState(false)
+  const [restoreItem, setRestoreItem] = useState(null)
+  const [restoring,   setRestoring]   = useState(false)
 
   // Delete state
-  const [purgeItem,     setPurgeItem]     = useState(null)
-  const [purging,       setPurging]       = useState(false)
+  const [purgeItem, setPurgeItem] = useState(null)
+  const [purging,   setPurging]   = useState(false)
 
   // Purge all state
-  const [purgeAllOpen,  setPurgeAllOpen]  = useState(false)
-  const [purgingAll,    setPurgingAll]    = useState(false)
+  const [purgeAllOpen, setPurgeAllOpen] = useState(false)
+  const [purgingAll,   setPurgingAll]   = useState(false)
 
-  const fetchData = useCallback(() => {
-    setLoading(true)
-    recycleBinApi.list({ page, limit: 20, module: moduleFilter })
-      .then((r) => {
-        setData(r.data.items || [])
-        setTotalPages(r.data.totalPages || 1)
-        setTotal(r.data.total || 0)
-      })
-      .catch(() => toast.error('Failed to load recycle bin'))
-      .finally(() => setLoading(false))
-  }, [page, moduleFilter])
-
-  useEffect(() => { fetchData() }, [fetchData])
-
-  useEffect(() => {
-    recycleBinApi.stats()
-      .then((r) => setStats(r.data.data))
-      .catch(() => {})
-  }, [data])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetch({ page, limit: PAGE_SIZE, module: moduleFilter }) }, [page, moduleFilter])
+  useEffect(() => { fetchStats() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRestore = async () => {
     setRestoring(true)
     try {
-      await recycleBinApi.restore(restoreItem.module, restoreItem._id)
+      await recycleBinApi.restore(restoreItem._id)
       toast.success(`"${restoreItem.title}" restored successfully`)
       setRestoreItem(null)
-      fetchData()
     } catch { toast.error('Restore failed') }
     finally { setRestoring(false) }
   }
@@ -107,10 +99,9 @@ export default function RecycleBin() {
   const handlePurge = async () => {
     setPurging(true)
     try {
-      await recycleBinApi.purge(purgeItem.module, purgeItem._id)
+      await recycleBinApi.purge(purgeItem._id)
       toast.success('Item permanently deleted')
       setPurgeItem(null)
-      fetchData()
     } catch { toast.error('Delete failed') }
     finally { setPurging(false) }
   }
@@ -121,7 +112,6 @@ export default function RecycleBin() {
       await recycleBinApi.purgeAll(moduleFilter || undefined)
       toast.success('Recycle bin emptied')
       setPurgeAllOpen(false)
-      fetchData()
     } catch { toast.error('Failed to empty recycle bin') }
     finally { setPurgingAll(false) }
   }
@@ -135,9 +125,9 @@ export default function RecycleBin() {
     <div className="animate-fade-in">
       <PageHeader
         title="Recycle Bin"
-        subtitle={total > 0 ? `${total} item${total === 1 ? '' : 's'} — auto-deleted after 15 days` : 'Empty'}
+        subtitle={(stats?.total ?? 0) > 0 ? `${stats.total} item${stats.total === 1 ? '' : 's'} — auto-deleted after 15 days` : 'Empty'}
         action={
-          total > 0 && (
+          (stats?.total ?? 0) > 0 && (
             <button
               onClick={() => setPurgeAllOpen(true)}
               className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg transition-all"
@@ -162,9 +152,9 @@ export default function RecycleBin() {
       </div>
 
       {/* Stats pills */}
-      {stats && stats.total > 0 && (
+      {(stats?.total ?? 0) > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
-          {Object.entries(stats.byModule)
+          {Object.entries(stats?.byModule ?? {})
             .filter(([, count]) => count > 0)
             .map(([mod, count]) => {
               const c = MODULE_COLORS[mod] || { bg: PL, color: P }
@@ -179,7 +169,7 @@ export default function RecycleBin() {
                     border:     `1px solid ${c.color}22`,
                   }}
                 >
-                  {MODULE_LABELS[mod]} · {count}
+                  {MODULE_LABELS[mod] || mod} · {count}
                 </button>
               )
             })}
@@ -265,10 +255,10 @@ export default function RecycleBin() {
                       {/* Delete Reason */}
                       <td className="px-4 py-3">
                         <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                          style={item.deleteReason === 'expired'
+                          style={item.reason === 'auto-90-days'
                             ? { background: '#FEF3C7', color: '#92400E' }
                             : { background: '#FEE2E2', color: '#DC2626' }}>
-                          {item.deleteReason === 'expired' ? 'Auto (90 days)' : 'Manual delete'}
+                          {item.reason === 'auto-90-days' ? 'Auto (90 days)' : 'Manual delete'}
                         </span>
                       </td>
 

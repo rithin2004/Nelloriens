@@ -10,7 +10,7 @@ const section = 'bg-white rounded-xl border border-slate-200 p-5 space-y-4'
 
 const PAGES = ['home', 'news', 'jobs', 'results', 'sports', 'foods', 'events', 'movies', 'tourism']
 
-export default function SponsorForm({ defaultValues, onSubmit, loading }) {
+export default function SponsorForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit } = useForm({ defaultValues })
   const [logo, setLogo] = useState(defaultValues?.logo || '')
   const [validFrom, setValidFrom] = useState(defaultValues?.validFrom ? new Date(defaultValues.validFrom) : null)
@@ -23,37 +23,79 @@ export default function SponsorForm({ defaultValues, onSubmit, loading }) {
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-5">
       <div className={section}>
-        <div><label className={field}>Sponsor Name *</label><input {...register('sponsorName', { required: true })} className={input} /></div>
-        <ImageUpload module="sponsorships" label="Logo *" value={logo} onChange={setLogo} />
         <div>
-          <label className={field}>Sponsor Type *</label>
-          <select {...register('sponsorType', { required: true })} className={input}>
+          <label htmlFor="spn-name" className={field}>Sponsor Name *</label>
+          <input id="spn-name" name="sponsorName" autoComplete="organization" {...register('sponsorName', { required: true })} className={input} />
+        </div>
+        <ImageUpload module="sponsorships" label="Logo *" value={logo} onChange={setLogo} contentId={contentId} section="logos" />
+        <div>
+          <label htmlFor="spn-type" className={field}>Sponsor Type *</label>
+          <select id="spn-type" name="sponsorType" {...register('sponsorType', { required: true })} className={input}>
             <option value="">Select</option>
             {['Gold', 'Silver', 'Bronze', 'Title', 'Event'].map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
-        <div><label className={field}>Website URL</label><input {...register('websiteUrl')} type="url" className={input} /></div>
-        <div><label className={field}>Description</label><textarea {...register('description')} rows={3} className={input} /></div>
+        <div>
+          <label htmlFor="spn-website" className={field}>Website URL</label>
+          <input id="spn-website" name="websiteUrl" type="url" autoComplete="url" {...register('websiteUrl')} className={input} />
+        </div>
+        <div>
+          <label htmlFor="spn-description" className={field}>Description</label>
+          <textarea id="spn-description" name="description" autoComplete="off" {...register('description')} rows={3} className={input} />
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={field}>Valid From</label>
-            <DatePicker selected={validFrom} onChange={setValidFrom} dateFormat="dd/MM/yyyy" className={input} isClearable />
+            <label htmlFor="spn-valid-from" className={field}>Valid From</label>
+            <DatePicker id="spn-valid-from" name="validFrom" selected={validFrom} onChange={setValidFrom} dateFormat="dd/MM/yyyy" className={input} isClearable />
           </div>
           <div>
-            <label className={field}>Valid Until</label>
-            <DatePicker selected={validUntil} onChange={setValidUntil} dateFormat="dd/MM/yyyy" minDate={validFrom} className={input} isClearable />
+            <label htmlFor="spn-valid-until" className={field}>Valid Until</label>
+            <DatePicker id="spn-valid-until" name="validUntil" selected={validUntil} onChange={setValidUntil} dateFormat="dd/MM/yyyy" minDate={validFrom} className={input} isClearable />
           </div>
         </div>
-        <div><label className={field}>Display Order</label><input {...register('displayOrder')} type="number" className={input} /></div>
+        <div>
+          <label htmlFor="spn-display-order" className={field}>Display Order</label>
+          <input id="spn-display-order" name="displayOrder" autoComplete="off" {...register('displayOrder')} type="number" className={input} />
+        </div>
         <div>
           <label className={field}>Placement Pages</label>
           <div className="flex flex-wrap gap-3 mt-1">
             {PAGES.map((p) => (
               <label key={p} className="flex items-center gap-1.5 cursor-pointer text-sm text-slate-700 capitalize">
-                <input type="checkbox" value={p} {...register('placementPages')} className="w-4 h-4 accent-purple-600" />
+                <input type="checkbox" id={`spn-page-${p}`} value={p} {...register('placementPages')} className="w-4 h-4 accent-purple-600" />
                 {p}
               </label>
             ))}
+          </div>
+        </div>
+      </div>
+
+      <div className={section}>
+        <h3 className="font-semibold text-slate-800">Location & Scope</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="spn-scope" className={field}>Scope *</label>
+            <select id="spn-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+              <option value="nellore">Nellore</option>
+              <option value="worldwide">Worldwide</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="spn-city" className={field}>City</label>
+            <input id="spn-city" name="city" autoComplete="address-level2"
+              {...register('city')} className={input} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="spn-location" className={field}>Location</label>
+            <input id="spn-location" name="location" autoComplete="off"
+              {...register('location')} className={input} />
+          </div>
+          <div>
+            <label htmlFor="spn-region" className={field}>Region</label>
+            <input id="spn-region" name="region" autoComplete="off"
+              {...register('region')} className={input} />
           </div>
         </div>
       </div>

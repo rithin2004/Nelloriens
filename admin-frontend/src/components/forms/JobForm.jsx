@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { X } from 'lucide-react'
 import RichTextEditor from '../common/RichTextEditor'
 import ImageUpload from '../common/ImageUpload'
 import InlineCategoryAdd from '../common/InlineCategoryAdd'
@@ -51,15 +50,13 @@ const section = 'rounded-xl p-5 space-y-4'
 const sectionStyle = { background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }
 const inp = 'w-full px-3 py-2.5 rounded-lg text-sm'
 
-export default function JobForm({ defaultValues, onSubmit, loading }) {
+export default function JobForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues })
   const [categories, setCategories] = useState([])
   const [locations, setLocations] = useState([])
   const [description, setDescription] = useState(defaultValues?.fullDescription || '')
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
   const [companyLogo, setCompanyLogo] = useState(defaultValues?.companyLogo || '')
-  const [tags, setTags] = useState(defaultValues?.tags || [])
-  const [tagInput, setTagInput] = useState('')
   const [lastDate, setLastDate] = useState(defaultValues?.lastDate ? new Date(defaultValues.lastDate) : null)
   const [publishedAt, setPublishedAt] = useState(defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date())
 
@@ -68,16 +65,8 @@ export default function JobForm({ defaultValues, onSubmit, loading }) {
 
   useEffect(() => { fetchCategories(); fetchLocations() }, [])
 
-  const addTag = (e) => {
-    if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
-      e.preventDefault()
-      if (!tags.includes(tagInput.trim())) setTags([...tags, tagInput.trim()])
-      setTagInput('')
-    }
-  }
-
   const submit = (data) => {
-    onSubmit({ ...data, fullDescription: description, thumbnail, companyLogo, tags, lastDate: lastDate?.toISOString(), publishedAt: publishedAt?.toISOString() })
+    onSubmit({ ...data, fullDescription: description, thumbnail, companyLogo, lastDate: lastDate?.toISOString(), publishedAt: publishedAt?.toISOString() })
   }
 
   return (
@@ -204,35 +193,38 @@ export default function JobForm({ defaultValues, onSubmit, loading }) {
           <DatePicker id="job-lastdate" selected={lastDate} onChange={setLastDate}
             dateFormat="dd/MM/yyyy" className="w-full" placeholderText="Select date" isClearable />
         </div>
-        <ImageUpload module="jobs" label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="jobs" label="Thumbnail" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
       </div>
 
       <div className={section} style={sectionStyle}>
-        <h3 className="font-semibold text-slate-800">Tags & Settings</h3>
-        <div>
-          <label htmlFor="job-tags" className={lbl} style={lblStyle}>Tags</label>
-          <div className="flex flex-wrap gap-1 mb-2">
-            {tags.map((t) => (
-              <span key={t} className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
-                style={{ background: '#EDE9FE', color: '#6D28D9' }}>
-                {t}
-                <button type="button" onClick={() => setTags(tags.filter((x) => x !== t))}
-                  className="hover:text-white transition-colors"><X className="w-3 h-3" /></button>
-              </span>
-            ))}
-          </div>
-          <input id="job-tags" name="tags" autoComplete="off"
-            value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={addTag}
-            placeholder="Type and press Enter" className={inp} />
-        </div>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" id="job-featured" name="isFeatured" {...register('isFeatured')} />
-          <span className="text-sm" style={{ color: '#374151' }}>Is Featured</span>
-        </label>
+        <h3 className="font-semibold text-slate-800">Publish Settings</h3>
         <div>
           <label htmlFor="job-publishedat" className={lbl} style={lblStyle}>Published At *</label>
           <DatePicker id="job-publishedat" selected={publishedAt} onChange={setPublishedAt}
             showTimeSelect dateFormat="dd/MM/yyyy HH:mm" className="w-full" />
+        </div>
+      </div>
+
+      <div className={section} style={sectionStyle}>
+        <h3 className="font-semibold text-slate-800">Location & Scope</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="job-scope" className={lbl} style={lblStyle}>Scope *</label>
+            <select id="job-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+              <option value="nellore">Nellore</option>
+              <option value="worldwide">Worldwide</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="job-city" className={lbl} style={lblStyle}>City</label>
+            <input id="job-city" name="city" autoComplete="address-level2"
+              {...register('city')} className={inp} />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="job-region" className={lbl} style={lblStyle}>Region</label>
+          <input id="job-region" name="region" autoComplete="off"
+            {...register('region')} className={inp} />
         </div>
       </div>
 

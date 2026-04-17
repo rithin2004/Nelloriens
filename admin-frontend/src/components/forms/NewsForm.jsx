@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { X } from 'lucide-react'
 import RichTextEditor from '../common/RichTextEditor'
 import ImageUpload from '../common/ImageUpload'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import InlineCategoryAdd from '../common/InlineCategoryAdd'
 import { newsApi } from '../../services/api'
-import { slugify } from '../../utils/helpers'
 
 const lbl = 'block text-sm font-medium mb-1.5'
 const lblStyle = { color: '#374151' }
@@ -15,41 +13,51 @@ const section = 'rounded-xl p-5 space-y-4'
 const sectionStyle = { background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }
 const inp = 'w-full px-3 py-2.5 rounded-lg text-sm'
 
-export default function NewsForm({ defaultValues, onSubmit, loading }) {
+function ToggleSwitch({ id, checked, onChange, label, hint }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-semibold text-slate-500">{label}</span>
+      <button type="button" role="switch" aria-checked={checked} id={id}
+        onClick={() => onChange(!checked)}
+        className="relative inline-flex items-center rounded-full transition-colors w-10 h-6 shrink-0"
+        style={{ background: checked ? '#10B981' : '#D1D5DB' }}>
+        <span className="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform"
+          style={{ transform: checked ? 'translateX(22px)' : 'translateX(2px)' }} />
+      </button>
+      {hint && <span className="text-xs text-slate-400">{hint}</span>}
+    </div>
+  )
+}
+
+export default function NewsForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit, watch, formState: { errors } } = useForm({ defaultValues })
   const [categories, setCategories] = useState([])
-  const [tags, setTags] = useState(defaultValues?.tags || [])
-  const [tagInput, setTagInput] = useState('')
+  const [isImportant, setIsImportant] = useState(defaultValues?.isImportant || false)
   const [body, setBody] = useState(defaultValues?.body || '')
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
   const [publishedAt, setPublishedAt] = useState(defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date())
-  const title = watch('title', '')
   const redirectUrl = watch('redirectUrl', '')
 
   const fetchCategories = () => newsApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
   useEffect(() => { fetchCategories() }, [])
 
-  const addTag = (e) => {
-    if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
-      e.preventDefault()
-      if (!tags.includes(tagInput.trim())) setTags([...tags, tagInput.trim()])
-      setTagInput('')
-    }
-  }
-
   const submit = (data) => {
-    onSubmit({ ...data, body, thumbnail, tags, publishedAt: publishedAt?.toISOString() })
+    onSubmit({ ...data, body, thumbnail, isImportant, publishedAt: publishedAt?.toISOString() })
   }
 
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-5">
       <div className={section} style={sectionStyle}>
-        <h3 className="font-semibold text-slate-800">Basic Info</h3>
+        {/* RULE 13 — isImportant toggle top-right, visual switch only */}
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-slate-800">Basic Info</h3>
+          <ToggleSwitch id="news-important" checked={isImportant} onChange={setIsImportant}
+            label="Important" hint="(max 3 per category)" />
+        </div>
         <div>
           <label htmlFor="news-title" className={lbl} style={lblStyle}>Title *</label>
           <input id="news-title" name="title" autoComplete="off"
             {...register('title', { required: 'Required' })} maxLength={200} className={inp} />
-          {title && <p className="text-xs mt-1" style={{ color: '#475569' }}>Slug: {slugify(title)}</p>}
           {errors.title && <p className="text-xs mt-1" style={{ color: '#DC2626' }}>{errors.title.message}</p>}
         </div>
         <div>
@@ -71,7 +79,7 @@ export default function NewsForm({ defaultValues, onSubmit, loading }) {
           </select>
           {errors.category && <p className="text-xs mt-1" style={{ color: '#DC2626' }}>{errors.category.message}</p>}
         </div>
-        <ImageUpload module="news" label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="news" label="Thumbnail *" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
         <div>
           <label htmlFor="news-shortdesc" className={lbl} style={lblStyle}>
             Short Description * <span style={{ color: '#475569', fontWeight: 400 }}>(max 300)</span>
@@ -118,42 +126,6 @@ export default function NewsForm({ defaultValues, onSubmit, loading }) {
       </div>
 
       <div className={section} style={sectionStyle}>
-        <h3 className="font-semibold text-slate-800">Tags & Meta</h3>
-        <div>
-          <label htmlFor="news-tags" className={lbl} style={lblStyle}>Tags</label>
-          <div className="flex flex-wrap gap-1 mb-2">
-            {tags.map((t) => (
-              <span key={t} className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
-                style={{ background: '#EDE9FE', color: '#6D28D9' }}>
-                {t}
-                <button type="button" onClick={() => setTags(tags.filter((x) => x !== t))}
-                  className="hover:text-white transition-colors"><X className="w-3 h-3" /></button>
-              </span>
-            ))}
-          </div>
-          <input id="news-tags" name="tags" autoComplete="off"
-            value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={addTag}
-            placeholder="Type and press Enter" className={inp} />
-        </div>
-        <div className="flex flex-wrap gap-6">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="news-breaking" name="isBreaking" {...register('isBreaking')} />
-            <span className="text-sm" style={{ color: '#374151' }}>Is Breaking</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="news-featured" name="isFeatured" {...register('isFeatured')} />
-            <span className="text-sm" style={{ color: '#374151' }}>Is Featured</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="news-important" name="isImportant" {...register('isImportant')} />
-            <span className="text-sm" style={{ color: '#374151' }}>
-              Is Important <span style={{ color: '#94A3B8', fontWeight: 400 }}>(max 3 per category — shown as main news)</span>
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <div className={section} style={sectionStyle}>
         <h3 className="font-semibold text-slate-800">Publish Settings</h3>
         <div>
           <label htmlFor="news-publishedat" className={lbl} style={lblStyle}>Published At *</label>
@@ -163,16 +135,32 @@ export default function NewsForm({ defaultValues, onSubmit, loading }) {
       </div>
 
       <div className={section} style={sectionStyle}>
-        <h3 className="font-semibold text-slate-800">SEO</h3>
-        <div>
-          <label htmlFor="news-metatitle" className={lbl} style={lblStyle}>Meta Title</label>
-          <input id="news-metatitle" name="metaTitle" autoComplete="off"
-            {...register('metaTitle')} className={inp} />
+        <h3 className="font-semibold text-slate-800">Location & Scope</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="news-scope" className={lbl} style={lblStyle}>Scope *</label>
+            <select id="news-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+              <option value="nellore">Nellore</option>
+              <option value="worldwide">Worldwide</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="news-city" className={lbl} style={lblStyle}>City</label>
+            <input id="news-city" name="city" autoComplete="address-level2"
+              {...register('city')} className={inp} />
+          </div>
         </div>
-        <div>
-          <label htmlFor="news-metadesc" className={lbl} style={lblStyle}>Meta Description</label>
-          <textarea id="news-metadesc" name="metaDescription" autoComplete="off"
-            {...register('metaDescription')} rows={2} className={`${inp} resize-none`} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="news-location" className={lbl} style={lblStyle}>Location</label>
+            <input id="news-location" name="location" autoComplete="off"
+              {...register('location')} className={inp} />
+          </div>
+          <div>
+            <label htmlFor="news-region" className={lbl} style={lblStyle}>Region</label>
+            <input id="news-region" name="region" autoComplete="off"
+              {...register('region')} className={inp} />
+          </div>
         </div>
       </div>
 

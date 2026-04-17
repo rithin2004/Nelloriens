@@ -37,7 +37,10 @@ import rolesRoutes        from './src/modules/roles/roles.routes.js'
 import companyRoutes      from './src/modules/company/company.routes.js'
 import leadsRoutes        from './src/modules/leads/leads.routes.js'
 import recycleBinRoutes   from './src/modules/recyclebin/recyclebin.routes.js'
+import realtimeRoutes     from './src/modules/realtime/realtime.routes.js'
+import realEstateRoutes   from './src/modules/realestate/realestate.routes.js'
 import { startArchivalScheduler } from './src/utils/archival.js'
+import { startRealtimeListeners } from './src/modules/realtime/realtime.service.js'
 
 const app = express()
 
@@ -48,8 +51,27 @@ app.set('trust proxy', 1)
 app.use(helmet({ contentSecurityPolicy: false })) // disabled so Swagger UI loads
 
 // ── CORS ──────────────────────────────────────────────────────────────────
+// Production: ALLOWED_ORIGINS env var — comma-separated list of allowed origins
+// Development: all localhost / 127.0.0.1 variants + no-origin (Postman, curl) allowed
+const PROD_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : []
+
+const DEV_ORIGINS = [
+  'http://localhost:5173', 'http://localhost:3000', 'http://localhost:4173',
+  'http://127.0.0.1:5173', 'http://127.0.0.1:3000',
+]
+
 app.use(cors({
-  origin:         process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (process.env.NODE_ENV === 'production') {
+      if (!origin || PROD_ORIGINS.includes(origin)) return callback(null, true)
+      return callback(new Error(`CORS: origin '${origin}' not allowed`))
+    } else {
+      if (!origin || DEV_ORIGINS.includes(origin)) return callback(null, true)
+      return callback(new Error(`CORS: origin '${origin}' not allowed`))
+    }
+  },
   credentials:    true,
   methods:        ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -126,6 +148,8 @@ app.use('/roles',        rolesRoutes)
 app.use('/company',      companyRoutes)
 app.use('/leads',        leadsRoutes)
 app.use('/recycle-bin',  recycleBinRoutes)
+app.use('/realtime',     realtimeRoutes)
+app.use('/realestate',   realEstateRoutes)
 
 // ── 404 handler ───────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ success: false, message: 'Route not found' }))
@@ -134,10 +158,11 @@ app.use((_req, res) => res.status(404).json({ success: false, message: 'Route no
 app.use((err, _req, res, _next) => {
   const status = err.status || 500
   if (status >= 500) console.error('[ERROR]', err)
-  res.status(status).json({
-    success: false,
-    message: err.message || 'Internal server error',
-  })
+  const body = { success: false, message: err.message || 'Internal server error' }
+  // RULE 13 — pass structured toggle-limit data so frontend can show replace prompt
+  if (err.code)         body.code         = err.code
+  if (err.currentItems) body.currentItems = err.currentItems
+  res.status(status).json(body)
 })
 
 // ── Start ─────────────────────────────────────────────────────────────────
@@ -146,4 +171,5 @@ app.listen(PORT, () => {
   console.log(`✓ Nelloriens API running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`)
   console.log(`✓ Swagger UI: http://localhost:${PORT}/docs`)
   startArchivalScheduler()
+  startRealtimeListeners()
 })

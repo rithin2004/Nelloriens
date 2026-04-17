@@ -24,4 +24,8 @@ router.get   ('/get/:id',      authenticate, permit('leads','read'),   a(leadsCt
 router.put   ('/update/:id',   authenticate, permit('leads','update'), a(leadsCtrl.update))
 router.delete('/delete/:id',   authenticate, permit('leads','delete'), a(leadsCtrl.remove))
 
+// Public view increments — no auth (RULE 11)
+router.post('/:id/views',      a(leadsCtrl.incrementPageViews))
+router.post('/:id/card-views', a(leadsCtrl.incrementCardViews))
+
 export default router

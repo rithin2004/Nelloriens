@@ -1,6 +1,7 @@
 import multer from 'multer'
 import { uploadService, getModuleConfig } from './upload.service.js'
 import { badReq } from '../../utils/serviceBase.js'
+import { nextId } from '../../utils/sequentialId.js'
 
 // Memory storage — file.buffer available for magic byte check
 const multerUpload = multer({
@@ -11,6 +12,16 @@ const multerUpload = multer({
 export const uploadMiddleware = multerUpload.single('file')
 
 export const uploadCtrl = {
+  /** Reserve the next sequential ID for a given prefix before creating content.
+   *  GET /upload/reserve-id?prefix=NEWS → { success: true, data: { id: 'NEWS00001' } }
+   */
+  async reserveId(req, res) {
+    const { prefix } = req.query
+    if (!prefix?.trim()) badReq('prefix is required')
+    const id = await nextId(prefix.trim().toUpperCase())
+    res.json({ success: true, data: { id } })
+  },
+
   async upload(req, res) {
     const { module: moduleName } = req.params
     if (!moduleName) badReq('module param is required')
@@ -18,7 +29,8 @@ export const uploadCtrl = {
     const config = getModuleConfig(moduleName)
     if (!config) badReq(`Unknown upload module: ${moduleName}`)
 
-    const result = await uploadService.upload(moduleName, req.file)
+    const { contentId, section, index } = req.body
+    const result = await uploadService.upload(moduleName, req.file, { contentId, section, index })
     res.json({ success: true, url: result.url, fileName: result.fileName, size: result.size, mimeType: result.mimeType })
   },
 

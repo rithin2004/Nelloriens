@@ -6,7 +6,7 @@ import FormModal from '../../components/common/FormModal'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ImageUpload from '../../components/common/ImageUpload'
-import { instagramApi } from '../../services/api'
+import { instagramApi, uploadApi } from '../../services/api'
 import { formatDate, timeAgo } from '../../utils/helpers'
 
 export default function InstagramManager() {
@@ -30,6 +30,7 @@ export default function InstagramManager() {
   const [postForm, setPostForm]     = useState({})
   const [postEditId, setPostEditId] = useState(null)
   const [postSaving, setPostSaving] = useState(false)
+  const [postReservedId, setPostReservedId] = useState(null)
   const [deleteId, setDeleteId]     = useState(null)
   const [deleting, setDeleting]     = useState(false)
 
@@ -83,8 +84,13 @@ export default function InstagramManager() {
   }
 
   // ── Manual posts ─────────────────────────────────────────────────────────
-  const openAddPost = () => { setPostEditId(null); setPostForm({}); setPostOpen(true) }
-  const openEditPost = (p) => { setPostEditId(p._id); setPostForm({ ...p }); setPostOpen(true) }
+  const openAddPost = async () => {
+    setPostEditId(null); setPostForm({})
+    try { const r = await uploadApi.reserveId('INS'); setPostReservedId(r.data.data.id) }
+    catch { toast.error('Failed to reserve ID — please try again'); return }
+    setPostOpen(true)
+  }
+  const openEditPost = (p) => { setPostEditId(p._id); setPostReservedId(null); setPostForm({ ...p }); setPostOpen(true) }
 
   const handleSavePost = async (e) => {
     e.preventDefault()
@@ -94,10 +100,11 @@ export default function InstagramManager() {
         await instagramApi.updatePost(postEditId, postForm)
         toast.success('Post updated')
       } else {
-        await instagramApi.createPost(postForm)
+        const payload = postReservedId ? { ...postForm, _reservedId: postReservedId } : postForm
+        await instagramApi.createPost(payload)
         toast.success('Post added')
       }
-      setPostOpen(false)
+      setPostOpen(false); setPostReservedId(null)
       fetchAll()
     } catch (e) { toast.error(e?.response?.data?.message || 'Save failed') }
     finally { setPostSaving(false) }
@@ -291,7 +298,7 @@ export default function InstagramManager() {
         <form onSubmit={handleSavePost} className="space-y-4">
           <div>
             <label className={lbl}>Thumbnail / Image URL</label>
-            <ImageUpload module="instagram" label="" value={postForm.thumbnailUrl || ''} onChange={(url) => setPostForm((p) => ({ ...p, thumbnailUrl: url, mediaUrl: url }))} />
+            <ImageUpload module="instagram" label="" value={postForm.thumbnailUrl || ''} onChange={(url) => setPostForm((p) => ({ ...p, thumbnailUrl: url, mediaUrl: url }))} contentId={postEditId || postReservedId} section="thumbnails" />
           </div>
           <div>
             <label className={lbl}>Caption</label>

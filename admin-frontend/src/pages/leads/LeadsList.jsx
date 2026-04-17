@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { leadsApi, companyApi } from '../../services/api'
 import { useDebounce } from '../../hooks/useDebounce'
+import useLeadsStore from '../../store/leadsStore'
 import PageHeader from '../../components/common/PageHeader'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import Pagination from '../../components/common/Pagination'
@@ -8,30 +9,31 @@ import LoadingSpinner from '../../components/common/LoadingSpinner'
 import toast from 'react-hot-toast'
 import {
   Search, Trash2, Eye, X, Mail, Phone, MessageSquare,
-  Calendar, Filter, RefreshCw, Inbox, Download,
+  Calendar, Filter, Inbox, Download,
 } from 'lucide-react'
 
 const P  = '#0a3d95'
 const PL = '#dce8fb'
 const PB = '#eef3fd'
 
+// RULE 23 — Status workflow: new → contacted → resolved → closed
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'new',      label: 'New' },
-  { value: 'read',     label: 'Read' },
-  { value: 'replied',  label: 'Replied' },
-  { value: 'archived', label: 'Archived' },
+  { value: '',           label: 'All Statuses' },
+  { value: 'new',        label: 'New'       },
+  { value: 'contacted',  label: 'Contacted' },
+  { value: 'resolved',   label: 'Resolved'  },
+  { value: 'closed',     label: 'Closed'    },
 ]
 
 const STATUS_STYLE = {
-  new:      { bg: '#DBEAFE', color: '#1D4ED8', dot: '#3B82F6' },
-  read:     { bg: '#F1F5F9', color: '#64748B', dot: '#94A3B8' },
-  replied:  { bg: '#DCFCE7', color: '#15803D', dot: '#22C55E' },
-  archived: { bg: '#F8FAFC', color: '#94A3B8', dot: '#CBD5E1' },
+  new:       { bg: '#DBEAFE', color: '#1D4ED8', dot: '#3B82F6' },
+  contacted: { bg: '#FEF3C7', color: '#B45309', dot: '#F59E0B' },
+  resolved:  { bg: '#DCFCE7', color: '#15803D', dot: '#22C55E' },
+  closed:    { bg: '#F1F5F9', color: '#64748B', dot: '#94A3B8' },
 }
 
 function StatusDot({ status }) {
-  const s = STATUS_STYLE[status] || STATUS_STYLE.read
+  const s = STATUS_STYLE[status] || STATUS_STYLE.new
   return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
       style={{ background: s.bg, color: s.color }}>
@@ -223,58 +225,62 @@ function exportPDF(data, companyName = 'Admin') {
   win.document.close()
 }
 
+const PAGE_SIZE = 20
+
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function LeadsList() {
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
   const [companyName, setCompanyName] = useState('Admin')
+  const [page,       setPage]         = useState(1)
+  const [search,     setSearch]       = useState('')
+  const [status,     setStatus]       = useState('')
+  const [dateFrom,   setDateFrom]     = useState('')
+  const [dateTo,     setDateTo]       = useState('')
+  const [selectedLead, setSelectedLead] = useState(null)
+  const [deleteId,   setDeleteId]     = useState(null)
+  const [deleting,   setDeleting]     = useState(false)
+  const [exporting,  setExporting]    = useState(false)
+  const debouncedSearch = useDebounce(search)
+
+  // Data from Zustand store — updated by useSSE in Layout automatically
+  const { items: data, total, totalPages, loading, fetch } = useLeadsStore()
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, status, dateFrom, dateTo })
+  }, [page, debouncedSearch, status, dateFrom, dateTo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     companyApi.get().then((r) => { if (r.data?.name) setCompanyName(r.data.name) }).catch(() => {})
   }, [])
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal] = useState(0)
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
-  const [selectedLead, setSelectedLead] = useState(null)
-  const [deleteId, setDeleteId] = useState(null)
-  const [deleting, setDeleting] = useState(false)
-  const [exporting, setExporting] = useState(false)
-  const debouncedSearch = useDebounce(search)
-
-  const fetchData = () => {
-    setLoading(true)
-    leadsApi.getAll({ page, limit: 20, search: debouncedSearch, status: status || undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined })
-      .then((r) => { setData(r.data.items || r.data || []); setTotalPages(r.data.totalPages || 1); setTotal(r.data.total || 0) })
-      .catch(() => toast.error('Failed to load leads'))
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => { fetchData() }, [page, debouncedSearch, status, dateFrom, dateTo])
 
   const handleDelete = async () => {
     setDeleting(true)
-    try { await leadsApi.delete(deleteId); toast.success('Lead deleted'); setDeleteId(null); setSelectedLead(null); fetchData() }
+    try {
+      await leadsApi.delete(deleteId)
+      toast.success('Lead deleted')
+      setDeleteId(null)
+      setSelectedLead(null)
+    }
     catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
 
   const handleStatusChange = (id, newStatus) => {
-    setData((prev) => prev.map((d) => d._id === id ? { ...d, status: newStatus } : d))
+    // Optimistic update in the detail popup only — SSE will re-fetch the list
     if (selectedLead?._id === id) setSelectedLead((p) => ({ ...p, status: newStatus }))
   }
 
   const handleExport = async (format) => {
     setExporting(true)
     try {
-      // Fetch ALL leads (no pagination) matching current filters for export
-      const r = await leadsApi.getAll({ limit: 9999, search: debouncedSearch, status: status || undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined })
-      const allData = r.data.items || r.data || []
-      if (format === 'csv') exportCSV(allData)
-      else exportPDF(allData, companyName)
+      // Fetch all matching records (no pagination) for export
+      const r = await leadsApi.getAll({
+        page: 1, limit: 10000,
+        search: debouncedSearch, status, dateFrom, dateTo,
+      })
+      const exportData = r.data.items || []
+      if (format === 'csv') exportCSV(exportData)
+      else exportPDF(exportData, companyName)
     } catch { toast.error('Export failed') }
     finally { setExporting(false) }
   }
@@ -321,6 +327,7 @@ export default function LeadsList() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
         <div className="relative">
+          <label htmlFor="search-leads" className="sr-only">Search leads</label>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           <input
             id="search-leads" name="search" autoComplete="off"
@@ -332,6 +339,7 @@ export default function LeadsList() {
         </div>
 
         <div className="relative">
+          <label htmlFor="filter-status-leads" className="sr-only">Filter by status</label>
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none text-slate-400" />
           <select id="filter-status-leads" name="status"
             value={status} onChange={(e) => { setStatus(e.target.value); setPage(1) }}
@@ -341,13 +349,19 @@ export default function LeadsList() {
           </select>
         </div>
 
-        <input id="filter-date-from" name="dateFrom" type="date"
-          value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
-          className={inp} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur} title="From date" />
+        <div>
+          <label htmlFor="filter-date-from" className="sr-only">From date</label>
+          <input id="filter-date-from" name="dateFrom" type="date"
+            value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
+            className={inp} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur} />
+        </div>
 
-        <input id="filter-date-to" name="dateTo" type="date"
-          value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
-          className={inp} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur} title="To date" />
+        <div>
+          <label htmlFor="filter-date-to" className="sr-only">To date</label>
+          <input id="filter-date-to" name="dateTo" type="date"
+            value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
+            className={inp} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur} />
+        </div>
 
         {hasFilters && (
           <button onClick={clearFilters}
@@ -356,11 +370,6 @@ export default function LeadsList() {
             <X className="w-3.5 h-3.5" /> Clear
           </button>
         )}
-        <button onClick={fetchData}
-          className="flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-          style={{ border: '1px solid #E2E8F0' }}>
-          <RefreshCw className="w-3.5 h-3.5" />
-        </button>
       </div>
 
       {loading ? (
@@ -438,7 +447,7 @@ export default function LeadsList() {
 
       {data.length > 0 && (
         <p className="text-xs text-slate-400 mt-3 px-1">
-          Click a row to view details &amp; update status. Export exports all leads matching current filters.
+          Click a row to view details &amp; update status. Export fetches all leads matching current filters.
         </p>
       )}
 

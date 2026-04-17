@@ -1,8 +1,9 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Plus, Pencil, Trash2, Info, Tag, Star, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { newsApi } from '../../services/api'
+import { newsApi, uploadApi } from '../../services/api'
+import useNewsStore from '../../store/newsStore'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable from '../../components/common/DataTable'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -14,6 +15,7 @@ import { useDebounce } from '../../hooks/useDebounce'
 const P  = '#0a3d95'
 const PL = '#dce8fb'
 const PB = '#eef3fd'
+const PAGE_SIZE = 20
 
 function ToggleSwitch({ checked, onChange, loading }) {
   return (
@@ -45,20 +47,24 @@ const inpBlur  = (e) => { e.target.style.borderColor = '#CBD5E1'; e.target.style
 
 export default function NewsList() {
   const location = useLocation()
-  const navigate  = useNavigate()
+  const navigate = useNavigate()
 
-  const [tab, setTab]                       = useState('articles')
-  const [data, setData]                     = useState([])
-  const [loading, setLoading]               = useState(true)
-  const [page, setPage]                     = useState(1)
-  const [totalPages, setTotalPages]         = useState(1)
-  const [search, setSearch]                 = useState('')
-  const [categories, setCategories]         = useState([])
+  const [tab,            setTab]            = useState('articles')
+  const [page,           setPage]           = useState(1)
+  const [search,         setSearch]         = useState('')
+  const [categories,     setCategories]     = useState([])
   const [categoryFilter, setCategoryFilter] = useState('')
-  const [deleteId, setDeleteId]             = useState(null)
-  const [deleting, setDeleting]             = useState(false)
-  const [togglingId, setTogglingId]         = useState(null)
+  const [deleteId,       setDeleteId]       = useState(null)
+  const [deleting,       setDeleting]       = useState(false)
+  const [togglingId,           setTogglingId]           = useState(null)
+  const [replaceOpen,          setReplaceOpen]          = useState(false)
+  const [replaceCandidates,    setReplaceCandidates]    = useState([])
+  const [replacePendingItem,   setReplacePendingItem]   = useState(null)
+  const [replacingId,          setReplacingId]          = useState(null)
   const debouncedSearch = useDebounce(search)
+
+  // Data from Zustand store — updated by useSSE in Layout automatically
+  const { items: data, totalPages, loading, fetch } = useNewsStore()
 
   const [formOpen,       setFormOpen]       = useState(false)
   const [formDefaults,   setFormDefaults]   = useState(null)
@@ -66,25 +72,23 @@ export default function NewsList() {
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [formFetching,   setFormFetching]   = useState(false)
   const [formDirty,      setFormDirty]      = useState(false)
+  const [reservedId,     setReservedId]     = useState(null)
 
+  // Re-fetch via store on filter/tab/page change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, category: categoryFilter, isImportant: tab === 'important' ? 'true' : 'false' })
+  }, [tab, page, debouncedSearch, categoryFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load categories once
   useEffect(() => {
     newsApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
   }, [])
 
+  // Auto-open create form when navigated from Quick Actions
   useEffect(() => {
     if (location.state?.openCreate) { openCreate(); window.history.replaceState({}, '') }
-  }, [location.state])
-
-  const fetchData = useCallback(() => {
-    setLoading(true)
-    const isImportant = tab === 'important' ? true : false
-    newsApi.getAll({ page, limit: 20, search: debouncedSearch, category: categoryFilter, isImportant })
-      .then((r) => { setData(r.data.items || []); setTotalPages(r.data.totalPages || 1) })
-      .catch(() => toast.error('Failed to load news'))
-      .finally(() => setLoading(false))
-  }, [page, debouncedSearch, categoryFilter, tab])
-
-  useEffect(() => { fetchData() }, [fetchData])
+  }, [location.state]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const switchTab = (t) => { setTab(t); setPage(1) }
 
@@ -93,19 +97,44 @@ export default function NewsList() {
     try {
       await newsApi.update(item._id, { isImportant: !item.isImportant })
       toast.success(item.isImportant ? 'Moved to Articles' : 'Marked as Important')
-      fetchData()
-    } catch { toast.error('Failed to update') }
+    } catch (e) {
+      // RULE 13 — max 3 important per category: show replace prompt
+      if (e?.response?.data?.code === 'MAX_LIMIT_REACHED') {
+        setReplaceCandidates(e.response.data.currentItems || [])
+        setReplacePendingItem(item)
+        setReplaceOpen(true)
+      } else {
+        toast.error(e?.response?.data?.message || 'Failed to update')
+      }
+    }
     finally { setTogglingId(null) }
+  }
+
+  const handleReplaceConfirm = async (replaceId) => {
+    if (!replacePendingItem) return
+    setReplacingId(replaceId)
+    try {
+      await newsApi.update(replacePendingItem._id, { isImportant: true, replaceId })
+      toast.success('Marked as Important — replaced previous item')
+      setReplaceOpen(false); setReplaceCandidates([]); setReplacePendingItem(null)
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to update')
+    } finally { setReplacingId(null) }
   }
 
   const handleDelete = async () => {
     setDeleting(true)
-    try { await newsApi.delete(deleteId); toast.success('Deleted'); setDeleteId(null); fetchData() }
+    try { await newsApi.delete(deleteId); toast.success('Moved to Recycle Bin'); setDeleteId(null) }
     catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
 
-  const openCreate = () => { setFormDefaults({}); setFormEditId(null); setFormDirty(false); setFormOpen(true) }
+  const openCreate = async () => {
+    setFormEditId(null); setFormDirty(false)
+    try { const r = await uploadApi.reserveId('NEW'); setReservedId(r.data.data.id) }
+    catch { toast.error('Failed to reserve ID — please try again'); return }
+    setFormDefaults({}); setFormOpen(true)
+  }
 
   const openEdit = async (id) => {
     setFormFetching(true); setFormDefaults(null); setFormEditId(id); setFormDirty(false); setFormOpen(true)
@@ -118,8 +147,8 @@ export default function NewsList() {
     setFormSubmitting(true)
     try {
       if (formEditId) { await newsApi.update(formEditId, formData); toast.success('News updated!') }
-      else            { await newsApi.create(formData);             toast.success('News created!') }
-      setFormOpen(false); setFormDirty(false); fetchData()
+      else            { await newsApi.create(reservedId ? { ...formData, _reservedId: reservedId } : formData); toast.success('News created!') }
+      setFormOpen(false); setFormDirty(false); setReservedId(null)
     } catch (e) { toast.error(e?.response?.data?.message || 'Save failed') }
     finally { setFormSubmitting(false) }
   }
@@ -128,7 +157,7 @@ export default function NewsList() {
     if (formDirty) {
       if (!window.confirm('You have unsaved changes. Are you sure you want to close?')) return
     }
-    setFormOpen(false); setFormDirty(false)
+    setFormOpen(false); setFormDirty(false); setReservedId(null)
   }
 
   const columns = [
@@ -150,12 +179,12 @@ export default function NewsList() {
       cell: ({ row }) => <span className="text-slate-500 text-xs">{row.original.category?.name || '—'}</span>,
     },
     {
-      accessorKey: 'viewCount',
+      accessorKey: 'pageViews',
       header: 'Views',
-      cell: ({ getValue }) => (
+      cell: ({ row }) => (
         <span className="flex items-center gap-1 text-slate-400 text-xs">
           <Eye className="w-3 h-3" />
-          {getValue() ?? 0}
+          {row.original.pageViews ?? row.original.viewCount ?? 0}
         </span>
       ),
     },
@@ -257,22 +286,29 @@ export default function NewsList() {
 
       {/* Filters */}
       <div className="flex gap-3 mb-4 flex-wrap">
-        <input
-          id="search-news" name="search" autoComplete="off"
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-          placeholder="Search by title…"
-          className={`${inp} w-full sm:w-64`}
-          style={inpStyle}
-          onFocus={inpFocus}
-          onBlur={inpBlur}
-        />
+        <div>
+          <label htmlFor="search-news" className="sr-only">Search news</label>
+          <input
+            id="search-news" name="search" autoComplete="off"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            placeholder="Search by title…"
+            className={`${inp} w-full sm:w-64`}
+            style={inpStyle}
+            onFocus={inpFocus}
+            onBlur={inpBlur}
+          />
+        </div>
         {categories.length > 0 && (
-          <select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setPage(1) }}
-            className={inp} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}>
-            <option value="">All Categories</option>
-            {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
-          </select>
+          <div>
+            <label htmlFor="filter-category-news" className="sr-only">Filter by category</label>
+            <select id="filter-category-news" name="filter-category"
+              value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setPage(1) }}
+              className={inp} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}>
+              <option value="">All Categories</option>
+              {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+            </select>
+          </div>
         )}
       </div>
 
@@ -284,17 +320,31 @@ export default function NewsList() {
         </div>
       )}
 
-      <DataTable columns={columns} data={data} isLoading={loading} page={page} totalPages={totalPages} onPageChange={setPage} />
+      <DataTable
+        columns={columns}
+        data={data}
+        isLoading={loading}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
 
       <div className="flex items-center gap-4 mt-3 px-1 flex-wrap">
         <div className="flex items-center gap-1.5 text-xs text-slate-400"><Info className="w-3 h-3" /><span>Row actions:</span></div>
         <div className="flex items-center gap-1 text-xs text-slate-400"><Pencil className="w-3 h-3" style={{ color: P }} /><span>Edit</span></div>
-        <div className="flex items-center gap-1 text-xs text-slate-400"><Trash2 className="w-3 h-3 text-red-400" /><span>Delete</span></div>
-        <div className="flex items-center gap-1 text-xs text-slate-400"><Eye className="w-3 h-3" /><span>View count</span></div>
+        <div className="flex items-center gap-1 text-xs text-slate-400"><Trash2 className="w-3 h-3 text-red-400" /><span>Delete (moves to Recycle Bin)</span></div>
+        <div className="flex items-center gap-1 text-xs text-slate-400"><Eye className="w-3 h-3" /><span>Page views</span></div>
         <div className="flex items-center gap-1 text-xs text-slate-400"><Star className="w-3 h-3 text-amber-400" /><span>Toggle Important</span></div>
       </div>
 
-      <ConfirmModal isOpen={!!deleteId} title="Delete News" message="This will permanently delete this news item." onConfirm={handleDelete} onCancel={() => setDeleteId(null)} loading={deleting} />
+      <ConfirmModal
+        isOpen={!!deleteId}
+        title="Delete News"
+        message="This will move this news item to the Recycle Bin. You can restore it within 15 days."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        loading={deleting}
+      />
 
       <FormModal isOpen={formOpen} onClose={handleCloseForm} title={formEditId ? 'Edit News' : 'Add News'} maxWidth="max-w-3xl">
         {(formFetching || formDefaults === null) ? (
@@ -302,9 +352,45 @@ export default function NewsList() {
             <div className="w-7 h-7 rounded-full animate-spin" style={{ border: `3px solid ${PL}`, borderTopColor: P }} />
           </div>
         ) : (
-          <NewsForm defaultValues={formDefaults} onSubmit={handleFormSubmit} loading={formSubmitting} onDirtyChange={setFormDirty} />
+          <NewsForm defaultValues={formDefaults} onSubmit={handleFormSubmit} loading={formSubmitting} onDirtyChange={setFormDirty} contentId={formEditId || reservedId} />
         )}
       </FormModal>
+
+      {/* RULE 13 — Replace prompt for isImportant toggle max 3/category */}
+      {replaceOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="text-base font-bold text-slate-800 mb-1">Max Important Reached</h3>
+            <p className="text-sm text-slate-500 mb-4">
+              This category already has 3 Important articles. Choose one to replace:
+            </p>
+            <div className="flex flex-col gap-2 mb-5">
+              {replaceCandidates.map((c) => (
+                <button
+                  key={c._id}
+                  onClick={() => handleReplaceConfirm(c._id)}
+                  disabled={!!replacingId}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all"
+                  style={{ borderColor: replacingId === c._id ? P : '#E2E8F0', background: replacingId === c._id ? PB : '#FAFAFA' }}
+                >
+                  {c.thumbnail && <img src={c.thumbnail} className="w-10 h-8 object-cover rounded-lg shrink-0" alt="" />}
+                  <span className="text-sm font-medium text-slate-700 line-clamp-2">{c.title}</span>
+                  {replacingId === c._id && (
+                    <div className="ml-auto w-4 h-4 rounded-full animate-spin shrink-0" style={{ border: `2px solid ${PL}`, borderTopColor: P }} />
+                  )}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => { setReplaceOpen(false); setReplaceCandidates([]); setReplacePendingItem(null) }}
+              className="w-full py-2 text-sm font-semibold rounded-xl text-slate-500 hover:text-slate-700 transition-colors"
+              style={{ background: '#F1F5F9' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

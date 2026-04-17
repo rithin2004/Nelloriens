@@ -1,14 +1,14 @@
 /**
- * Content Archival & Recycle Bin Purge
+ * Content Archival & Recycle Bin Purge  (RULE 9)
  *
  * Two scheduled jobs run daily at midnight:
  *
  * 1. archiveOldContent()
- *    Content older than 90 days (createdAt) → soft-deleted with deleteReason 'expired'.
- *    The item moves to the Recycle Bin where admins can restore it for 15 more days.
+ *    Content older than 90 days (createdAt) → moved to the 'recyclebin' collection
+ *    with reason: 'auto-90-days'. Original document is hard-deleted from its collection.
  *
  * 2. purgeExpiredBin()
- *    Items in the Recycle Bin (deletedAt set) for more than 15 days → permanently deleted.
+ *    Items in the 'recyclebin' collection with deletedAt > 15 days ago → permanently deleted.
  *
  * Only content collections are affected. Categories, locations, users, roles,
  * company, settings, and leads are never auto-archived.
@@ -24,20 +24,24 @@ export const CONTENT_MODULES = [
   { module: 'foods',        collection: 'foods',        titleField: 'foodName'  },
   { module: 'history',      collection: 'history',      titleField: 'title'     },
   { module: 'stays',        collection: 'stays',        titleField: 'hotelName' },
-  { module: 'events',       collection: 'events',       titleField: 'title'     },
-  { module: 'movies',       collection: 'movies',       titleField: 'title'     },
-  { module: 'theatres',     collection: 'theatres',     titleField: 'name'      },
+  { module: 'events',            collection: 'events',            titleField: 'title'     },
+  { module: 'influencer_events', collection: 'influencer_events', titleField: 'title'     },
+  { module: 'movies',         collection: 'movies',         titleField: 'title'     },
+  { module: 'movie_trailers', collection: 'movie_trailers', titleField: 'movieName' },
+  { module: 'theatres',       collection: 'theatres',       titleField: 'name'      },
   { module: 'transport',    collection: 'transport',    titleField: 'title'     },
   { module: 'offers',       collection: 'offers',       titleField: 'title'     },
-  { module: 'tourism',      collection: 'tourism',      titleField: 'title'     },
+  { module: 'tourism',      collection: 'tourism',      titleField: 'placeName' },
   { module: 'updates',      collection: 'updates',      titleField: 'title'     },
   { module: 'ads',          collection: 'ads',          titleField: 'title'     },
   { module: 'sponsorships', collection: 'sponsorships', titleField: 'title'     },
+  { module: 'realestate',   collection: 'realestate',   titleField: 'title'     },
 ]
 
-const ARCHIVE_DAYS = 90   // days until live content is auto-moved to Recycle Bin
-const PURGE_DAYS   = 15   // days a Recycle Bin item is kept before permanent deletion
-const BATCH_SIZE   = 200  // Firestore batch limit is 500 ops; keep headroom
+const ARCHIVE_DAYS  = 90    // days until live content is auto-moved to Recycle Bin
+const PURGE_DAYS    = 15    // days a Recycle Bin item is kept before permanent deletion
+const BATCH_SIZE    = 200   // keep well under Firestore's 500-op limit (2 ops per doc)
+const RECYCLE_COL   = 'recyclebin'
 
 /** ISO string for `daysAgo` days in the past */
 function cutoffISO(daysAgo) {
@@ -45,41 +49,48 @@ function cutoffISO(daysAgo) {
 }
 
 /**
- * Auto-archive: content older than ARCHIVE_DAYS → soft-deleted with reason 'expired'.
- * Admins can still see & restore these items from the Recycle Bin for PURGE_DAYS more days.
+ * Auto-archive: content older than ARCHIVE_DAYS.
+ * Copies full document to 'recyclebin' with reason 'auto-90-days',
+ * then hard-deletes from the source collection.
  */
 export async function archiveOldContent() {
-  const cutoff    = cutoffISO(ARCHIVE_DAYS)
-  const now       = new Date().toISOString()
+  const cutoff     = cutoffISO(ARCHIVE_DAYS)
+  const now        = new Date().toISOString()
   let   totalMoved = 0
 
-  for (const { module, collection } of CONTENT_MODULES) {
+  for (const { module, collection, titleField } of CONTENT_MODULES) {
     try {
-      // Fetch docs older than the cutoff that are NOT already soft-deleted
-      const snap = await db.collection(collection)
-        .where('createdAt', '<', cutoff)
-        .get()
+      const snap     = await db.collection(collection).where('createdAt', '<', cutoff).get()
+      const toMove   = snap.docs
+      if (!toMove.length) continue
 
-      // In-memory filter: skip already-deleted items
-      const toArchive = snap.docs.filter(d => !d.data().deletedAt)
-      if (!toArchive.length) continue
-
-      for (let i = 0; i < toArchive.length; i += BATCH_SIZE) {
-        const chunk = toArchive.slice(i, i + BATCH_SIZE)
+      for (let i = 0; i < toMove.length; i += BATCH_SIZE) {
+        const chunk = toMove.slice(i, i + BATCH_SIZE)
         const batch = db.batch()
+
         chunk.forEach(doc => {
-          batch.update(doc.ref, {
-            deletedAt:    now,
-            deletedBy:    null,       // system action
-            deleteReason: 'expired',
-            updatedAt:    now,
+          const data = doc.data()
+          // Write full document to recyclebin
+          batch.set(db.collection(RECYCLE_COL).doc(doc.id), {
+            ...data,
+            originalCollection:  collection,
+            originalPublishedAt: data.publishedAt || data.createdAt || now,
+            originalPublishedBy: data.publishedBy || null,
+            deletedAt:           now,
+            deletedBy:           null,   // system action
+            reason:              'auto-90-days',
+            _module:             module,
+            _titleField:         titleField,
           })
+          // Hard-delete from original collection
+          batch.delete(doc.ref)
         })
+
         await batch.commit()
         totalMoved += chunk.length
       }
 
-      console.log(`[archival] Auto-archived ${toArchive.length} items from '${collection}'`)
+      console.log(`[archival] Auto-archived ${toMove.length} items from '${collection}'`)
     } catch (err) {
       console.error(`[archival] Error archiving '${collection}':`, err.message)
     }
@@ -91,40 +102,34 @@ export async function archiveOldContent() {
 }
 
 /**
- * Purge: items in Recycle Bin for more than PURGE_DAYS → permanently deleted.
+ * Purge: items in 'recyclebin' for more than PURGE_DAYS → permanently deleted.
+ * Now reads directly from the recyclebin collection — single collection, simple query.
  */
 export async function purgeExpiredBin() {
-  const cutoff  = cutoffISO(PURGE_DAYS)
+  const cutoff   = cutoffISO(PURGE_DAYS)
   let   totalDel = 0
 
-  for (const { collection } of CONTENT_MODULES) {
-    try {
-      const snap = await db.collection(collection).get()
+  try {
+    const snap     = await db.collection(RECYCLE_COL).get()
+    const toDelete = snap.docs.filter(d => {
+      const { deletedAt } = d.data()
+      return deletedAt && deletedAt < cutoff
+    })
 
-      // In-memory filter: deleted and expired
-      const toDelete = snap.docs.filter(d => {
-        const data = d.data()
-        return data.deletedAt && data.deletedAt < cutoff
-      })
+    if (!toDelete.length) return
 
-      if (!toDelete.length) continue
-
-      for (let i = 0; i < toDelete.length; i += BATCH_SIZE) {
-        const chunk = toDelete.slice(i, i + BATCH_SIZE)
-        const batch = db.batch()
-        chunk.forEach(doc => batch.delete(doc.ref))
-        await batch.commit()
-        totalDel += chunk.length
-      }
-
-      console.log(`[archival] Purged ${toDelete.length} expired items from '${collection}'`)
-    } catch (err) {
-      console.error(`[archival] Error purging '${collection}':`, err.message)
+    for (let i = 0; i < toDelete.length; i += BATCH_SIZE * 2) {
+      // Each doc is 1 delete op — use full BATCH_SIZE * 2 = 400 to stay safe
+      const chunk = toDelete.slice(i, i + BATCH_SIZE * 2)
+      const batch = db.batch()
+      chunk.forEach(doc => batch.delete(doc.ref))
+      await batch.commit()
+      totalDel += chunk.length
     }
-  }
 
-  if (totalDel > 0) {
-    console.log(`[archival] Total purged: ${totalDel} items`)
+    console.log(`[archival] Purged ${totalDel} expired items from recyclebin`)
+  } catch (err) {
+    console.error('[archival] Error purging recyclebin:', err.message)
   }
 }
 

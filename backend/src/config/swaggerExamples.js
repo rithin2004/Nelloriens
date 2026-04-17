@@ -280,7 +280,7 @@ export const schemas = {
   LeadDocument: {
     type: 'object',
     properties: {
-      _id:       { type: 'string', example: 'MSG00001' },
+      _id:       { type: 'string', example: 'LED00001' },
       name:      { type: 'string', example: 'Suresh Babu' },
       email:     { type: 'string', example: 'suresh.babu@gmail.com' },
       phone:     { type: 'string', example: '+91 94405 12345' },
@@ -539,7 +539,7 @@ export const schemas = {
     required: ['movieName', 'theatre', 'language', 'status'],
     properties: {
       movieName:    { type: 'string', example: 'Pushpa 3: The Rampage' },
-      theatre:      { type: 'string', example: 'THR00001', description: 'ID of a theatres document.' },
+      theatre:      { type: 'string', example: 'THT00001', description: 'ID of a theatres document.' },
       language:     { type: 'string', enum: ['Telugu', 'Hindi', 'Tamil', 'English', 'Other'], example: 'Telugu' },
       showTimings:  { type: 'array', items: { type: 'string' }, example: ['10:30 AM', '1:45 PM', '5:00 PM', '9:15 PM'] },
       poster:       { type: 'string', example: 'https://storage.googleapis.com/nelloriens.appspot.com/movies/pushpa3-poster.jpg' },

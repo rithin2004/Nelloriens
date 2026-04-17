@@ -1,4 +1,4 @@
-import { moviesRepo, theatresRepo } from './movies.repository.js'
+import { moviesRepo, theatresRepo, trailersRepo } from './movies.repository.js'
 import { CrudService }              from '../../utils/serviceBase.js'
 
 class MoviesService extends CrudService {
@@ -26,6 +26,22 @@ class MoviesService extends CrudService {
       totalPages: Math.max(1, Math.ceil(total / lim)),
     }
   }
+
+  async create(data) {
+    // RULE 35 — max 8 upcoming movies
+    if (data.status === 'coming_soon') {
+      const all      = await this.repo.findAll({ orderBy: 'createdAt', order: 'desc' })
+      const upcoming = all.filter(m => m.status === 'coming_soon')
+      if (upcoming.length >= 8) {
+        const err = new Error('Maximum 8 Upcoming Movies reached. Remove one before adding a new one.')
+        err.status       = 409
+        err.code         = 'MAX_LIMIT_REACHED'
+        err.currentItems = upcoming
+        throw err
+      }
+    }
+    return super.create(data)
+  }
 }
 
 export const moviesService = new MoviesService(moviesRepo, { entityName: 'Movie' })
@@ -33,4 +49,11 @@ export const moviesService = new MoviesService(moviesRepo, { entityName: 'Movie'
 export const theatresService = new CrudService(theatresRepo, {
   entityName:  'Theatre',
   searchField: 'name',
+})
+
+export const trailersService = new CrudService(trailersRepo, {
+  entityName:   'Trailer',
+  searchField:  'movieName',
+  orderBy:      'createdAt',
+  order:        'desc',
 })

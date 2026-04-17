@@ -5,9 +5,10 @@ import { db }                        from '../../config/firebase.js'
 const _base = new CrudService(historyRepo, { entityName: 'History', orderBy: 'order', order: 'asc' })
 
 export const historyService = {
-  list:    (...args) => _base.list(...args),
-  getById: (...args) => _base.getById(...args),
-  update:  (...args) => _base.update(...args),
+  list:           (...args) => _base.list(...args),
+  getById:        (...args) => _base.getById(...args),
+  update:         (...args) => _base.update(...args),
+  incrementViews: (id, field) => historyRepo.incrementField(id, field),
 
   async create(data) {
     // Append after the last item's order — safe even if gaps exist in data

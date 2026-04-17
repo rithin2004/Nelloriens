@@ -12,22 +12,23 @@ export async function stats(req, res) {
 }
 
 export async function restore(req, res) {
-  const { id, module } = req.params
-  const item = await svc.restoreItem(id, module)
-  await log(req, 'restore', module, id, { title: item.title })
+  // RULE 9: module no longer needed in URL — originalCollection is stored in the recyclebin doc
+  const { id } = req.params
+  const item   = await svc.restoreItem(id)
+  await log(req, 'restore', item.module || 'recyclebin', id, { title: item.title })
   res.json({ success: true, message: 'Item restored successfully', data: item })
 }
 
 export async function purge(req, res) {
-  const { id, module } = req.params
-  await svc.purgeItem(id, module)
-  await log(req, 'purge', module, id)
+  const { id } = req.params
+  const item   = await svc.purgeItem(id)
+  await log(req, 'purge', item.module || 'recyclebin', id, { title: item.title })
   res.json({ success: true, message: 'Item permanently deleted' })
 }
 
 export async function purgeAll(req, res) {
   const { module } = req.query
-  const count = await svc.purgeAll(module)
+  const count      = await svc.purgeAll(module)
   await log(req, 'purge_all', module || 'recyclebin', null, { count })
   res.json({ success: true, message: `${count} item(s) permanently deleted` })
 }

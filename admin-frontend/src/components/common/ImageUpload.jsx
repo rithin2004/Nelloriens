@@ -7,7 +7,13 @@ const P  = '#0a3d95'
 const PL = '#dce8fb'
 const PB = '#eef3fd'
 
-export default function ImageUpload({ module, value, onChange, label = 'Image', altValue = '', onAltChange }) {
+/**
+ * @param {string}  module      Storage module folder (e.g. 'news')
+ * @param {string}  contentId   The content ID this file belongs to (RULE 10)
+ * @param {string}  [section]   Sub-folder (default: 'thumbnails') — e.g. 'posters', 'logos'
+ * @param {number}  [index]     Index for multiple files on one content item
+ */
+export default function ImageUpload({ module, contentId, section, index, value, onChange, label = 'Image', altValue = '', onAltChange }) {
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef(null)
 
@@ -17,6 +23,9 @@ export default function ImageUpload({ module, value, onChange, label = 'Image', 
     if (file.size > 5 * 1024 * 1024) { toast.error('File must be under 5 MB'); return }
     const fd = new FormData()
     fd.append('file', file)
+    if (contentId) fd.append('contentId', contentId)
+    if (section)   fd.append('section',   section)
+    if (index !== undefined) fd.append('index', String(index))
     try {
       setUploading(true)
       const res = await uploadApi.upload(module, fd)

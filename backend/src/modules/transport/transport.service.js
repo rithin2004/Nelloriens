@@ -1,16 +1,17 @@
-import { transportRepo, transportCategoriesRepo } from './transport.repository.js'
-import { CrudService, CategoryService }           from '../../utils/serviceBase.js'
+import { transportRepo } from './transport.repository.js'
+import { CrudService }   from '../../utils/serviceBase.js'
+
+// Transport categories are FIXED (RULE 31): train, bus, airport, local
+export const TRANSPORT_TYPES = ['train', 'bus', 'airport', 'local']
 
 export const transportService = new CrudService(transportRepo, {
   entityName:   'Transport',
-  searchField:  'title',
+  searchField:  'name',
   orderBy:      'createdAt',
   order:        'desc',
-  extraFilters: ({ category }) => {
+  extraFilters: ({ type }) => {
     const f = []
-    if (category) f.push(['category', '==', category])
+    if (type && TRANSPORT_TYPES.includes(type)) f.push(['type', '==', type])
     return f
   },
 })
-
-export const transportCategoriesService = new CategoryService(transportCategoriesRepo, 'Transport category')

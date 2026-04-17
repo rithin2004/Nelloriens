@@ -4,7 +4,7 @@ const PB = '#eef3fd'
 
 const MODULES = [
   'news', 'jobs', 'results', 'sports', 'foods', 'history', 'stays',
-  'events', 'movies', 'transport', 'offers', 'tourism', 'updates',
+  'events', 'movies', 'transport', 'offers', 'tourism', 'realestate', 'updates',
   'ads', 'sponsorships', 'instagram', 'leads', 'company',
   'users', 'roles', 'settings',
 ]

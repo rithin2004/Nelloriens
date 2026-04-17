@@ -1,4 +1,4 @@
 import { FirestoreRepo } from '../../utils/firestoreRepo.js'
 
-export const transportRepo           = new FirestoreRepo('transport',            { idPrefix: 'TRP' })
-export const transportCategoriesRepo = new FirestoreRepo('transport_categories', { idPrefix: 'TCT' })
+// Transport categories are FIXED (RULE 31): train, bus, airport, local — no dynamic management
+export const transportRepo = new FirestoreRepo('transport', { idPrefix: 'TRN' })

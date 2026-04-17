@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usersApi, rolesApi } from '../../services/api'
 import { useDebounce } from '../../hooks/useDebounce'
+import useUsersStore from '../../store/usersStore'
+import useRolesStore from '../../store/rolesStore'
 import PageHeader from '../../components/common/PageHeader'
 import FormModal from '../../components/common/FormModal'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -21,16 +23,18 @@ const lbl    = 'block text-xs font-semibold text-slate-500 uppercase tracking-wi
 const focusOn  = (e) => { e.target.style.borderColor = P; e.target.style.boxShadow = '0 0 0 3px rgba(10,61,149,0.1)' }
 const focusOff = (e) => { e.target.style.borderColor = '#CBD5E1'; e.target.style.boxShadow = '' }
 
+const PAGE_SIZE = 20
+
 export default function UsersList() {
   const navigate = useNavigate()
-  const [data,       setData]       = useState([])
-  const [loading,    setLoading]    = useState(true)
-  const [page,       setPage]       = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [total,      setTotal]      = useState(0)
-  const [search,        setSearch]     = useState('')
+  const [page,   setPage]   = useState(1)
+  const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search)
-  const [roles,         setRoles]      = useState([])
+
+  // Data from Zustand stores — updated by useSSE in Layout automatically
+  const { items: data, total, totalPages, loading, fetch: fetchUsers } = useUsersStore()
+  const { items: rolesData, fetch: fetchRoles } = useRolesStore()
+  const roles = (rolesData || []).filter(r => r._id !== 'ROL00001')
 
   // Create modal
   const [createOpen, setCreateOpen] = useState(false)
@@ -44,26 +48,15 @@ export default function UsersList() {
   const [saving,   setSaving]   = useState(false)
 
   // Delete confirm
-  const [deleteId,  setDeleteId]  = useState(null)
-  const [deleting,  setDeleting]  = useState(false)
+  const [deleteId, setDeleteId] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
-  const fetchData = () => {
-    setLoading(true)
-    usersApi.getAll({ page, limit: 20, search: debouncedSearch || undefined })
-      .then((r) => { setData(r.data.items || []); setTotalPages(r.data.totalPages || 1); setTotal(r.data.total || 0) })
-      .catch(() => toast.error('Failed to load users'))
-      .finally(() => setLoading(false))
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchUsers({ page, limit: PAGE_SIZE, search: debouncedSearch }) }, [page, debouncedSearch])
 
-  useEffect(() => { fetchData() }, [page, debouncedSearch])
+  useEffect(() => { fetchRoles({ limit: 100 }) }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    rolesApi.getAll({ limit: 100 })
-      .then((r) => setRoles((r.data.items || []).filter((r) => r._id !== 'ROL00001')))
-      .catch(() => {})
-  }, [])
-
-  // ── Create ────────��──────────────────────────��──────────────────────────────
+  // ── Create ────────────────────────────────────────────────────────────────────
   const openCreate = () => { setCreateForm({ name: '', email: '', phone: '', roleId: '' }); setCreateOpen(true) }
 
   const handleCreate = async (e) => {
@@ -74,13 +67,12 @@ export default function UsersList() {
       await usersApi.create(createForm)
       toast.success('User created!')
       setCreateOpen(false)
-      fetchData()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Create failed')
     } finally { setCreating(false) }
   }
 
-  // ── Edit ───────────────────────────��────────────────────────────────────────
+  // ── Edit ──────────────────────────────────────────────────────────────────────
   const openEdit = async (user) => {
     setEditId(user._id)
     setEditForm({ name: user.name || '', phone: user.phone || '', roleId: user.roleId || '', active: user.active !== false })
@@ -94,16 +86,15 @@ export default function UsersList() {
       await usersApi.update(editId, { ...editForm, active: editForm.active === true || editForm.active === 'true' })
       toast.success('User updated')
       setEditOpen(false)
-      fetchData()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Update failed')
     } finally { setSaving(false) }
   }
 
-  // ── Delete ───────��──────────────────────────────���───────────────────────��───
+  // ── Delete ────────────────────────────────────────────────────────────────────
   const handleDelete = async () => {
     setDeleting(true)
-    try { await usersApi.delete(deleteId); toast.success('User deleted'); setDeleteId(null); fetchData() }
+    try { await usersApi.delete(deleteId); toast.success('User deleted'); setDeleteId(null) }
     catch (err) { toast.error(err.response?.data?.message || 'Delete failed') }
     finally { setDeleting(false) }
   }
@@ -133,8 +124,10 @@ export default function UsersList() {
 
       <div className="flex gap-3 mb-5">
         <div className="relative">
+          <label htmlFor="search-users" className="sr-only">Search users</label>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-          <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+          <input id="search-users" name="search" autoComplete="off"
+            value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search name, email…"
             className="pl-9 pr-3 py-2 text-sm rounded-lg focus:outline-none w-full sm:w-64 transition-all text-slate-700"
             style={inpS} onFocus={focusOn} onBlur={focusOff} />

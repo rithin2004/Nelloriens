@@ -4,6 +4,7 @@ import { Tag, MapPin } from 'lucide-react'
 import ModuleList from '../../components/common/ModuleList'
 import JobForm from '../../components/forms/JobForm'
 import { jobsApi } from '../../services/api'
+import useJobsStore from '../../store/jobsStore'
 
 export default function JobsList() {
   const navigate    = useNavigate()
@@ -20,9 +21,12 @@ export default function JobsList() {
   return (
     <ModuleList
       title="Jobs"
+      collectionName="jobs"
+      store={useJobsStore}
       api={jobsApi}
       titleKey="title"
       FormComponent={JobForm}
+      idPrefix="JOB"
       extraFilters={[
         ...(categories.length > 0 ? [{ key: 'category', label: 'Category', options: categories.map((c) => ({ label: c.name, value: c._id })) }] : []),
         ...(locations.length  > 0 ? [{ key: 'location', label: 'Location',  options: locations.map((l)  => ({ label: l.name, value: l._id })) }] : []),

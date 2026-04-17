@@ -105,7 +105,17 @@ export const instagramService = {
   async createPost(data) {
     const cfg = await getConfig()
     if (cfg.accessToken) badReq('Instagram is connected — use sync to import posts')
-    return instagramRepo.create(data)
+    // RULE 40 — max 6 manual posts
+    const existing = await instagramRepo.findAll({})
+    if (existing.length >= 6) {
+      const err = new Error('Maximum 6 Instagram posts allowed. Remove one before adding a new one.')
+      err.status       = 409
+      err.code         = 'MAX_LIMIT_REACHED'
+      err.currentItems = existing
+      throw err
+    }
+    const { _reservedId, ...rest } = data
+    return instagramRepo.create(rest, _reservedId || null)
   },
 
   async updatePost(id, data) {
@@ -114,6 +124,10 @@ export const instagramService = {
     const existing = await instagramRepo.findById(id)
     if (!existing) notFound('Post not found')
     return instagramRepo.update(id, data)
+  },
+
+  async incrementViews(id, field) {
+    await instagramRepo.incrementField(id, field)
   },
 
   async hidePost(id) {

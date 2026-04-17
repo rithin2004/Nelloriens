@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { foodsApi, uploadApi } from '../../services/api'
+import useFoodsStore from '../../store/foodsStore'
 import PageHeader from '../../components/common/PageHeader'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import FormModal from '../../components/common/FormModal'
@@ -32,7 +33,7 @@ function RestaurantFields({ register, prefix, label }) {
         <div><label className={lbl}>Name</label><input {...register(`${prefix}.name`)} placeholder="Restaurant name" className={inp} /></div>
         <div><label className={lbl}>Price (approx)</label><input {...register(`${prefix}.price`)} placeholder="₹120" className={inp} /></div>
         <div><label className={lbl}>Rating (/ 5)</label><input {...register(`${prefix}.rating`)} type="number" min="0" max="5" step="0.1" placeholder="4.2" className={inp} /></div>
-        <div><label className={lbl}>Swiggy / Zomato URL</label><input {...register(`${prefix}.swigyLink`)} type="url" placeholder="https://swiggy.com/…" className={inp} /></div>
+        <div><label className={lbl}>Order Link (URL)</label><input {...register(`${prefix}.orderLink`)} type="url" placeholder="https://order.example.com/..." className={inp} /></div>
       </div>
     </div>
   )
@@ -43,7 +44,7 @@ function VarietyForm({ defaultValues, onSubmit, loading }) {
   const { register, handleSubmit } = useForm({
     defaultValues: defaultValues || {
       name: '', popular: false, totalRestaurants: '',
-      restaurants: [{ name: '', price: '', rating: '', swigyLink: '' }, { name: '', price: '', rating: '', swigyLink: '' }],
+      restaurants: [{ name: '', price: '', rating: '', orderLink: '' }, { name: '', price: '', rating: '', orderLink: '' }],
     },
   })
   return (
@@ -71,7 +72,7 @@ function SweetForm({ defaultValues, onSubmit, loading }) {
   const { register, handleSubmit } = useForm({
     defaultValues: defaultValues || {
       name: '',
-      restaurants: [{ name: '', price: '', rating: '', swigyLink: '' }, { name: '', price: '', rating: '', swigyLink: '' }],
+      restaurants: [{ name: '', price: '', rating: '', orderLink: '' }, { name: '', price: '', rating: '', orderLink: '' }],
     },
   })
   return (
@@ -110,6 +111,10 @@ function SortablePhoto({ photo, idx, onDelete }) {
 export default function FoodsList() {
   const sensors = useSensors(useSensor(PointerSensor))
 
+  // Subscribe to foods store so SSE-triggered fetches re-refresh sub-sections
+  const _sseItems = useFoodsStore(state => state.items)
+  const prevSseRef = useRef(_sseItems)
+
   // Photos
   const [photos, setPhotos]                   = useState([])
   const [photosLoading, setPhotosLoading]     = useState(true)
@@ -128,6 +133,11 @@ export default function FoodsList() {
   const [deleteVarietyId, setDeleteVarietyId] = useState(null)
   const [deletingVariety, setDeletingVariety] = useState(false)
   const [togglingId, setTogglingId]           = useState(null)
+  // Replace prompt for isPopular max 6 (RULE 13)
+  const [replaceOpen,        setReplaceOpen]        = useState(false)
+  const [replaceCandidates,  setReplaceCandidates]  = useState([])
+  const [replacePendingVar,  setReplacePendingVar]  = useState(null)
+  const [replacingId,        setReplacingId]        = useState(null)
 
   // Sweets
   const [sweets, setSweets]                   = useState([])
@@ -146,17 +156,28 @@ export default function FoodsList() {
 
   useEffect(() => { fetchPhotos(); fetchVarieties(); fetchSweets() }, [fetchPhotos, fetchVarieties, fetchSweets])
 
+  // SSE refresh: when store items change (SSE triggered), re-fetch all sub-sections
+  useEffect(() => {
+    if (_sseItems === prevSseRef.current) return
+    prevSseRef.current = _sseItems
+    fetchPhotos(); fetchVarieties(); fetchSweets()
+  }, [_sseItems, fetchPhotos, fetchVarieties, fetchSweets])
+
   // ── Photos handlers ───────────────────────────────────────────────────────
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0]
     if (!file || photos.length >= MAX_PHOTOS) return
     if (file.size > 5 * 1024 * 1024) { toast.error('File must be under 5MB'); return }
-    const fd = new FormData()
-    fd.append('file', file)
     setPhotoUploading(true)
     try {
-      const res = await uploadApi.upload(fd)
-      await foodsApi.addPhoto({ url: res.data.url, order: photos.length })
+      const idRes = await uploadApi.reserveId('FPH')
+      const photoId = idRes.data.data.id
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('contentId', photoId)
+      fd.append('section', 'gallery')
+      const res = await uploadApi.upload('foods', fd)
+      await foodsApi.addPhoto({ url: res.data.data.url, _reservedId: photoId })
       toast.success('Photo added')
       fetchPhotos()
     } catch { toast.error('Upload failed') }
@@ -203,15 +224,34 @@ export default function FoodsList() {
   }
 
   const handleTogglePopular = async (v) => {
-    const popularCount = varieties.filter(x => x.popular).length
-    if (!v.popular && popularCount >= MAX_POPULAR) { toast.error(`Max ${MAX_POPULAR} popular varieties allowed`); return }
     setTogglingId(v._id)
     try {
       await foodsApi.updateVariety(v._id, { popular: !v.popular })
       toast.success(v.popular ? 'Removed from popular' : 'Marked as popular')
       fetchVarieties()
-    } catch { toast.error('Update failed') }
-    finally { setTogglingId(null) }
+    } catch (e) {
+      // RULE 13 — max 6 popular varieties globally: show replace prompt
+      if (e?.response?.data?.code === 'MAX_LIMIT_REACHED') {
+        setReplaceCandidates(e.response.data.currentItems || [])
+        setReplacePendingVar(v)
+        setReplaceOpen(true)
+      } else {
+        toast.error(e?.response?.data?.message || 'Update failed')
+      }
+    } finally { setTogglingId(null) }
+  }
+
+  const handlePopularReplaceConfirm = async (replaceId) => {
+    if (!replacePendingVar) return
+    setReplacingId(replaceId)
+    try {
+      await foodsApi.updateVariety(replacePendingVar._id, { popular: true, replaceId })
+      toast.success('Marked as popular — replaced previous item')
+      setReplaceOpen(false); setReplaceCandidates([]); setReplacePendingVar(null)
+      fetchVarieties()
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to update')
+    } finally { setReplacingId(null) }
   }
 
   // ── Sweet handlers ────────────────────────────────────────────────────────
@@ -345,7 +385,7 @@ export default function FoodsList() {
                             <span className="font-medium text-slate-700">{r.name}</span>
                             {r.price  && <span className="text-slate-400">· {r.price}</span>}
                             {r.rating && <span className="text-amber-500 font-semibold">★ {r.rating}</span>}
-                            {r.swigyLink && <a href={r.swigyLink} target="_blank" rel="noreferrer" className="text-sky-500 hover:underline">Order</a>}
+                            {r.orderLink && <a href={r.orderLink} target="_blank" rel="noreferrer" className="text-sky-500 hover:underline">Order</a>}
                           </div>
                         ))}
                       </div>
@@ -409,7 +449,7 @@ export default function FoodsList() {
                             <span className="font-medium text-slate-700">{r.name}</span>
                             {r.price  && <span className="text-slate-400">· {r.price}</span>}
                             {r.rating && <span className="text-pink-500 font-semibold">★ {r.rating}</span>}
-                            {r.swigyLink && <a href={r.swigyLink} target="_blank" rel="noreferrer" className="text-sky-500 hover:underline">Order</a>}
+                            {r.orderLink && <a href={r.orderLink} target="_blank" rel="noreferrer" className="text-sky-500 hover:underline">Order</a>}
                           </div>
                         ))}
                       </div>
@@ -440,6 +480,41 @@ export default function FoodsList() {
       <FormModal isOpen={sweetFormOpen} onClose={() => setSweetFormOpen(false)} title={sweetEditId ? 'Edit Sweet' : 'Add Sweet'}>
         <SweetForm defaultValues={sweetDefaults} onSubmit={handleSweetSubmit} loading={sweetSaving} />
       </FormModal>
+
+      {/* RULE 13 — Replace prompt for popular max 6 globally */}
+      {replaceOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="text-base font-bold text-slate-800 mb-1">Max Popular Reached</h3>
+            <p className="text-sm text-slate-500 mb-4">
+              Already 6 Popular varieties. Choose one to replace:
+            </p>
+            <div className="flex flex-col gap-2 mb-5">
+              {replaceCandidates.map((c) => (
+                <button
+                  key={c._id}
+                  onClick={() => handlePopularReplaceConfirm(c._id)}
+                  disabled={!!replacingId}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all"
+                  style={{ borderColor: replacingId === c._id ? '#8B5CF6' : '#E2E8F0', background: replacingId === c._id ? '#EDE9FE' : '#FAFAFA' }}
+                >
+                  <span className="text-sm font-medium text-slate-700">{c.name}</span>
+                  {replacingId === c._id && (
+                    <div className="ml-auto w-4 h-4 rounded-full animate-spin shrink-0" style={{ border: '2px solid #DDD6FE', borderTopColor: '#8B5CF6' }} />
+                  )}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => { setReplaceOpen(false); setReplaceCandidates([]); setReplacePendingVar(null) }}
+              className="w-full py-2 text-sm font-semibold rounded-xl text-slate-500 hover:text-slate-700 transition-colors"
+              style={{ background: '#F1F5F9' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

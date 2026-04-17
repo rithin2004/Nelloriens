@@ -16,4 +16,8 @@ router.put   ('/update/:id', authenticate, permit(M,'update'), a(c.update))
 router.delete('/delete/:id', authenticate, permit(M,'delete'), a(c.remove))
 router.patch ('/reorder',    authenticate, permit(M,'update'), a(c.reorder))
 
+// Public view increments — no auth (RULE 11)
+router.post('/:id/views',      a(c.incrementPageViews))
+router.post('/:id/card-views', a(c.incrementCardViews))
+
 export default router

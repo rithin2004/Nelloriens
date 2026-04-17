@@ -21,4 +21,10 @@ router.post  ('/sync',            authenticate, permit('instagram','create'), a(
 router.post  ('/refresh-token',   authenticate, permit('instagram','update'), a(instagramCtrl.refreshToken))
 router.delete('/delete/:id',      authenticate, permit('instagram','delete'), a(instagramCtrl.hidePost))
 
+// Public count increments — no auth (RULE 11)
+router.post('/posts/:id/views',       a(instagramCtrl.incrementPageViews))
+router.post('/posts/:id/card-views',  a(instagramCtrl.incrementCardViews))
+router.post('/posts/:id/impressions', a(instagramCtrl.incrementImpressions))
+router.post('/posts/:id/touches',     a(instagramCtrl.incrementTouches))
+
 export default router

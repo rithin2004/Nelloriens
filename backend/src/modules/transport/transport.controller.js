@@ -1,5 +1,6 @@
-import { transportService, transportCategoriesService } from './transport.service.js'
+import { transportService, TRANSPORT_TYPES } from './transport.service.js'
 import { log } from '../../utils/auditLog.js'
+import { createTracking, updateTracking } from '../../utils/userTracking.js'
 
 export async function list(req, res) {
   res.json({ success: true, ...(await transportService.list(req.query)) })
@@ -10,13 +11,13 @@ export async function getById(req, res) {
 }
 
 export async function create(req, res) {
-  const data = await transportService.create(req.body)
-  await log(req, 'create', 'transport', data._id, { title: data.title })
+  const data = await transportService.create({ ...req.body, ...createTracking(req.user) })
+  await log(req, 'create', 'transport', data._id, { name: data.name, type: data.type })
   res.status(201).json({ success: true, message: 'Created', data })
 }
 
 export async function update(req, res) {
-  const data = await transportService.update(req.params.id, req.body)
+  const data = await transportService.update(req.params.id, { ...req.body, ...updateTracking(req.user) })
   await log(req, 'update', 'transport', req.params.id)
   res.json({ success: true, message: 'Updated', data })
 }
@@ -27,21 +28,17 @@ export async function remove(req, res) {
   res.json({ success: true, message: 'Deleted' })
 }
 
-export async function listCategories(req, res) {
-  res.json(await transportCategoriesService.list())
+// Returns the fixed transport types list (no management — RULE 31)
+export async function getTypes(req, res) {
+  res.json({ success: true, data: TRANSPORT_TYPES })
 }
 
-export async function createCategory(req, res) {
-  const data = await transportCategoriesService.create(req.body.name)
-  res.status(201).json({ success: true, data })
+// ── View increments (RULE 11 — public, no auth) ────────────────────────────
+export async function incrementPageViews(req, res) {
+  await transportService.incrementViews(req.params.id, 'pageViews')
+  res.json({ success: true })
 }
-
-export async function updateCategory(req, res) {
-  const data = await transportCategoriesService.update(req.params.id, req.body.name)
-  res.json({ success: true, data })
-}
-
-export async function deleteCategory(req, res) {
-  await transportCategoriesService.remove(req.params.id)
-  res.json({ success: true, message: 'Deleted' })
+export async function incrementCardViews(req, res) {
+  await transportService.incrementViews(req.params.id, 'cardViews')
+  res.json({ success: true })
 }

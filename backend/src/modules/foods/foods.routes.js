@@ -20,11 +20,19 @@ router.post  ('/varieties/create',       authenticate, permit(M,'create'), a(c.c
 router.put   ('/varieties/update/:id',   authenticate, permit(M,'update'), a(c.updateVariety))
 router.delete('/varieties/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteVariety))
 
+// Varieties view increments — no auth (RULE 11)
+router.post('/varieties/:id/views',      a(c.incrementVarietyPageViews))
+router.post('/varieties/:id/card-views', a(c.incrementVarietyCardViews))
+
 // Sweets
 router.get   ('/sweets/list',                          a(c.listSweets))
 router.post  ('/sweets/create',       authenticate, permit(M,'create'), a(c.createSweet))
 router.put   ('/sweets/update/:id',   authenticate, permit(M,'update'), a(c.updateSweet))
 router.delete('/sweets/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteSweet))
+
+// Sweets view increments — no auth (RULE 11)
+router.post('/sweets/:id/views',      a(c.incrementSweetPageViews))
+router.post('/sweets/:id/card-views', a(c.incrementSweetCardViews))
 
 // Foods CRUD
 router.get   ('/list',                   a(c.list))
@@ -32,5 +40,9 @@ router.get   ('/get/:id',                a(c.getById))
 router.post  ('/create',     authenticate, permit(M,'create'), a(c.create))
 router.put   ('/update/:id', authenticate, permit(M,'update'), a(c.update))
 router.delete('/delete/:id', authenticate, permit(M,'delete'), a(c.remove))
+
+// Foods view increments — no auth (RULE 11)
+router.post('/:id/views',      a(c.incrementPageViews))
+router.post('/:id/card-views', a(c.incrementCardViews))
 
 export default router

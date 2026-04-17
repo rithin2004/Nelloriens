@@ -5,5 +5,5 @@ export default function FoodsEdit() {
   useEffect(() => { foodsApi.getById(id).then((r) => setItem(r.data)).catch(() => toast.error('Failed')) }, [id])
   const handleSubmit = async (data) => { setLoading(true); try { await foodsApi.update(id, data); toast.success('Updated!'); navigate('/foods') } catch (e) { toast.error(e.message) } finally { setLoading(false) } }
   if (!item) return <LoadingSpinner />
-  return <div className="animate-fade-in"><PageHeader title="Edit Food" backTo="/foods" /><FoodForm defaultValues={item} onSubmit={handleSubmit} loading={loading} /></div>
+  return <div className="animate-fade-in"><PageHeader title="Edit Food" backTo="/foods" /><FoodForm defaultValues={item} onSubmit={handleSubmit} loading={loading} contentId={id} /></div>
 }

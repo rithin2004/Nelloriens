@@ -2,7 +2,7 @@ import { FirestoreRepo } from '../../utils/firestoreRepo.js'
 import { db } from '../../config/firebase.js'
 
 class NewsRepository extends FirestoreRepo {
-  constructor() { super('news', { idPrefix: 'NEWS' }) }
+  constructor() { super('news', { idPrefix: 'NEW' }) }
 
   async searchByTitle(query) {
     const snap = await this.ref.orderBy('publishedAt', 'desc').get()
@@ -22,7 +22,7 @@ class NewsCategoryRepository extends FirestoreRepo {
 }
 
 class BreakingPointRepository extends FirestoreRepo {
-  constructor() { super('breaking_points', { idPrefix: 'BPT' }) }
+  constructor() { super('breaking_points', { idPrefix: 'BRK' }) }
 
   async findAllOrdered() {
     return this.findAll({ orderBy: 'order', order: 'asc' })

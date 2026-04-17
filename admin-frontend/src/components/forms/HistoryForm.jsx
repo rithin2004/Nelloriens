@@ -10,7 +10,7 @@ const section = 'rounded-xl p-5 space-y-4'
 const sectionStyle = { background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }
 const inp = 'w-full px-3 py-2.5 rounded-lg text-sm'
 
-export default function HistoryForm({ defaultValues, onSubmit, loading }) {
+export default function HistoryForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues })
   const [description, setDescription] = useState(defaultValues?.description || '')
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
@@ -48,7 +48,7 @@ export default function HistoryForm({ defaultValues, onSubmit, loading }) {
           <RichTextEditor value={description} onChange={setDescription} />
         </div>
 
-        <ImageUpload module="history" label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="history" label="Thumbnail" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
 
         <div>
           <label htmlFor="hist-year" className={lbl} style={lblStyle}>Year Label</label>
@@ -61,7 +61,8 @@ export default function HistoryForm({ defaultValues, onSubmit, loading }) {
         <h3 className="font-semibold text-slate-800">References</h3>
         {references.map((ref, i) => (
           <div key={i} className="flex gap-2">
-            <input value={ref} onChange={(e) => updateRef(i, e.target.value)}
+            <label htmlFor={`hist-ref-${i}`} className="sr-only">Reference URL {i + 1}</label>
+            <input id={`hist-ref-${i}`} name={`reference-${i}`} value={ref} onChange={(e) => updateRef(i, e.target.value)}
               className={`${inp} flex-1`} placeholder="https://..." type="url" autoComplete="url" />
             <button type="button" onClick={() => removeRef(i)}
               className="p-2 rounded-lg text-red-400 hover:text-red-300 transition-colors"
@@ -75,6 +76,36 @@ export default function HistoryForm({ defaultValues, onSubmit, loading }) {
           style={{ color: '#A78BFA' }}>
           <Plus className="w-4 h-4" /> Add Reference
         </button>
+      </div>
+
+      <div className={section} style={sectionStyle}>
+        <h3 className="font-semibold text-slate-800">Location & Scope</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="his-scope" className={lbl} style={lblStyle}>Scope *</label>
+            <select id="his-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+              <option value="nellore">Nellore</option>
+              <option value="worldwide">Worldwide</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="his-city" className={lbl} style={lblStyle}>City</label>
+            <input id="his-city" name="city" autoComplete="address-level2"
+              {...register('city')} className={inp} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="his-location" className={lbl} style={lblStyle}>Location</label>
+            <input id="his-location" name="location" autoComplete="off"
+              {...register('location')} className={inp} />
+          </div>
+          <div>
+            <label htmlFor="his-region" className={lbl} style={lblStyle}>Region</label>
+            <input id="his-region" name="region" autoComplete="off"
+              {...register('region')} className={inp} />
+          </div>
+        </div>
       </div>
 
       <button type="submit" disabled={loading}

@@ -25,8 +25,8 @@ function RestaurantPair({ register, prefix, label }) {
           <input {...register(`${prefix}.name`)} placeholder="e.g. Hotel Vijaya" className={inp} />
         </div>
         <div>
-          <label className={lbl}>Swiggy / Zomato Link</label>
-          <input {...register(`${prefix}.swigyLink`)} type="url" placeholder="https://swiggy.com/…" className={inp} />
+          <label className={lbl}>Order Link (URL)</label>
+          <input {...register(`${prefix}.orderLink`)} type="url" placeholder="https://…" className={inp} />
         </div>
         <div>
           <label className={lbl}>Price (approx.)</label>
@@ -41,7 +41,7 @@ function RestaurantPair({ register, prefix, label }) {
   )
 }
 
-export default function FoodForm({ defaultValues, onSubmit, loading }) {
+export default function FoodForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit, control, setValue, formState: { errors } } = useForm({
     defaultValues: {
       ...defaultValues,
@@ -73,10 +73,13 @@ export default function FoodForm({ defaultValues, onSubmit, loading }) {
     if (file.size > 5 * 1024 * 1024) { toast.error('File must be under 5MB'); return }
     const fd = new FormData()
     fd.append('file', file)
+    if (contentId) fd.append('contentId', contentId)
+    fd.append('section', 'photos')
+    fd.append('index', String(photos.length + 1))
     setPhotoUploading(true)
     try {
-      const res = await uploadApi.upload(fd)
-      const next = [...photos, res.data.url]
+      const res = await uploadApi.upload('foods', fd)
+      const next = [...photos, res.data.data.url]
       setPhotos(next)
       setValue('photos', next)
     } catch { toast.error('Upload failed') }
@@ -99,8 +102,16 @@ export default function FoodForm({ defaultValues, onSubmit, loading }) {
       {/* ── Basic Info ── */}
       <div className={section}>
         <h3 className="font-semibold text-slate-800">Food Details</h3>
-        <div><label className={lbl}>Food Name *</label><input {...register('foodName', { required: 'Required' })} className={inp} />{errors.foodName && <p className="text-xs text-red-600 mt-1">{errors.foodName.message}</p>}</div>
-        <div><label className={lbl}>Restaurant / Place Name *</label><input {...register('restaurantName', { required: 'Required' })} className={inp} />{errors.restaurantName && <p className="text-xs text-red-600 mt-1">{errors.restaurantName.message}</p>}</div>
+        <div>
+          <label htmlFor="fod-name" className={lbl}>Food Name *</label>
+          <input id="fod-name" name="foodName" autoComplete="off" {...register('foodName', { required: 'Required' })} className={inp} />
+          {errors.foodName && <p className="text-xs text-red-600 mt-1">{errors.foodName.message}</p>}
+        </div>
+        <div>
+          <label htmlFor="fod-restaurant" className={lbl}>Restaurant / Place Name *</label>
+          <input id="fod-restaurant" name="restaurantName" autoComplete="organization" {...register('restaurantName', { required: 'Required' })} className={inp} />
+          {errors.restaurantName && <p className="text-xs text-red-600 mt-1">{errors.restaurantName.message}</p>}
+        </div>
         <div><label className={lbl}>Description *</label><RichTextEditor value={description} onChange={setDescription} /></div>
       </div>
 
@@ -152,11 +163,23 @@ export default function FoodForm({ defaultValues, onSubmit, loading }) {
         <h3 className="font-semibold text-slate-800">Location</h3>
         <MapPicker lat={location.lat} lng={location.lng} onChange={handleMapChange} />
         <div className="grid grid-cols-2 gap-4">
-          <div><label className={lbl}>Latitude</label><input {...register('latitude')} type="number" step="any" readOnly className={inp} /></div>
-          <div><label className={lbl}>Longitude</label><input {...register('longitude')} type="number" step="any" readOnly className={inp} /></div>
+          <div>
+            <label htmlFor="fod-lat" className={lbl}>Latitude</label>
+            <input id="fod-lat" name="latitude" autoComplete="off" {...register('latitude')} type="number" step="any" readOnly className={inp} />
+          </div>
+          <div>
+            <label htmlFor="fod-lng" className={lbl}>Longitude</label>
+            <input id="fod-lng" name="longitude" autoComplete="off" {...register('longitude')} type="number" step="any" readOnly className={inp} />
+          </div>
         </div>
-        <div><label className={lbl}>Address</label><input {...register('address')} className={inp} /></div>
-        <div><label className={lbl}>Google Maps URL</label><input {...register('googleMapsUrl')} type="url" placeholder="https://maps.google.com/…" className={inp} /></div>
+        <div>
+          <label htmlFor="fod-address" className={lbl}>Address</label>
+          <input id="fod-address" name="address" autoComplete="street-address" {...register('address')} className={inp} />
+        </div>
+        <div>
+          <label htmlFor="fod-mapsurl" className={lbl}>Google Maps URL</label>
+          <input id="fod-mapsurl" name="googleMapsUrl" type="url" autoComplete="url" {...register('googleMapsUrl')} placeholder="https://maps.google.com/…" className={inp} />
+        </div>
       </div>
 
       {/* ── More Info ── */}
@@ -191,7 +214,7 @@ export default function FoodForm({ defaultValues, onSubmit, loading }) {
           </div>
           <button
             type="button"
-            onClick={() => appendVariety({ name: '', popular: false, totalRestaurants: '', restaurants: [{ name: '', swigyLink: '' }, { name: '', swigyLink: '' }] })}
+            onClick={() => appendVariety({ name: '', popular: false, totalRestaurants: '', restaurants: [{ name: '', orderLink: '' }, { name: '', orderLink: '' }] })}
             className="flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-semibold rounded-lg"
             style={{ background: 'linear-gradient(135deg,#8B5CF6,#6366F1)' }}
           >
@@ -249,7 +272,7 @@ export default function FoodForm({ defaultValues, onSubmit, loading }) {
           <button
             type="button"
             disabled={sweetFields.length >= MAX_SWEETS}
-            onClick={() => appendSweet({ name: '', restaurants: [{ name: '', swigyLink: '' }, { name: '', swigyLink: '' }] })}
+            onClick={() => appendSweet({ name: '', restaurants: [{ name: '', orderLink: '' }, { name: '', orderLink: '' }] })}
             className="flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-semibold rounded-lg disabled:opacity-40 transition-all"
             style={{ background: 'linear-gradient(135deg,#8B5CF6,#6366F1)' }}
           >
@@ -280,6 +303,36 @@ export default function FoodForm({ defaultValues, onSubmit, loading }) {
             <RestaurantPair register={register} prefix={`sweets.${idx}.restaurants.1`} label="Top Restaurant #2" />
           </div>
         ))}
+      </div>
+
+      <div className={section}>
+        <h3 className="font-semibold text-slate-800">Location & Scope</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="food-scope" className={lbl}>Scope *</label>
+            <select id="food-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+              <option value="nellore">Nellore</option>
+              <option value="worldwide">Worldwide</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="food-city" className={lbl}>City</label>
+            <input id="food-city" name="city" autoComplete="address-level2"
+              {...register('city')} className={inp} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="food-location" className={lbl}>Location</label>
+            <input id="food-location" name="location" autoComplete="off"
+              {...register('location')} className={inp} />
+          </div>
+          <div>
+            <label htmlFor="food-region" className={lbl}>Region</label>
+            <input id="food-region" name="region" autoComplete="off"
+              {...register('region')} className={inp} />
+          </div>
+        </div>
       </div>
 
       <button type="submit" disabled={loading} className="w-full py-2.5 text-white font-semibold rounded-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50" style={{ background: 'linear-gradient(135deg,#8B5CF6,#6366F1)', boxShadow: '0 4px 16px rgba(139,92,246,0.3)' }}>

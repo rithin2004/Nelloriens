@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Newspaper, Briefcase, GraduationCap, Trophy,
   UtensilsCrossed, Landmark, Hotel, CalendarDays, Film,
   Bus, Tag, MapPin, Bell, Megaphone, Heart,
-  ChevronLeft, ChevronRight, Inbox, Zap, Building2, Users, Trash2,
+  ChevronLeft, ChevronRight, Inbox, Zap, Building2, Users, Trash2, Home,
 } from 'lucide-react'
 import { InstagramIcon } from '../common/SocialIcon'
 import { companyApi } from '../../services/api'
@@ -37,8 +37,9 @@ const navGroups = [
       { label: 'Events',    to: '/events/list',       icon: CalendarDays },
       { label: 'Movies',    to: '/movies/list',       icon: Film },
       { label: 'Transport', to: '/transport/list',    icon: Bus },
-      { label: 'Offers',    to: '/offers/list',       icon: Tag },
-      { label: 'Tourism',   to: '/tourism/list',      icon: MapPin },
+      { label: 'Offers',       to: '/offers/list',       icon: Tag },
+      { label: 'Tourism',      to: '/tourism/list',      icon: MapPin },
+      { label: 'Real Estate',  to: '/realestate/list',   icon: Home },
     ],
   },
   {

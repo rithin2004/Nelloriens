@@ -124,6 +124,12 @@ export const eventsApi = {
   createCategory: (data)       => api.post('/events/categories/create', data),
   updateCategory: (id, data)   => api.put(`/events/categories/update/${id}`, data),
   deleteCategory: (id)         => api.delete(`/events/categories/delete/${id}`),
+  // Influencer Events (RULE 27 — separate section, no categories, max 5)
+  getInfluencerEvents:      (params) => api.get('/events/influencer/list', { params }),
+  getInfluencerEventById:   (id)     => api.get(`/events/influencer/get/${id}`),
+  createInfluencerEvent:    (data)   => api.post('/events/influencer/create', data),
+  updateInfluencerEvent:    (id, d)  => api.put(`/events/influencer/update/${id}`, d),
+  deleteInfluencerEvent:    (id)     => api.delete(`/events/influencer/delete/${id}`),
 }
 
 // ── Movies ─────────────────────────────────────────────────────────────────
@@ -138,20 +144,22 @@ export const moviesApi = {
   createTheatre: (data)       => api.post('/theatres/create', data),
   updateTheatre: (id, data)   => api.put(`/theatres/update/${id}`, data),
   deleteTheatre: (id)         => api.delete(`/theatres/delete/${id}`),
+  // Trailers (RULE 35)
+  getTrailers:    (params)     => api.get('/movies/trailers/list', { params }),
+  getTrailerById: (id)         => api.get(`/movies/trailers/get/${id}`),
+  createTrailer:  (data)       => api.post('/movies/trailers/create', data),
+  updateTrailer:  (id, data)   => api.put(`/movies/trailers/update/${id}`, data),
+  deleteTrailer:  (id)         => api.delete(`/movies/trailers/delete/${id}`),
 }
 
 // ── Transport ──────────────────────────────────────────────────────────────
+// Categories are FIXED (RULE 31): train, bus, airport, local — no management endpoints
 export const transportApi = {
-  getAll:   (params) => api.get('/transport/list', { params }),
-  getById:  (id)     => api.get(`/transport/get/${id}`),
-  create:   (data)   => api.post('/transport/create', data),
-  update:   (id, data) => api.put(`/transport/update/${id}`, data),
-  delete:   (id)     => api.delete(`/transport/delete/${id}`),
-  // Categories
-  getCategories:  ()           => api.get('/transport/categories/list'),
-  createCategory: (data)       => api.post('/transport/categories/create', data),
-  updateCategory: (id, data)   => api.put(`/transport/categories/update/${id}`, data),
-  deleteCategory: (id)         => api.delete(`/transport/categories/delete/${id}`),
+  getAll:  (params) => api.get('/transport/list', { params }),
+  getById: (id)     => api.get(`/transport/get/${id}`),
+  create:  (data)   => api.post('/transport/create', data),
+  update:  (id, data) => api.put(`/transport/update/${id}`, data),
+  delete:  (id)     => api.delete(`/transport/delete/${id}`),
 }
 
 // ── Offers ─────────────────────────────────────────────────────────────────
@@ -175,6 +183,36 @@ export const tourismApi = {
   createCategory: (data)       => api.post('/tourism/categories/create', data),
   updateCategory: (id, data)   => api.put(`/tourism/categories/update/${id}`, data),
   deleteCategory: (id)         => api.delete(`/tourism/categories/delete/${id}`),
+  // Locations
+  getLocations:   ()           => api.get('/tourism/locations/list'),
+  createLocation: (data)       => api.post('/tourism/locations/create', data),
+  updateLocation: (id, data)   => api.put(`/tourism/locations/update/${id}`, data),
+  deleteLocation: (id)         => api.delete(`/tourism/locations/delete/${id}`),
+  // Display Photos (Section 1 — max 3)
+  getDisplayPhotos:    ()           => api.get('/tourism/display-photos/list'),
+  createDisplayPhoto:  (data)       => api.post('/tourism/display-photos/create', data),
+  updateDisplayPhoto:  (id, data)   => api.put(`/tourism/display-photos/${id}`, data),
+  deleteDisplayPhoto:  (id)         => api.delete(`/tourism/display-photos/${id}`),
+  reorderDisplayPhotos:(ids)        => api.patch('/tourism/display-photos/reorder', { ids }),
+}
+
+// ── Real Estate ────────────────────────────────────────────────────────────
+export const realEstateApi = {
+  getAll:   (params) => api.get('/realestate/list', { params }),
+  getById:  (id)     => api.get(`/realestate/get/${id}`),
+  create:   (data)   => api.post('/realestate/create', data),
+  update:   (id, data) => api.put(`/realestate/update/${id}`, data),
+  delete:   (id)     => api.delete(`/realestate/delete/${id}`),
+  // Locations
+  getLocations:   ()           => api.get('/realestate/locations/list'),
+  createLocation: (data)       => api.post('/realestate/locations/create', data),
+  updateLocation: (id, data)   => api.put(`/realestate/locations/update/${id}`, data),
+  deleteLocation: (id)         => api.delete(`/realestate/locations/delete/${id}`),
+  // Property Types
+  getTypes:       ()           => api.get('/realestate/types/list'),
+  createType:     (data)       => api.post('/realestate/types/create', data),
+  updateType:     (id, data)   => api.put(`/realestate/types/update/${id}`, data),
+  deleteType:     (id)         => api.delete(`/realestate/types/delete/${id}`),
 }
 
 // ── Updates ────────────────────────────────────────────────────────────────
@@ -245,6 +283,11 @@ export const searchApi = {
 
 // ── Upload ─────────────────────────────────────────────────────────────────
 export const uploadApi = {
+  /** Reserve the next sequential ID for a given prefix (RULE 10 — Option A).
+   *  Call before opening a create form so the upload filename matches the content ID.
+   *  @param {string} prefix  e.g. 'NEWS', 'EVT', 'JOB'
+   */
+  reserveId: (prefix) => api.get('/upload/reserve-id', { params: { prefix } }),
   upload: (moduleName, formData) => api.post(`/upload/${moduleName}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
@@ -299,11 +342,12 @@ export const leadsApi = {
 
 // ── Recycle Bin ────────────────────────────────────────────────────────────
 export const recycleBinApi = {
-  list:     (params)           => api.get('/recycle-bin/list',  { params }),
-  stats:    ()                 => api.get('/recycle-bin/stats'),
-  restore:  (module, id)       => api.post(`/recycle-bin/restore/${module}/${id}`),
-  purge:    (module, id)       => api.delete(`/recycle-bin/purge/${module}/${id}`),
-  purgeAll: (module)           => api.delete('/recycle-bin/purge-all', { params: module ? { module } : {} }),
+  list:     (params)  => api.get('/recycle-bin/list',  { params }),
+  stats:    ()        => api.get('/recycle-bin/stats'),
+  // RULE 9: module no longer needed in URL — it's stored inside the recyclebin document
+  restore:  (id)      => api.post(`/recycle-bin/restore/${id}`),
+  purge:    (id)      => api.delete(`/recycle-bin/purge/${id}`),
+  purgeAll: (module)  => api.delete('/recycle-bin/purge-all', { params: module ? { module } : {} }),
 }
 
 // ── Setup ──────────────────────────────────────────────────────────────────

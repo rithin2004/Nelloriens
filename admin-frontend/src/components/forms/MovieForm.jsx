@@ -12,7 +12,7 @@ const section = 'rounded-xl p-5 space-y-4'
 const sectionStyle = { background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }
 const inp = 'w-full px-3 py-2.5 rounded-lg text-sm'
 
-export default function MovieForm({ defaultValues, onSubmit, loading }) {
+export default function MovieForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues })
   const [theatres, setTheatres] = useState([])
   const [poster, setPoster] = useState(defaultValues?.poster || '')
@@ -91,7 +91,7 @@ export default function MovieForm({ defaultValues, onSubmit, loading }) {
           </button>
         </div>
 
-        <ImageUpload module="movies" label="Movie Poster" value={poster} onChange={setPoster} />
+        <ImageUpload module="movies" label="Movie Poster" value={poster} onChange={setPoster} contentId={contentId} section="posters" />
 
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -144,6 +144,36 @@ export default function MovieForm({ defaultValues, onSubmit, loading }) {
             <option value="coming_soon">Coming Soon</option>
             <option value="ended">Ended</option>
           </select>
+        </div>
+      </div>
+
+      <div className={section} style={sectionStyle}>
+        <h3 className="font-semibold text-slate-800">Location & Scope</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="mov-scope" className={lbl} style={lblStyle}>Scope *</label>
+            <select id="mov-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+              <option value="nellore">Nellore</option>
+              <option value="worldwide">Worldwide</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="mov-city" className={lbl} style={lblStyle}>City</label>
+            <input id="mov-city" name="city" autoComplete="address-level2"
+              {...register('city')} className={inp} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="mov-location" className={lbl} style={lblStyle}>Location</label>
+            <input id="mov-location" name="location" autoComplete="off"
+              {...register('location')} className={inp} />
+          </div>
+          <div>
+            <label htmlFor="mov-region" className={lbl} style={lblStyle}>Region</label>
+            <input id="mov-region" name="region" autoComplete="off"
+              {...register('region')} className={inp} />
+          </div>
         </div>
       </div>
 

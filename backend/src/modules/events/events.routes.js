@@ -21,4 +21,18 @@ router.post  ('/create',     authenticate, permit(M,'create'), a(c.create))
 router.put   ('/update/:id', authenticate, permit(M,'update'), a(c.update))
 router.delete('/delete/:id', authenticate, permit(M,'delete'), a(c.remove))
 
+// Public view increments — no auth (RULE 11)
+router.post('/:id/views',      a(c.incrementPageViews))
+router.post('/:id/card-views', a(c.incrementCardViews))
+
+// ── Influencer Events (RULE 27 — separate section, no categories, max 5 globally) ──
+router.get   ('/influencer/list',                   a(c.listInfluencerEvents))
+router.get   ('/influencer/get/:id',                a(c.getInfluencerEventById))
+router.post  ('/influencer/create',     authenticate, permit(M,'create'), a(c.createInfluencerEvent))
+router.put   ('/influencer/update/:id', authenticate, permit(M,'update'), a(c.updateInfluencerEvent))
+router.delete('/influencer/delete/:id', authenticate, permit(M,'delete'), a(c.removeInfluencerEvent))
+// Influencer event view increments — public
+router.post('/influencer/:id/views',      a(c.incrementInfluencerPageViews))
+router.post('/influencer/:id/card-views', a(c.incrementInfluencerCardViews))
+
 export default router

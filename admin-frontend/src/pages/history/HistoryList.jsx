@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Pencil, Trash2, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { historyApi } from '../../services/api'
+import { historyApi, uploadApi } from '../../services/api'
+import useHistoryStore from '../../store/historyStore'
 import PageHeader from '../../components/common/PageHeader'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import FormModal from '../../components/common/FormModal'
@@ -50,8 +51,10 @@ function SortableCard({ item, onEdit, onDelete }) {
 }
 
 export default function HistoryList() {
+  // Subscribe to store so SSE-triggered fetches auto-refresh this page
+  const { items: storeItems, loading, fetch: storeFetch } = useHistoryStore()
   const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
+  const prevStoreRef = useRef(storeItems)
   const [deleteId, setDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -61,18 +64,19 @@ export default function HistoryList() {
   const [formEditId, setFormEditId] = useState(null)
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [formFetching, setFormFetching] = useState(false)
+  const [reservedId, setReservedId] = useState(null)
 
   const sensors = useSensors(useSensor(PointerSensor))
 
-  const fetchData = () => {
-    setLoading(true)
-    historyApi.getAll({ limit: 100 })
-      .then((r) => setItems(r.data.items || []))
-      .catch(() => toast.error('Failed to load'))
-      .finally(() => setLoading(false))
-  }
+  // Initial load via store (sets _params so SSE re-fetches use same params)
+  useEffect(() => { storeFetch({ limit: 100 }) }, [storeFetch])
 
-  useEffect(() => { fetchData() }, [])
+  // Sync store → local items (initial + SSE updates)
+  useEffect(() => {
+    if (storeItems === prevStoreRef.current) return
+    prevStoreRef.current = storeItems
+    setItems(storeItems)
+  }, [storeItems])
 
   const handleDragEnd = async (event) => {
     const { active, over } = event
@@ -83,19 +87,21 @@ export default function HistoryList() {
     setItems(newOrder)
     try {
       await historyApi.reorder(newOrder.map((i) => i._id))
-    } catch { toast.error('Reorder failed'); fetchData() }
+    } catch { toast.error('Reorder failed'); storeFetch({ limit: 100 }) }
   }
 
   const handleDelete = async () => {
     setDeleting(true)
-    try { await historyApi.delete(deleteId); toast.success('Deleted'); setDeleteId(null); fetchData() }
+    try { await historyApi.delete(deleteId); toast.success('Deleted'); setDeleteId(null); storeFetch({ limit: 100 }) }
     catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
 
-  const openCreate = () => {
-    setFormDefaults({})
+  const openCreate = async () => {
     setFormEditId(null)
+    try { const r = await uploadApi.reserveId('HIS'); setReservedId(r.data.data.id) }
+    catch { toast.error('Failed to reserve ID — please try again'); return }
+    setFormDefaults({})
     setFormOpen(true)
   }
 
@@ -122,11 +128,11 @@ export default function HistoryList() {
         await historyApi.update(formEditId, data)
         toast.success('Updated!')
       } else {
-        await historyApi.create(data)
+        await historyApi.create(reservedId ? { ...data, _reservedId: reservedId } : data)
         toast.success('Created!')
       }
-      setFormOpen(false)
-      fetchData()
+      setFormOpen(false); setReservedId(null)
+      storeFetch({ limit: 100 })
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || 'Save failed')
     } finally {
@@ -182,7 +188,7 @@ export default function HistoryList() {
             <div className="w-7 h-7 rounded-full animate-spin" style={{ border: '3px solid #dce8fb', borderTopColor: '#0a3d95' }} />
           </div>
         ) : (
-          <HistoryForm defaultValues={formDefaults} onSubmit={handleFormSubmit} loading={formSubmitting} />
+          <HistoryForm defaultValues={formDefaults} onSubmit={handleFormSubmit} loading={formSubmitting} contentId={formEditId || reservedId} />
         )}
       </FormModal>
     </div>

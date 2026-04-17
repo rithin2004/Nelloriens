@@ -21,29 +21,65 @@ export default function AdForm({ defaultValues, onSubmit, loading }) {
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-5">
       <div className={section}>
-        <div><label className={field}>Ad Title (Internal Label) *</label><input {...register('title', { required: true })} className={input} /></div>
         <div>
-          <label className={field}>Placement *</label>
-          <select {...register('placement', { required: true })} className={input}>
+          <label htmlFor="ad-title" className={field}>Ad Title (Internal Label) *</label>
+          <input id="ad-title" name="title" autoComplete="off" {...register('title', { required: true })} className={input} />
+        </div>
+        <div>
+          <label htmlFor="ad-placement" className={field}>Placement *</label>
+          <select id="ad-placement" name="placement" {...register('placement', { required: true })} className={input}>
             <option value="">Select placement</option>
             {PLACEMENTS.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
         </div>
         <div>
-          <label className={field}>AdSense Code *</label>
-          <textarea {...register('adsenseCode', { required: true })} rows={6} className={`${input} font-mono text-xs`} placeholder="Paste Google AdSense slot HTML/JS here" />
+          <label htmlFor="ad-adsense-code" className={field}>AdSense Code *</label>
+          <textarea id="ad-adsense-code" name="adsenseCode" autoComplete="off" {...register('adsenseCode', { required: true })} rows={6} className={`${input} font-mono text-xs`} placeholder="Paste Google AdSense slot HTML/JS here" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={field}>Valid From</label>
-            <DatePicker selected={validFrom} onChange={setValidFrom} dateFormat="dd/MM/yyyy" className={input} isClearable />
+            <label htmlFor="ad-valid-from" className={field}>Valid From</label>
+            <DatePicker id="ad-valid-from" name="validFrom" selected={validFrom} onChange={setValidFrom} dateFormat="dd/MM/yyyy" className={input} isClearable />
           </div>
           <div>
-            <label className={field}>Valid Until</label>
-            <DatePicker selected={validUntil} onChange={setValidUntil} dateFormat="dd/MM/yyyy" minDate={validFrom} className={input} isClearable />
+            <label htmlFor="ad-valid-until" className={field}>Valid Until</label>
+            <DatePicker id="ad-valid-until" name="validUntil" selected={validUntil} onChange={setValidUntil} dateFormat="dd/MM/yyyy" minDate={validFrom} className={input} isClearable />
           </div>
         </div>
-        <div><label className={field}>Priority</label><input {...register('priority')} type="number" className={input} placeholder="Higher = shown first" /></div>
+        <div>
+          <label htmlFor="ad-priority" className={field}>Priority</label>
+          <input id="ad-priority" name="priority" autoComplete="off" {...register('priority')} type="number" className={input} placeholder="Higher = shown first" />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h3 className="font-semibold text-slate-800">Location & Scope</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="ad-scope" className={field}>Scope *</label>
+            <select id="ad-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+              <option value="nellore">Nellore</option>
+              <option value="worldwide">Worldwide</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="ad-city" className={field}>City</label>
+            <input id="ad-city" name="city" autoComplete="address-level2"
+              {...register('city')} className={input} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="ad-location" className={field}>Location</label>
+            <input id="ad-location" name="location" autoComplete="off"
+              {...register('location')} className={input} />
+          </div>
+          <div>
+            <label htmlFor="ad-region" className={field}>Region</label>
+            <input id="ad-region" name="region" autoComplete="off"
+              {...register('region')} className={input} />
+          </div>
+        </div>
       </div>
 
       <button type="submit" disabled={loading} className="w-full py-2.5 text-white font-semibold rounded-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50" style={{ background: "linear-gradient(135deg,#8B5CF6,#6366F1)", boxShadow: "0 4px 16px rgba(139,92,246,0.3)" }}>

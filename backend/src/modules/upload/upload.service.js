@@ -1,6 +1,5 @@
 import { bucket }              from '../../config/firebase.js'
 import { fileTypeFromBuffer }  from 'file-type'
-import { v4 as uuidv4 }        from 'uuid'
 import path                    from 'path'
 import { badReq }              from '../../utils/serviceBase.js'
 
@@ -42,8 +41,23 @@ export function getModuleConfig(moduleName) {
 }
 
 export const uploadService = {
-  async upload(moduleName, file) {
+  /**
+   * Upload a file to Firebase Storage.
+   *
+   * RULE 10 — file path format: module/section/contentId[_index].ext
+   *   e.g. news/thumbnails/NEWS00001.jpg
+   *        foods/photos/FPH00001.jpg
+   *
+   * @param {string} moduleName  Storage module folder (e.g. 'news')
+   * @param {object} file        Multer file object (memoryStorage)
+   * @param {object} opts
+   * @param {string} opts.contentId  The content ID this file belongs to (REQUIRED — RULE 10)
+   * @param {string} [opts.section]  Sub-folder within module (default: 'thumbnails')
+   * @param {number} [opts.index]    Index for multiple files on one content item (produces contentId_N.ext)
+   */
+  async upload(moduleName, file, { contentId, section, index } = {}) {
     if (!file) badReq('No file provided')
+    if (!contentId?.trim()) badReq('contentId is required — RULE 10: filenames must match the content ID')
 
     const config = MODULES[moduleName]
     if (!config) badReq(`Unknown upload module: ${moduleName}`)
@@ -64,14 +78,18 @@ export const uploadService = {
       badReq(`File type "${effectiveMime}" is not allowed for ${moduleName}. Allowed: ${config.types.join(', ')}`)
     }
 
-    const ext      = MIME_EXT[effectiveMime] || path.extname(file.originalname) || ''
-    const fileName = `${moduleName}/${uuidv4()}${ext}`
-    const fileRef  = bucket.file(fileName)
+    // RULE 10: module/section/contentId[_index].ext
+    const ext       = MIME_EXT[effectiveMime] || path.extname(file.originalname) || ''
+    const folder    = section?.trim() || 'thumbnails'
+    const idPart    = contentId.trim()
+    const indexPart = index !== undefined && index !== '' ? `_${index}` : ''
+    const fileName  = `${moduleName}/${folder}/${idPart}${indexPart}${ext}`
+    const fileRef   = bucket.file(fileName)
 
     await fileRef.save(file.buffer, {
       metadata: {
-        contentType:  effectiveMime,
-        metadata: { firebaseStorageDownloadTokens: uuidv4() },
+        contentType: effectiveMime,
+        metadata:    { firebaseStorageDownloadTokens: crypto.randomUUID() },
       },
     })
 

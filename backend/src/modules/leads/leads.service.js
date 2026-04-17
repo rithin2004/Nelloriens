@@ -1,6 +1,9 @@
 import { leadsRepo }          from './leads.repository.js'
 import { CrudService, badReq } from '../../utils/serviceBase.js'
 
+// RULE 23 — Status workflow: new → contacted → resolved → closed
+export const LEAD_STATUSES = ['new', 'contacted', 'resolved', 'closed']
+
 export const leadsService = new CrudService(leadsRepo, {
   entityName:  'Lead',
   searchField: 'name',
@@ -14,6 +17,14 @@ export const leadsService = new CrudService(leadsRepo, {
     return f
   },
 })
+
+/** Validate and update lead status only */
+export async function updateLeadStatus(id, status) {
+  if (!LEAD_STATUSES.includes(status)) badReq(`status must be one of: ${LEAD_STATUSES.join(', ')}`)
+  const existing = await leadsRepo.findById(id)
+  if (!existing) badReq('Lead not found')
+  return leadsRepo.update(id, { status })
+}
 
 /** Public submission — no auth */
 export async function submitLead(data) {

@@ -1,3 +1,12 @@
+/**
+ * ModuleList — RULE 7
+ *
+ * Shared list-page component for content modules.
+ * Receives a Zustand store via the `store` prop.
+ * Calls store.fetch(params) to load data — the store caches the last params
+ * so that SSE-triggered re-fetches (from useSSE in Layout) preserve the
+ * user's current page, search, and filters automatically.
+ */
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Plus, Pencil, Trash2, Info, Eye } from 'lucide-react'
@@ -8,13 +17,18 @@ import ConfirmModal from './ConfirmModal'
 import FormModal from './FormModal'
 import { formatDate, truncate } from '../../utils/helpers'
 import { useDebounce } from '../../hooks/useDebounce'
+import { uploadApi } from '../../services/api'
 
 const P  = '#0a3d95'
 const PL = '#dce8fb'
 const PB = '#eef3fd'
 
+const PAGE_SIZE = 20
+
 export default function ModuleList({
   title,
+  collectionName,        // kept for reference / future use
+  store,                 // Zustand store hook for this module
   createPath,
   editPath,
   api,
@@ -24,14 +38,12 @@ export default function ModuleList({
   formModalTitle,
   extraFilters = [],
   headerExtra,
+  idPrefix,             // e.g. 'NEWS' — if set, reserves an ID before opening create form (RULE 10)
 }) {
-  const navigate  = useNavigate()
-  const location  = useLocation()
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  const [data,            setData]            = useState([])
-  const [loading,         setLoading]         = useState(true)
   const [page,            setPage]            = useState(1)
-  const [totalPages,      setTotalPages]      = useState(1)
   const [search,          setSearch]          = useState('')
   const [extraFilterVals, setExtraFilterVals] = useState({})
   const [deleteId,        setDeleteId]        = useState(null)
@@ -44,34 +56,54 @@ export default function ModuleList({
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [formFetching,   setFormFetching]   = useState(false)
   const [formDirty,      setFormDirty]      = useState(false)
+  const [reservedId,     setReservedId]     = useState(null)  // RULE 10 — pre-reserved content ID
 
-  const fetchData = () => {
-    setLoading(true)
-    api.getAll({ page, limit: 20, search: debouncedSearch, ...extraFilterVals })
-      .then((r) => { setData(r.data.items || []); setTotalPages(r.data.totalPages || 1) })
-      .catch(() => toast.error('Failed to load'))
-      .finally(() => setLoading(false))
-  }
+  // Read data from Zustand store
+  const { items: data = [], totalPages = 1, loading = false, fetch } = store ? store() : {}
 
-  useEffect(() => { fetchData() }, [page, debouncedSearch, JSON.stringify(extraFilterVals)])
+  const extraFilterStr = JSON.stringify(extraFilterVals)
 
+  // Fetch via store — store saves _params so SSE-triggered re-fetch uses same filters
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!fetch) return
+    fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, ...extraFilterVals })
+  }, [page, debouncedSearch, extraFilterStr]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-open create form when navigated from Quick Actions
   useEffect(() => {
     if (location.state?.openCreate && FormComponent) {
       openCreate()
       window.history.replaceState({}, '')
     }
-  }, [location.state])
+  }, [location.state]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDelete = async () => {
     setDeleting(true)
-    try { await api.delete(deleteId); toast.success('Deleted'); setDeleteId(null); fetchData() }
-    catch { toast.error('Delete failed') }
+    try {
+      await api.delete(deleteId)
+      toast.success('Moved to Recycle Bin')
+      setDeleteId(null)
+    } catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
 
-  const openCreate = () => {
+  const openCreate = async () => {
     if (!FormComponent) { navigate(createPath); return }
-    setFormDefaults({}); setFormEditId(null); setFormDirty(false); setFormOpen(true)
+    setFormEditId(null); setFormDirty(false)
+    // RULE 10 — reserve a content ID so the upload filename matches before the doc is created
+    if (idPrefix) {
+      try {
+        const r = await uploadApi.reserveId(idPrefix)
+        setReservedId(r.data.data.id)
+      } catch {
+        toast.error('Failed to reserve ID — please try again')
+        return
+      }
+    } else {
+      setReservedId(null)
+    }
+    setFormDefaults({}); setFormOpen(true)
   }
 
   const openEdit = async (id) => {
@@ -85,9 +117,16 @@ export default function ModuleList({
   const handleFormSubmit = async (formData) => {
     setFormSubmitting(true)
     try {
-      if (formEditId) { await api.update(formEditId, formData); toast.success('Updated!') }
-      else            { await api.create(formData);             toast.success('Created!') }
-      setFormOpen(false); setFormDirty(false); fetchData()
+      if (formEditId) {
+        await api.update(formEditId, formData)
+        toast.success('Updated!')
+      } else {
+        // RULE 10 — include pre-reserved ID so Firestore doc ID matches the uploaded filenames
+        const payload = reservedId ? { ...formData, _reservedId: reservedId } : formData
+        await api.create(payload)
+        toast.success('Created!')
+      }
+      setFormOpen(false); setFormDirty(false); setReservedId(null)
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || 'Save failed')
     } finally {
@@ -99,7 +138,7 @@ export default function ModuleList({
     if (formDirty) {
       if (!window.confirm('You have unsaved changes. Are you sure you want to close?')) return
     }
-    setFormOpen(false); setFormDirty(false)
+    setFormOpen(false); setFormDirty(false); setReservedId(null)
   }
 
   const inp = 'px-3 py-2 text-sm rounded-lg focus:outline-none transition-all'
@@ -122,12 +161,12 @@ export default function ModuleList({
     },
     ...extraColumns,
     {
-      accessorKey: 'viewCount',
+      accessorKey: 'pageViews',
       header: 'Views',
-      cell: ({ getValue }) => (
+      cell: ({ row }) => (
         <span className="flex items-center gap-1 text-slate-400 text-xs">
           <Eye className="w-3 h-3" />
-          {getValue() ?? 0}
+          {row.original.pageViews ?? row.original.viewCount ?? 0}
         </span>
       ),
     },
@@ -191,35 +230,64 @@ export default function ModuleList({
 
       {/* Filters */}
       <div className="flex gap-3 mb-4 flex-wrap">
-        <input
-          id={`search-${title.toLowerCase().replace(/\s+/g, '-')}`}
-          name="search" autoComplete="off"
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-          placeholder={`Search ${title.toLowerCase()}…`}
-          className={`${inp} w-full sm:w-64`} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
-        />
-        {extraFilters.map(({ key, label, options }) => (
-          <select key={key} value={extraFilterVals[key] || ''}
-            onChange={(e) => { setExtraFilterVals((p) => ({ ...p, [key]: e.target.value })); setPage(1) }}
-            className={inp} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}>
-            <option value="">All {label}s</option>
-            {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-        ))}
+        <div>
+          <label htmlFor={`search-${title.toLowerCase().replace(/\s+/g, '-')}`} className="sr-only">
+            Search {title.toLowerCase()}
+          </label>
+          <input
+            id={`search-${title.toLowerCase().replace(/\s+/g, '-')}`}
+            name="search" autoComplete="off"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            placeholder={`Search ${title.toLowerCase()}…`}
+            className={`${inp} w-full sm:w-64`} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
+          />
+        </div>
+        {extraFilters.map(({ key, label, options }) => {
+          const filterId = `filter-${key}-${title.toLowerCase().replace(/\s+/g, '-')}`
+          return (
+            <div key={key}>
+              <label htmlFor={filterId} className="sr-only">Filter by {label}</label>
+              <select
+                id={filterId}
+                name={`filter-${key}`}
+                value={extraFilterVals[key] || ''}
+                onChange={(e) => { setExtraFilterVals((p) => ({ ...p, [key]: e.target.value })); setPage(1) }}
+                className={inp} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
+              >
+                <option value="">All {label}s</option>
+                {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+          )
+        })}
       </div>
 
-      <DataTable columns={columns} data={data} isLoading={loading} page={page} totalPages={totalPages} onPageChange={setPage} />
+      <DataTable
+        columns={columns}
+        data={data}
+        isLoading={loading}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
 
       {/* Legend */}
       <div className="flex items-center gap-4 mt-3 px-1 flex-wrap">
         <div className="flex items-center gap-1.5 text-xs text-slate-400"><Info className="w-3 h-3" /><span>Row actions:</span></div>
         <div className="flex items-center gap-1 text-xs text-slate-400"><Pencil className="w-3 h-3" style={{ color: P }} /><span>Edit</span></div>
-        <div className="flex items-center gap-1 text-xs text-slate-400"><Trash2 className="w-3 h-3 text-red-400" /><span>Delete</span></div>
-        <div className="flex items-center gap-1 text-xs text-slate-400"><Eye className="w-3 h-3 text-slate-400" /><span>View count</span></div>
+        <div className="flex items-center gap-1 text-xs text-slate-400"><Trash2 className="w-3 h-3 text-red-400" /><span>Delete (moves to Recycle Bin)</span></div>
+        <div className="flex items-center gap-1 text-xs text-slate-400"><Eye className="w-3 h-3 text-slate-400" /><span>Page views</span></div>
       </div>
 
-      <ConfirmModal isOpen={!!deleteId} title={`Delete ${title}`} onConfirm={handleDelete} onCancel={() => setDeleteId(null)} loading={deleting} />
+      <ConfirmModal
+        isOpen={!!deleteId}
+        title={`Delete ${title}`}
+        message={`This will move this ${title.toLowerCase()} to the Recycle Bin. You can restore it within 15 days.`}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        loading={deleting}
+      />
 
       {FormComponent && (
         <FormModal isOpen={formOpen} onClose={handleCloseForm} title={formEditId ? `Edit ${formModalTitle || title}` : `Add ${formModalTitle || title}`}>
@@ -233,6 +301,7 @@ export default function ModuleList({
               onSubmit={handleFormSubmit}
               loading={formSubmitting}
               onDirtyChange={setFormDirty}
+              contentId={formEditId || reservedId}
             />
           )}
         </FormModal>

@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { setupApi } from '../services/api'
 import { sendPasswordResetEmail } from 'firebase/auth'
 import { auth } from '../utils/firebase'
 import { Shield, Check, Eye, EyeOff, Mail } from 'lucide-react'
 import toast from 'react-hot-toast'
+import LoadingSpinner from '../components/common/LoadingSpinner'
 
 const P  = '#0a3d95'
 const PL = '#dce8fb'
@@ -12,11 +13,24 @@ const PB = '#eef3fd'
 
 export default function Setup() {
   const navigate = useNavigate()
-  const [step, setStep] = useState('form')  // 'form' | 'success'
-  const [loading, setLoading] = useState(false)
+  const [step,       setStep]       = useState('form')  // 'form' | 'success'
+  const [loading,    setLoading]    = useState(false)
+  const [checking,   setChecking]   = useState(true)    // checking setup status on mount
   const [showSecret, setShowSecret] = useState(false)
   const [createdEmail, setCreatedEmail] = useState('')
   const [form, setForm] = useState({ name: '', email: '', phone: '', secret: '' })
+
+  // RULE 18/19 — redirect to login if Superadmin already exists
+  useEffect(() => {
+    setupApi.getStatus()
+      .then((r) => {
+        if (r.data?.initialized) {
+          navigate('/login', { replace: true })
+        }
+      })
+      .catch(() => { /* network error — show setup form anyway */ })
+      .finally(() => setChecking(false))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (field) => (e) => setForm((p) => ({ ...p, [field]: e.target.value }))
 
@@ -47,6 +61,8 @@ export default function Setup() {
     onFocus: (e) => { e.target.style.borderColor = P; e.target.style.boxShadow = '0 0 0 3px rgba(10,61,149,0.1)' },
     onBlur:  (e) => { e.target.style.borderColor = '#CBD5E1'; e.target.style.boxShadow = '' },
   }
+
+  if (checking) return <LoadingSpinner fullScreen />
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg,#f0f4ff 0%,#e8f0fe 100%)' }}>

@@ -1,158 +1,161 @@
 /**
- * Recycle Bin Service
+ * Recycle Bin Service  (RULE 9)
  *
- * Aggregates soft-deleted items across all content collections.
- * Provides list, restore, and permanent-delete (purge) operations.
+ * All soft-deleted content lives in the single 'recyclebin' Firestore collection.
+ * Each document is the full original, plus:
+ *   originalCollection, originalPublishedAt, originalPublishedBy,
+ *   deletedAt, deletedBy, reason, _module, _titleField
  *
- * Only content modules are included — categories, locations, users, roles,
- * and company are never moved to the Recycle Bin.
+ * Only superadmin can permanently delete (purge) from the Recycle Bin.
  */
 
-import { db }               from '../../config/firebase.js'
-import { CONTENT_MODULES }  from '../../utils/archival.js'
+import { db }              from '../../config/firebase.js'
 import { badReq, notFound } from '../../utils/serviceBase.js'
 
-const PURGE_DAYS = 15
+const RECYCLE_COL = 'recyclebin'
+const PURGE_DAYS  = 15
+const BATCH_SIZE  = 400   // 1 op per doc for deletes
 
-/** Milliseconds until a Recycle Bin item expires */
+/** Compute expiry ISO string from deletedAt */
 function expiresAt(deletedAt) {
   return new Date(new Date(deletedAt).getTime() + PURGE_DAYS * 24 * 60 * 60 * 1000).toISOString()
 }
 
+/** Build the summary shape returned by listBin */
+function toSummary(id, data) {
+  const titleField = data._titleField || 'title'
+  return {
+    _id:          id,
+    module:       data._module       || data.originalCollection || '—',
+    title:        data[titleField]   || data.title || '(untitled)',
+    thumbnail:    data.thumbnail     || data.poster || null,
+    deletedAt:    data.deletedAt,
+    deletedBy:    data.deletedBy     || null,
+    reason:       data.reason        || 'manual',
+    expiresAt:    expiresAt(data.deletedAt),
+    createdAt:    data.createdAt     || null,
+    originalCollection: data.originalCollection,
+  }
+}
+
 /**
- * List all soft-deleted items across all (or a filtered) content collection.
- * Returns items sorted newest-deleted first.
+ * List all items in the Recycle Bin, sorted newest-deleted first.
+ * Optionally filtered by module.
  */
 export async function listBin({ page = 1, limit = 20, module: moduleFilter = '' } = {}) {
   const lim = Math.min(parseInt(limit) || 20, 100)
   const pg  = Math.max(parseInt(page)  || 1,  1)
 
-  const targets = moduleFilter
-    ? CONTENT_MODULES.filter(m => m.module === moduleFilter)
-    : CONTENT_MODULES
+  const snap = await db.collection(RECYCLE_COL).get()
 
-  let allDeleted = []
+  let items = snap.docs
+    .map(d => toSummary(d.id, d.data()))
 
-  await Promise.all(targets.map(async ({ module, collection, titleField }) => {
-    try {
-      const snap = await db.collection(collection).get()
-      const deleted = snap.docs
-        .map(d => ({ _id: d.id, ...d.data() }))
-        .filter(item => item.deletedAt)
-        .map(item => ({
-          _id:          item._id,
-          module,
-          title:        item[titleField] || item.title || '(untitled)',
-          thumbnail:    item.thumbnail   || null,
-          deletedAt:    item.deletedAt,
-          deletedBy:    item.deletedBy   || null,
-          deleteReason: item.deleteReason || 'manual',
-          expiresAt:    expiresAt(item.deletedAt),
-          createdAt:    item.createdAt   || null,
-        }))
-      allDeleted.push(...deleted)
-    } catch {
-      // If a collection doesn't exist yet, skip it
-    }
-  }))
+  if (moduleFilter) {
+    items = items.filter(item => item.module === moduleFilter)
+  }
 
   // Sort newest-deleted first
-  allDeleted.sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt))
+  items.sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt))
 
   return {
-    items:      allDeleted.slice((pg - 1) * lim, pg * lim),
-    total:      allDeleted.length,
+    items:      items.slice((pg - 1) * lim, pg * lim),
+    total:      items.length,
     page:       pg,
-    totalPages: Math.max(1, Math.ceil(allDeleted.length / lim)),
+    totalPages: Math.max(1, Math.ceil(items.length / lim)),
   }
 }
 
 /**
- * Restore a single item from the Recycle Bin back to live state.
+ * Restore a single item: writes full original doc back to its collection,
+ * then hard-deletes from recyclebin.
+ * RULE 9: publishedAt = restoredAt (now), originalPublishedAt preserved separately.
  */
-export async function restoreItem(id, module) {
-  const moduleInfo = CONTENT_MODULES.find(m => m.module === module)
-  if (!moduleInfo) badReq(`Unknown module: ${module}`)
-
-  const snap = await db.collection(moduleInfo.collection).doc(id).get()
+export async function restoreItem(id) {
+  const snap = await db.collection(RECYCLE_COL).doc(id).get()
   if (!snap.exists) notFound('Item not found in Recycle Bin')
 
-  const data = snap.data()
-  if (!data.deletedAt) badReq('Item is not in the Recycle Bin')
+  const {
+    originalCollection, originalPublishedAt, originalPublishedBy,
+    deletedAt, deletedBy, reason,
+    _module, _titleField,
+    ...originalFields
+  } = snap.data()
 
-  const now = new Date().toISOString()
-  await db.collection(moduleInfo.collection).doc(id).update({
-    deletedAt:    null,
-    deletedBy:    null,
-    deleteReason: null,
-    updatedAt:    now,
+  if (!originalCollection) badReq('Item is missing originalCollection — cannot restore')
+
+  const now        = new Date().toISOString()
+  const titleField = _titleField || 'title'
+  const title      = originalFields[titleField] || originalFields.title || '(untitled)'
+
+  await db.collection(originalCollection).doc(id).set({
+    ...originalFields,
+    publishedAt:         now,               // RULE 9: restored item published from now
+    restoredAt:          now,
+    originalPublishedAt,                    // RULE 9: preserved separately
+    originalPublishedBy: originalPublishedBy || null,
+    updatedAt:           now,
   })
 
-  return { _id: id, module, title: data[moduleInfo.titleField] || data.title || '(untitled)' }
+  await db.collection(RECYCLE_COL).doc(id).delete()
+
+  return { _id: id, module: _module, originalCollection, title }
 }
 
 /**
  * Permanently delete a single item from the Recycle Bin.
+ * Only superadmin can call this (enforced via route permission).
  */
-export async function purgeItem(id, module) {
-  const moduleInfo = CONTENT_MODULES.find(m => m.module === module)
-  if (!moduleInfo) badReq(`Unknown module: ${module}`)
-
-  const snap = await db.collection(moduleInfo.collection).doc(id).get()
+export async function purgeItem(id) {
+  const snap = await db.collection(RECYCLE_COL).doc(id).get()
   if (!snap.exists) notFound('Item not found in Recycle Bin')
 
-  const data = snap.data()
-  if (!data.deletedAt) badReq('Item is not in the Recycle Bin')
+  const data       = snap.data()
+  const titleField = data._titleField || 'title'
+  const title      = data[titleField] || data.title || '(untitled)'
+  const module     = data._module     || data.originalCollection
 
-  await db.collection(moduleInfo.collection).doc(id).delete()
-  return { _id: id, module }
+  await db.collection(RECYCLE_COL).doc(id).delete()
+  return { _id: id, module, title }
 }
 
 /**
- * Permanently delete all items in the Recycle Bin (optionally filtered by module).
+ * Permanently delete all items in the Recycle Bin, optionally filtered by module.
+ * Only superadmin can call this.
  */
 export async function purgeAll(module = '') {
-  const targets = module
-    ? CONTENT_MODULES.filter(m => m.module === module)
-    : CONTENT_MODULES
+  const snap = await db.collection(RECYCLE_COL).get()
 
-  let totalPurged = 0
+  let toDelete = snap.docs
+  if (module) {
+    toDelete = toDelete.filter(d => (d.data()._module || d.data().originalCollection) === module)
+  }
 
-  await Promise.all(targets.map(async ({ collection }) => {
-    try {
-      const snap = await db.collection(collection).get()
-      const toDelete = snap.docs.filter(d => d.data().deletedAt)
-      if (!toDelete.length) return
+  if (!toDelete.length) return 0
 
-      const batch = db.batch()
-      toDelete.forEach(d => batch.delete(d.ref))
-      await batch.commit()
-      totalPurged += toDelete.length
-    } catch {
-      // skip missing collections
-    }
-  }))
+  for (let i = 0; i < toDelete.length; i += BATCH_SIZE) {
+    const chunk = toDelete.slice(i, i + BATCH_SIZE)
+    const batch = db.batch()
+    chunk.forEach(d => batch.delete(d.ref))
+    await batch.commit()
+  }
 
-  return totalPurged
+  return toDelete.length
 }
 
 /**
- * Count of items currently in Recycle Bin per module.
+ * Count of items in the Recycle Bin per module.
  */
 export async function binStats() {
-  const stats = {}
-  let total = 0
+  const snap   = await db.collection(RECYCLE_COL).get()
+  const byModule = {}
+  let   total  = 0
 
-  await Promise.all(CONTENT_MODULES.map(async ({ module, collection }) => {
-    try {
-      const snap = await db.collection(collection).get()
-      const count = snap.docs.filter(d => d.data().deletedAt).length
-      stats[module] = count
-      total += count
-    } catch {
-      stats[module] = 0
-    }
-  }))
+  snap.docs.forEach(d => {
+    const mod = d.data()._module || d.data().originalCollection || 'unknown'
+    byModule[mod] = (byModule[mod] || 0) + 1
+    total++
+  })
 
-  return { total, byModule: stats }
+  return { total, byModule }
 }

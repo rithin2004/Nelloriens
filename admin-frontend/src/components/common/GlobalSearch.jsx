@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import {
   Search, X, Loader, Newspaper, Briefcase, CalendarDays, Trophy,
   MapPin, Hotel, Film, Bus, Tag, Bell, Megaphone, Heart, UtensilsCrossed,
+  Landmark, Inbox, Camera, Home,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { searchApi } from '../../services/api'
@@ -22,6 +23,10 @@ const MODULE_META = {
   sponsorships: { label: 'Sponsorships', icon: Heart,           path: (id) => `/sponsorships/update/${id}` },
   foods:        { label: 'Foods',        icon: UtensilsCrossed, path: () => `/foods` },
   results:      { label: 'Results',      icon: Trophy,          path: (id) => `/results/update/${id}` },
+  history:     { label: 'History',     icon: Landmark,        path: () => `/history` },
+  instagram:   { label: 'Instagram',   icon: Camera,          path: () => `/instagram` },
+  leads:       { label: 'Leads',       icon: Inbox,           path: () => `/leads` },
+  realestate:  { label: 'Real Estate', icon: Home,            path: (id) => `/realestate/update/${id}` },
 }
 
 export default function GlobalSearch() {
@@ -66,6 +71,7 @@ export default function GlobalSearch() {
     <div className="relative w-full max-w-xs sm:max-w-sm" ref={ref}>
       {/* Input */}
       <div className="relative">
+        <label htmlFor="global-search" className="sr-only">Search anything</label>
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-white/60" />
         <input
           ref={inputRef}

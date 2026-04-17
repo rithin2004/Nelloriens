@@ -10,7 +10,7 @@ const field = 'block text-sm font-medium text-slate-700 mb-1'
 const input = 'w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'
 const section = 'bg-white rounded-xl border border-slate-200 p-5 space-y-4'
 
-export default function UpdateForm({ defaultValues, onSubmit, loading }) {
+export default function UpdateForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit } = useForm({ defaultValues })
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
   // Store as local Date; we convert to IST ISO on submit
@@ -27,39 +27,50 @@ export default function UpdateForm({ defaultValues, onSubmit, loading }) {
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-5">
       <div className={section}>
-        <div><label className={field}>Title *</label><input {...register('title', { required: true })} className={input} /></div>
-        <div><label className={field}>Message *</label><textarea {...register('message', { required: true })} rows={4} className={input} /></div>
+        <div>
+          <label htmlFor="upd-title" className={field}>Title *</label>
+          <input id="upd-title" name="title" autoComplete="off" {...register('title', { required: true })} className={input} />
+        </div>
+        <div>
+          <label htmlFor="upd-message" className={field}>Message *</label>
+          <textarea id="upd-message" name="message" autoComplete="off" {...register('message', { required: true })} rows={4} className={input} />
+        </div>
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <label className={field} style={{ marginBottom: 0 }}>Category</label>
+            <label htmlFor="upd-category" className={field} style={{ marginBottom: 0 }}>Category</label>
             <InlineCategoryAdd
               label="Category"
               placeholder="e.g. Government"
               onAdd={async (name) => { await updatesApi.createCategory({ name }); await fetchCategories() }}
             />
           </div>
-          <select {...register('category')} className={input}>
+          <select id="upd-category" name="category" {...register('category')} className={input}>
             <option value="">No category</option>
             {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
         </div>
         <div>
-          <label className={field}>Update Type *</label>
-          <select {...register('updateType', { required: true })} className={input}>
+          <label htmlFor="upd-type" className={field}>Update Type *</label>
+          <select id="upd-type" name="updateType" {...register('updateType', { required: true })} className={input}>
             <option value="banner">Banner</option>
             <option value="popup">Popup</option>
             <option value="ticker">Ticker</option>
             <option value="push_notification">Push Notification</option>
           </select>
         </div>
-        <div><label className={field}>Redirect URL</label><input {...register('redirectUrl')} type="url" className={input} /></div>
-        <ImageUpload module="updates" label="Thumbnail" value={thumbnail} onChange={setThumbnail} />
         <div>
-          <label className={field}>
+          <label htmlFor="upd-redirect" className={field}>Redirect URL</label>
+          <input id="upd-redirect" name="redirectUrl" type="url" autoComplete="url" {...register('redirectUrl')} className={input} />
+        </div>
+        <ImageUpload module="updates" label="Thumbnail" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
+        <div>
+          <label htmlFor="upd-datetime" className={field}>
             Date &amp; Time
             <span className="ml-1.5 text-xs font-normal text-slate-400">(IST — India Standard Time)</span>
           </label>
           <DatePicker
+            id="upd-datetime"
+            name="validUntil"
             selected={dateTime}
             onChange={setDateTime}
             showTimeSelect
@@ -71,6 +82,36 @@ export default function UpdateForm({ defaultValues, onSubmit, loading }) {
             className={input}
             isClearable
           />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h3 className="font-semibold text-slate-800">Location & Scope</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="update-scope" className={field}>Scope *</label>
+            <select id="update-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+              <option value="nellore">Nellore</option>
+              <option value="worldwide">Worldwide</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="update-city" className={field}>City</label>
+            <input id="update-city" name="city" autoComplete="address-level2"
+              {...register('city')} className={input} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="update-location" className={field}>Location</label>
+            <input id="update-location" name="location" autoComplete="off"
+              {...register('location')} className={input} />
+          </div>
+          <div>
+            <label htmlFor="update-region" className={field}>Region</label>
+            <input id="update-region" name="region" autoComplete="off"
+              {...register('region')} className={input} />
+          </div>
         </div>
       </div>
 

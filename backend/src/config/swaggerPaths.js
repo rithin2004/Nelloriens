@@ -16,7 +16,7 @@
  */
 
 const auth = [{ BearerAuth: [] }]
-const id   = [{ name: 'id', in: 'path', required: true, schema: { type: 'string' }, description: 'Sequential document ID, e.g. NEWS00042, JOB00007.' }]
+const id   = [{ name: 'id', in: 'path', required: true, schema: { type: 'string' }, description: 'Sequential document ID, e.g. NEW00042, JOB00007.' }]
 const pagQ = [
   { name: 'page',  in: 'query', schema: { type: 'integer', default: 1 },  description: 'Page number (1-based).' },
   { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 }, description: 'Items per page (max 100).' },
@@ -479,7 +479,7 @@ export const paths = {
       description: 'Deletes multiple articles in one call. Pass an array of article IDs.',
       security: auth,
       requestBody: inlineBody(['ids'], {
-        ids: { type: 'array', items: { type: 'string' }, example: ['NEWS00010', 'NEWS00011', 'NEWS00012'] },
+        ids: { type: 'array', items: { type: 'string' }, example: ['NEW00010', 'NEW00011', 'NEW00012'] },
       }),
       responses: { ...ok('Batch deleted.'), ...fail },
     },
@@ -492,7 +492,7 @@ export const paths = {
       description: 'Sets `status = published` on each article in the provided IDs array.',
       security: auth,
       requestBody: inlineBody(['ids'], {
-        ids: { type: 'array', items: { type: 'string' }, example: ['NEWS00020', 'NEWS00021'] },
+        ids: { type: 'array', items: { type: 'string' }, example: ['NEW00020', 'NEW00021'] },
       }),
       responses: { ...ok('Batch published.'), ...fail },
     },
@@ -574,7 +574,7 @@ export const paths = {
       summary: 'Bulk reorder breaking point items',
       description: 'Pass an array of `{ id, order }` pairs. The `order` values are written to each document.',
       security: auth,
-      requestBody: reorderBody('BPT00001', 'Array of { id, order } pairs to set display order.'),
+      requestBody: reorderBody('BRK00001', 'Array of { id, order } pairs to set display order.'),
       responses: { ...ok('Reordered.'), ...fail },
     },
   },
@@ -787,7 +787,7 @@ export const paths = {
       summary: 'Bulk reorder history timeline entries',
       description: 'Pass an array of `{ id, order }` pairs to set the chronological display order of all entries at once.',
       security: auth,
-      requestBody: reorderBody('HST00003', 'Array of { id, order } pairs to set timeline order.'),
+      requestBody: reorderBody('HIS00003', 'Array of { id, order } pairs to set timeline order.'),
       responses: { ...ok('Reordered.'), ...fail },
     },
   },
@@ -858,7 +858,7 @@ export const paths = {
         ...pagQ,
         { name: 'search',   in: 'query', schema: { type: 'string' }, description: 'Search by movie name.' },
         { name: 'status',   in: 'query', schema: { type: 'string', enum: ['now_showing', 'coming_soon', 'ended'] }, description: 'Filter by screening status.' },
-        { name: 'theatre',  in: 'query', schema: { type: 'string' }, description: 'Filter by theatre ID (e.g. THR00001).' },
+        { name: 'theatre',  in: 'query', schema: { type: 'string' }, description: 'Filter by theatre ID (e.g. THT00001).' },
         { name: 'language', in: 'query', schema: { type: 'string', enum: ['Telugu', 'Hindi', 'Tamil', 'English', 'Other'] }, description: 'Filter by language.' },
       ],
       responses: { ...paginatedOk },
@@ -1397,7 +1397,7 @@ export const paths = {
       security: auth,
       parameters: [
         { name: 'module', in: 'path', required: true, schema: { type: 'string' }, description: 'Module name (e.g. news, jobs).' },
-        { name: 'id',     in: 'path', required: true, schema: { type: 'string' }, description: 'Document ID (e.g. NEWS00042).' },
+        { name: 'id',     in: 'path', required: true, schema: { type: 'string' }, description: 'Document ID (e.g. NEW00042).' },
       ],
       responses: { ...ok('Item restored.'), ...fail },
     },

@@ -6,18 +6,37 @@ import MapPicker from '../common/MapPicker'
 import { tourismApi } from '../../services/api'
 
 const field = 'block text-sm font-medium text-slate-700 mb-1'
+
+function ToggleSwitch({ id, checked, onChange, label, hint }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-semibold text-slate-500">{label}</span>
+      <button type="button" role="switch" aria-checked={checked} id={id}
+        onClick={() => onChange(!checked)}
+        className="relative inline-flex items-center rounded-full transition-colors w-10 h-6 shrink-0"
+        style={{ background: checked ? '#10B981' : '#D1D5DB' }}>
+        <span className="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform"
+          style={{ transform: checked ? 'translateX(22px)' : 'translateX(2px)' }} />
+      </button>
+      {hint && <span className="text-xs text-slate-400">{hint}</span>}
+    </div>
+  )
+}
 const input = 'w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'
 const section = 'bg-white rounded-xl border border-slate-200 p-5 space-y-4'
 
-export default function TourismForm({ defaultValues, onSubmit, loading }) {
+export default function TourismForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit, setValue } = useForm({ defaultValues })
+  const [locations, setLocations] = useState([])
   const [categories, setCategories] = useState([])
+  const [isPopular, setIsPopular] = useState(defaultValues?.isPopular || false)
   const [description, setDescription] = useState(defaultValues?.description || '')
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
   const [location, setLocation] = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
 
   useEffect(() => {
     tourismApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
+    tourismApi.getLocations().then((r)  => setLocations(r.data  || [])).catch(() => {})
   }, [])
 
   const handleMapChange = ({ lat, lng }) => {
@@ -27,47 +46,104 @@ export default function TourismForm({ defaultValues, onSubmit, loading }) {
   }
 
   const submit = (data) => {
-    onSubmit({ ...data, description, thumbnail, latitude: location.lat, longitude: location.lng })
+    onSubmit({ ...data, description, thumbnail, isPopular, latitude: location.lat, longitude: location.lng })
   }
 
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-5">
       <div className={section}>
-        <h3 className="font-semibold text-slate-800">Place Details</h3>
-        <div><label className={field}>Place Name *</label><input {...register('placeName', { required: true })} className={input} /></div>
+        {/* RULE 13 — isPopular toggle at top right, visual switch */}
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-slate-800">Place Details</h3>
+          <ToggleSwitch id="tur-popular" checked={isPopular} onChange={setIsPopular}
+            label="Popular" hint="(max 10 globally)" />
+        </div>
         <div>
-          <label className={field}>Category *</label>
-          <select {...register('category', { required: true })} className={input}>
+          <label htmlFor="tur-name" className={field}>Place Name *</label>
+          <input id="tur-name" name="placeName" autoComplete="off" {...register('placeName', { required: true })} className={input} />
+        </div>
+        <div>
+          <label htmlFor="tur-category" className={field}>Category *</label>
+          <select id="tur-category" name="category" {...register('category', { required: true })} className={input}>
             <option value="">Select</option>
             {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
         </div>
         <div><label className={field}>Description *</label><RichTextEditor value={description} onChange={setDescription} /></div>
-        <ImageUpload module="tourism" label="Thumbnail *" value={thumbnail} onChange={setThumbnail} />
+        <ImageUpload module="tourism" label="Thumbnail *" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
       </div>
 
       <div className={section}>
         <h3 className="font-semibold text-slate-800">Location *</h3>
         <MapPicker lat={location.lat} lng={location.lng} onChange={handleMapChange} />
         <div className="grid grid-cols-2 gap-4">
-          <div><label className={field}>Latitude</label><input {...register('latitude')} type="number" step="any" className={input} readOnly /></div>
-          <div><label className={field}>Longitude</label><input {...register('longitude')} type="number" step="any" className={input} readOnly /></div>
+          <div>
+            <label htmlFor="tur-lat" className={field}>Latitude</label>
+            <input id="tur-lat" name="latitude" autoComplete="off" {...register('latitude')} type="number" step="any" className={input} readOnly />
+          </div>
+          <div>
+            <label htmlFor="tur-lng" className={field}>Longitude</label>
+            <input id="tur-lng" name="longitude" autoComplete="off" {...register('longitude')} type="number" step="any" className={input} readOnly />
+          </div>
         </div>
-        <div><label className={field}>Address</label><input {...register('address')} className={input} /></div>
+        <div>
+          <label htmlFor="tur-address" className={field}>Address</label>
+          <input id="tur-address" name="address" autoComplete="street-address" {...register('address')} className={input} />
+        </div>
       </div>
 
       <div className={section}>
         <h3 className="font-semibold text-slate-800">Visit Info</h3>
         <div className="grid grid-cols-2 gap-4">
-          <div><label className={field}>Entry Fee</label><input {...register('entryFee')} className={input} placeholder="₹30 or Free" /></div>
-          <div><label className={field}>Timings</label><input {...register('timings')} className={input} placeholder="6:00 AM – 6:00 PM" /></div>
+          <div>
+            <label htmlFor="tur-fee" className={field}>Entry Fee</label>
+            <input id="tur-fee" name="entryFee" autoComplete="off" {...register('entryFee')} className={input} placeholder="₹30 or Free" />
+          </div>
+          <div>
+            <label htmlFor="tur-timings" className={field}>Timings</label>
+            <input id="tur-timings" name="timings" autoComplete="off" {...register('timings')} className={input} placeholder="6:00 AM – 6:00 PM" />
+          </div>
         </div>
-        <div><label className={field}>Best Time to Visit</label><input {...register('bestTime')} className={input} placeholder="October to February" /></div>
-        <div><label className={field}>Google Maps URL</label><input {...register('googleMapsUrl')} type="url" className={input} /></div>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" {...register('isFeatured')} className="w-4 h-4 accent-purple-600" />
-          <span className="text-sm text-slate-700">Is Featured</span>
-        </label>
+        <div>
+          <label htmlFor="tur-besttime" className={field}>Best Time to Visit</label>
+          <input id="tur-besttime" name="bestTime" autoComplete="off" {...register('bestTime')} className={input} placeholder="October to February" />
+        </div>
+        <div>
+          <label htmlFor="tur-mapsurl" className={field}>Google Maps URL</label>
+          <input id="tur-mapsurl" name="googleMapsUrl" type="url" autoComplete="url" {...register('googleMapsUrl')} className={input} />
+        </div>
+      </div>
+
+      <div className={section}>
+        <h3 className="font-semibold text-slate-800">Location & Scope</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="tourism-scope" className={field}>Scope *</label>
+            <select id="tourism-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+              <option value="nellore">Nellore</option>
+              <option value="worldwide">Worldwide</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="tourism-city" className={field}>City</label>
+            <input id="tourism-city" name="city" autoComplete="address-level2"
+              {...register('city')} className={input} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="tourism-location" className={field}>Location</label>
+            <select id="tourism-location" name="location" {...register('location')} className={input}>
+              <option value="">Select location</option>
+              {locations.map((l) => <option key={l._id} value={l.name}>{l.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="tourism-region" className={field}>Region</label>
+            <input id="tourism-region" name="region" autoComplete="off"
+              {...register('region')} className={input} />
+          </div>
+        </div>
       </div>
 
       <button type="submit" disabled={loading} className="w-full py-2.5 text-white font-semibold rounded-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50" style={{ background: "linear-gradient(135deg,#8B5CF6,#6366F1)", boxShadow: "0 4px 16px rgba(139,92,246,0.3)" }}>

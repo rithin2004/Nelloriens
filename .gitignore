@@ -25,3 +25,7 @@ dist-ssr
 
 .claude
 .env
+CLAUDE.md
+USER_SIDE_DEVELOPER_GUIDE.md
+functions/.env*
+functions/.env.production

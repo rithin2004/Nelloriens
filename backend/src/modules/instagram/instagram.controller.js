@@ -1,4 +1,5 @@
 import { instagramService } from './instagram.service.js'
+import { createTracking, updateTracking } from '../../utils/userTracking.js'
 
 export const instagramCtrl = {
   // Settings
@@ -25,11 +26,11 @@ export const instagramCtrl = {
     res.json({ success: true, ...(await instagramService.sync()) })
   },
   async createPost(req, res) {
-    const data = await instagramService.createPost(req.body)
+    const data = await instagramService.createPost({ ...req.body, ...createTracking(req.user) })
     res.status(201).json({ success: true, data })
   },
   async updatePost(req, res) {
-    const data = await instagramService.updatePost(req.params.id, req.body)
+    const data = await instagramService.updatePost(req.params.id, { ...req.body, ...updateTracking(req.user) })
     res.json({ success: true, data })
   },
   async hidePost(req, res) {
@@ -39,5 +40,23 @@ export const instagramCtrl = {
   async refreshToken(req, res) {
     const data = await instagramService.refreshToken()
     res.json({ success: true, data })
+  },
+
+  // ── Count increments (RULE 11 — public, no auth) ────────────────────────
+  async incrementPageViews(req, res) {
+    await instagramService.incrementViews(req.params.id, 'pageViews')
+    res.json({ success: true })
+  },
+  async incrementCardViews(req, res) {
+    await instagramService.incrementViews(req.params.id, 'cardViews')
+    res.json({ success: true })
+  },
+  async incrementImpressions(req, res) {
+    await instagramService.incrementViews(req.params.id, 'impressions')
+    res.json({ success: true })
+  },
+  async incrementTouches(req, res) {
+    await instagramService.incrementViews(req.params.id, 'touches')
+    res.json({ success: true })
   },
 }
