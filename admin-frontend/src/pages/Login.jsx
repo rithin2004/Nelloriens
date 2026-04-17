@@ -117,8 +117,10 @@ export default function Login() {
                   <ArrowLeft className="w-3.5 h-3.5" /> Back to sign in
                 </button>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5 text-slate-700">Email Address</label>
+                  <label htmlFor="reset-email" className="block text-sm font-medium mb-1.5 text-slate-700">Email Address</label>
                   <input
+                    id="reset-email"
+                    name="email"
                     type="email"
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}

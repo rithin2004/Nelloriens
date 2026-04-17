@@ -64,33 +64,33 @@ export default function OnboardingCompany() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Company Name *</label>
-                <input className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
+                <label htmlFor="ob-name" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Company Name *</label>
+                <input id="ob-name" name="name" autoComplete="organization" className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
                   value={form.name} onChange={set('name')} required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Email *</label>
-                <input className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
+                <label htmlFor="ob-email" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Email *</label>
+                <input id="ob-email" name="email" autoComplete="email" className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
                   type="email" value={form.email} onChange={set('email')} required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone *</label>
-                <input className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
+                <label htmlFor="ob-phone" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone *</label>
+                <input id="ob-phone" name="phone" autoComplete="tel" className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
                   value={form.phone} onChange={set('phone')} required />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tagline</label>
-                <input className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
+                <label htmlFor="ob-tagline" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tagline</label>
+                <input id="ob-tagline" name="tagline" autoComplete="off" className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
                   value={form.tagline} onChange={set('tagline')} placeholder="Your brand tagline…" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">City</label>
-                <input className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
+                <label htmlFor="ob-city" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">City</label>
+                <input id="ob-city" name="city" autoComplete="address-level2" className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
                   value={form.city} onChange={set('city')} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Website</label>
-                <input className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
+                <label htmlFor="ob-website" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Website</label>
+                <input id="ob-website" name="website" autoComplete="url" className={inpClass} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
                   type="url" value={form.website} onChange={set('website')} />
               </div>
             </div>

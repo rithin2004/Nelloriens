@@ -80,21 +80,21 @@ export default function Setup() {
           {step === 'form' ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Name *</label>
-                <input {...inp} placeholder="Full name" value={form.name} onChange={set('name')} required />
+                <label htmlFor="setup-name" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Name *</label>
+                <input {...inp} id="setup-name" name="name" autoComplete="name" placeholder="Full name" value={form.name} onChange={set('name')} required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Email *</label>
-                <input {...inp} type="email" placeholder="admin@example.com" value={form.email} onChange={set('email')} required />
+                <label htmlFor="setup-email" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Email *</label>
+                <input {...inp} id="setup-email" name="email" autoComplete="email" type="email" placeholder="admin@example.com" value={form.email} onChange={set('email')} required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
-                <input {...inp} placeholder="+91 XXXXX XXXXX" value={form.phone} onChange={set('phone')} />
+                <label htmlFor="setup-phone" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Phone</label>
+                <input {...inp} id="setup-phone" name="phone" autoComplete="tel" placeholder="+91 XXXXX XXXXX" value={form.phone} onChange={set('phone')} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Setup Secret *</label>
+                <label htmlFor="setup-secret" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Setup Secret *</label>
                 <div className="relative">
-                  <input {...inp} type={showSecret ? 'text' : 'password'}
+                  <input {...inp} id="setup-secret" name="secret" autoComplete="off" type={showSecret ? 'text' : 'password'}
                     placeholder="Enter the SETUP_SECRET from .env"
                     value={form.secret} onChange={set('secret')} required
                     className="w-full px-4 py-2.5 pr-10 text-sm rounded-xl focus:outline-none transition-all text-slate-700" />

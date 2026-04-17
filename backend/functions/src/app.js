@@ -3,7 +3,7 @@ import express   from 'express'
 import helmet    from 'helmet'
 import cors      from 'cors'
 import morgan    from 'morgan'
-import rateLimit from 'express-rate-limit'
+import { globalLimit, strictLimit } from './middlewares/rateLimit.js'
 import { createRequire } from 'module'
 const swaggerUi = createRequire(import.meta.url)('swagger-ui-express')
 
@@ -73,33 +73,7 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 // Rate limits
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 500,
-  standardHeaders: true,
-  legacyHeaders: false,
-
-  keyGenerator: (req) => {
-    return req.ip || req.headers["x-forwarded-for"] || "global";
-  },
-
-  message: {
-    success: false,
-    message: "Too many requests, try again later."
-  }
-}))
-
-const strictLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 50,
-  message: { success: false, message: 'Rate limit exceeded.' },
-})
-
-const ultraStrictLimit = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 10,
-  message: { success: false, message: 'Too many attempts. Try again in 1 hour.' },
-})
+app.use(globalLimit)
 
 // Swagger
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions))
@@ -137,7 +111,7 @@ app.use('/dashboard', dashboardRoutes)
 app.use('/search', searchRoutes)
 app.use('/upload', strictLimit, uploadRoutes)
 app.use('/settings', settingsRoutes)
-app.use('/setup', ultraStrictLimit, setupRoutes)
+app.use('/setup', setupRoutes)
 app.use('/users', usersRoutes)
 app.use('/roles', rolesRoutes)
 app.use('/company', companyRoutes)

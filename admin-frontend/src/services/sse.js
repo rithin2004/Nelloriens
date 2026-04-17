@@ -27,7 +27,7 @@ const MAX_RETRY_DELAY = 30000 // 30 seconds cap
 function _connect() {
   if (es && es.readyState !== EventSource.CLOSED) return
 
-  const base = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+  const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
   es = new EventSource(`${base}/realtime/sse`)
 
   es.onopen = () => {
