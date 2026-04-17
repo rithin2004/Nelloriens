@@ -13,7 +13,7 @@ const PL = '#dce8fb'
 function InactivityWarning({ onStay }) {
   return createPortal(
     <div
-      className="fixed inset-0 flex items-center justify-center z-[9999] p-4"
+      className="fixed inset-0 flex items-center justify-center z-9999 p-4"
       style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)' }}
     >
       <div
