@@ -3,11 +3,13 @@ import { log }           from '../../utils/auditLog.js'
 import { createTracking, updateTracking } from '../../utils/userTracking.js'
 
 export async function list(req, res) {
-  res.json({ success: true, ...(await offersService.list(req.query)) })
+  const { items, total, page, totalPages } = await offersService.list(req.query)
+  res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
 }
 
 export async function getById(req, res) {
-  res.json(await offersService.getById(req.params.id))
+  const data = await offersService.getById(req.params.id)
+  res.json({ success: true, message: 'OK', data })
 }
 
 export async function create(req, res) {
@@ -25,15 +27,15 @@ export async function update(req, res) {
 export async function remove(req, res) {
   await offersService.remove(req.params.id)
   await log(req, 'delete', 'offers', req.params.id)
-  res.json({ success: true, message: 'Deleted' })
+  res.json({ success: true, message: 'Deleted', data: null })
 }
 
 // ── View increments (RULE 11 — public, no auth) ────────────────────────────
 export async function incrementPageViews(req, res) {
   await offersService.incrementViews(req.params.id, 'pageViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }
 export async function incrementCardViews(req, res) {
   await offersService.incrementViews(req.params.id, 'cardViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }

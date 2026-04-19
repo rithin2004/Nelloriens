@@ -32,13 +32,19 @@ export const schemas = {
 
   PaginatedList: {
     type: 'object',
-    description: 'Standard paginated response returned by every `/list` endpoint.',
+    description: 'Standard RULE 4 paginated response returned by every `/list` endpoint.',
     properties: {
       success:    { type: 'boolean', example: true },
-      items:      { type: 'array', items: { type: 'object' }, description: 'Array of documents for the current page.' },
-      total:      { type: 'integer', example: 147, description: 'Total number of matching documents across all pages.' },
-      page:       { type: 'integer', example: 1, description: 'Current page number (1-based).' },
-      totalPages: { type: 'integer', example: 8, description: 'Total number of pages at the requested limit.' },
+      message:    { type: 'string', example: 'OK' },
+      data:       { type: 'array', items: { type: 'object' }, description: 'Array of documents for the current page.' },
+      pagination: {
+        type: 'object',
+        properties: {
+          page:       { type: 'integer', example: 1, description: 'Current page number (1-based).' },
+          total:      { type: 'integer', example: 147, description: 'Total number of matching documents across all pages.' },
+          totalPages: { type: 'integer', example: 8, description: 'Total number of pages at the requested limit.' },
+        },
+      },
     },
   },
 
@@ -47,6 +53,7 @@ export const schemas = {
     properties: {
       success: { type: 'boolean', example: true },
       message: { type: 'string', example: 'Operation completed successfully.' },
+      data:    { type: 'object', nullable: true, example: null },
     },
   },
 
@@ -62,10 +69,16 @@ export const schemas = {
 
   SetupStatusResponse: {
     type: 'object',
-    description: 'Returned by GET /setup/status. If `initialized` is false the front-end must redirect to the setup page before anything else.',
+    description: 'Returned by GET /setup/status. If `data.initialized` is false the front-end must redirect to the setup page before anything else.',
     properties: {
-      success:     { type: 'boolean', example: true },
-      initialized: { type: 'boolean', example: false, description: 'true once ROL00001 and USR00001 exist in Firestore.' },
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'OK' },
+      data: {
+        type: 'object',
+        properties: {
+          initialized: { type: 'boolean', example: false, description: 'true once ROL00001 and USR00001 exist in Firestore.' },
+        },
+      },
     },
   },
 
@@ -83,11 +96,17 @@ export const schemas = {
 
   CreateSuperadminResponse: {
     type: 'object',
-    description: 'The Firebase password reset link is returned once and never stored. Copy it immediately.',
+    description: 'RULE 4 envelope. The Firebase password reset link is returned once and never stored. Copy it immediately.',
     properties: {
-      success:   { type: 'boolean', example: true },
-      user:      { $ref: '#/components/schemas/UserDocument' },
-      resetLink: { type: 'string', example: 'https://nelloriens-admin.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=ABC123...', description: 'One-time password-set link. Send this to the admin. Expires in 1 hour.' },
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'Created' },
+      data: {
+        type: 'object',
+        properties: {
+          user:      { $ref: '#/components/schemas/UserDocument' },
+          resetLink: { type: 'string', example: 'https://nelloriens-admin.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=ABC123...', description: 'One-time password-set link. Send this to the admin. Expires in 1 hour.' },
+        },
+      },
     },
   },
 
@@ -146,8 +165,14 @@ export const schemas = {
   ResetLinkResponse: {
     type: 'object',
     properties: {
-      success:   { type: 'boolean', example: true },
-      resetLink: { type: 'string', example: 'https://nelloriens-admin.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=XYZ...', description: 'Firebase password-reset link. Valid for 1 hour. Show or email to the user.' },
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'OK' },
+      data: {
+        type: 'object',
+        properties: {
+          resetLink: { type: 'string', example: 'https://nelloriens-admin.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=XYZ...', description: 'Firebase password-reset link. Valid for 1 hour. Show or email to the user.' },
+        },
+      },
     },
   },
 
@@ -458,6 +483,15 @@ export const schemas = {
     },
   },
 
+  FoodHealthTipRequest: {
+    type: 'object',
+    required: ['title', 'tip'],
+    properties: {
+      title: { type: 'string', example: 'Eat seasonal fruits daily' },
+      tip:   { type: 'string', example: 'Seasonal fruits are richer in nutrients and support immunity.' },
+    },
+  },
+
   // ── History ─────────────────────────────────────────────────────────────
 
   CreateHistoryRequest: {
@@ -680,11 +714,17 @@ export const schemas = {
   AdsenseSettingsResponse: {
     type: 'object',
     properties: {
-      success:          { type: 'boolean', example: true },
-      publisherId:      { type: 'string', example: 'ca-pub-1234567890123456' },
-      autoAdsEnabled:   { type: 'boolean', example: true },
-      manualAdsEnabled: { type: 'boolean', example: false, description: 'True when no publisherId is set, i.e., manual ads are active.' },
-      connectedAt:      { type: 'string', format: 'date-time', example: '2025-04-11T10:00:00.000Z' },
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'OK' },
+      data: {
+        type: 'object',
+        properties: {
+          publisherId:      { type: 'string', example: 'ca-pub-1234567890123456' },
+          autoAdsEnabled:   { type: 'boolean', example: true },
+          manualAdsEnabled: { type: 'boolean', example: false, description: 'True when no publisherId is set, i.e., manual ads are active.' },
+          connectedAt:      { type: 'string', format: 'date-time', example: '2025-04-11T10:00:00.000Z' },
+        },
+      },
     },
   },
 
@@ -733,12 +773,18 @@ export const schemas = {
   InstagramStatusResponse: {
     type: 'object',
     properties: {
-      success:     { type: 'boolean', example: true },
-      connected:   { type: 'boolean', example: true, description: 'True when an access token is stored.' },
-      username:    { type: 'string', example: '@nelloriens' },
-      lastSync:    { type: 'string', format: 'date-time', example: '2025-04-11T09:45:00.000Z' },
-      tokenExpiry: { type: 'string', format: 'date-time', example: '2025-06-10T09:45:00.000Z', description: 'Approx 60 days from last refresh. Refresh before expiry using POST /instagram/refresh-token.' },
-      manualMode:  { type: 'boolean', example: false, description: 'True when not connected — manual post creation and editing are allowed.' },
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'OK' },
+      data: {
+        type: 'object',
+        properties: {
+          connected:   { type: 'boolean', example: true, description: 'True when an access token is stored.' },
+          username:    { type: 'string', example: '@nelloriens' },
+          lastSync:    { type: 'string', format: 'date-time', example: '2025-04-11T09:45:00.000Z' },
+          tokenExpiry: { type: 'string', format: 'date-time', example: '2025-06-10T09:45:00.000Z', description: 'Approx 60 days from last refresh. Refresh before expiry using POST /instagram/refresh-token.' },
+          manualMode:  { type: 'boolean', example: false, description: 'True when not connected — manual post creation and editing are allowed.' },
+        },
+      },
     },
   },
 
@@ -747,11 +793,17 @@ export const schemas = {
   UploadResponse: {
     type: 'object',
     properties: {
-      success:  { type: 'boolean', example: true },
-      url:      { type: 'string', example: 'https://storage.googleapis.com/nelloriens.appspot.com/news/a1b2c3d4-article-photo.jpg', description: 'Public CDN URL of the uploaded file. Store this in your document.' },
-      fileName: { type: 'string', example: 'a1b2c3d4-article-photo.jpg' },
-      size:     { type: 'integer', example: 245312, description: 'File size in bytes.' },
-      mimeType: { type: 'string', example: 'image/jpeg' },
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'OK' },
+      data: {
+        type: 'object',
+        properties: {
+          url:      { type: 'string', example: 'https://storage.googleapis.com/nelloriens.appspot.com/news/a1b2c3d4-article-photo.jpg', description: 'Public CDN URL of the uploaded file. Store this in your document.' },
+          fileName: { type: 'string', example: 'a1b2c3d4-article-photo.jpg' },
+          size:     { type: 'integer', example: 245312, description: 'File size in bytes.' },
+          mimeType: { type: 'string', example: 'image/jpeg' },
+        },
+      },
     },
   },
 
@@ -759,25 +811,31 @@ export const schemas = {
 
   DashboardStatsResponse: {
     type: 'object',
-    description: 'Document counts for every collection. Used to render the admin dashboard summary cards.',
+    description: 'RULE 4 envelope. Document counts for every collection inside `data`.',
     properties: {
-      success:      { type: 'boolean', example: true },
-      news:         { type: 'integer', example: 842 },
-      jobs:         { type: 'integer', example: 134 },
-      results:      { type: 'integer', example: 67 },
-      sports:       { type: 'integer', example: 219 },
-      foods:        { type: 'integer', example: 48 },
-      history:      { type: 'integer', example: 12 },
-      stays:        { type: 'integer', example: 35 },
-      events:       { type: 'integer', example: 91 },
-      movies:       { type: 'integer', example: 28 },
-      transport:    { type: 'integer', example: 56 },
-      offers:       { type: 'integer', example: 73 },
-      tourism:      { type: 'integer', example: 41 },
-      updates:      { type: 'integer', example: 17 },
-      ads:          { type: 'integer', example: 9 },
-      sponsorships: { type: 'integer', example: 6 },
-      leads:        { type: 'integer', example: 203 },
+      success: { type: 'boolean', example: true },
+      message: { type: 'string', example: 'OK' },
+      data: {
+        type: 'object',
+        properties: {
+          news:         { type: 'integer', example: 842 },
+          jobs:         { type: 'integer', example: 134 },
+          results:      { type: 'integer', example: 67 },
+          sports:       { type: 'integer', example: 219 },
+          foods:        { type: 'integer', example: 48 },
+          history:      { type: 'integer', example: 12 },
+          stays:        { type: 'integer', example: 35 },
+          events:       { type: 'integer', example: 91 },
+          movies:       { type: 'integer', example: 28 },
+          transport:    { type: 'integer', example: 56 },
+          offers:       { type: 'integer', example: 73 },
+          tourism:      { type: 'integer', example: 41 },
+          updates:      { type: 'integer', example: 17 },
+          ads:          { type: 'integer', example: 9 },
+          sponsorships: { type: 'integer', example: 6 },
+          leads:        { type: 'integer', example: 203 },
+        },
+      },
     },
   },
 

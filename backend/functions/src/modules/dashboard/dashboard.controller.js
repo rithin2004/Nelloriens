@@ -2,18 +2,23 @@ import { dashboardService } from './dashboard.service.js'
 
 export const dashboardCtrl = {
   async getStats(req, res) {
-    res.json(await dashboardService.getStats())
+    const data = await dashboardService.getStats()
+    res.json({ success: true, message: 'OK', data })
   },
   async getActivity(req, res) {
-    res.json({ success: true, ...(await dashboardService.getActivity(req.query)) })
+    const { items, total, page, totalPages } = await dashboardService.getActivity(req.query)
+    res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
   },
   async getRecentLeads(req, res) {
-    res.json(await dashboardService.getRecentLeads())
+    const data = await dashboardService.getRecentLeads()
+    res.json({ success: true, message: 'OK', data })
   },
   async getRecentUpdates(req, res) {
-    res.json(await dashboardService.getRecentUpdates())
+    const data = await dashboardService.getRecentUpdates()
+    res.json({ success: true, message: 'OK', data })
   },
   async getFeatured(req, res) {
-    res.json(await dashboardService.getFeatured())
+    const data = await dashboardService.getFeatured()
+    res.json({ success: true, message: 'OK', data })
   },
 }

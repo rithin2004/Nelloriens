@@ -19,7 +19,7 @@ export const uploadCtrl = {
     const { prefix } = req.query
     if (!prefix?.trim()) badReq('prefix is required')
     const id = await nextId(prefix.trim().toUpperCase())
-    res.json({ success: true, data: { id } })
+    res.json({ success: true, message: 'OK', data: { id } })
   },
 
   async upload(req, res) {
@@ -31,12 +31,12 @@ export const uploadCtrl = {
 
     const { contentId, section, index } = req.body
     const result = await uploadService.upload(moduleName, req.file, { contentId, section, index })
-    res.json({ success: true, url: result.url, fileName: result.fileName, size: result.size, mimeType: result.mimeType })
+    res.json({ success: true, message: 'Uploaded', data: { url: result.url, fileName: result.fileName, size: result.size, mimeType: result.mimeType } })
   },
 
   async deleteFile(req, res) {
     const { url } = req.body
     await uploadService.deleteByUrl(url)
-    res.json({ success: true, message: 'File deleted' })
+    res.json({ success: true, message: 'File deleted', data: null })
   },
 }

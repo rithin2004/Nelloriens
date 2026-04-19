@@ -4,11 +4,13 @@ import { createTracking, updateTracking } from '../../utils/userTracking.js'
 
 // ── Manual Ads ─────────────────────────────────────────────────────────────
 export async function list(req, res) {
-  res.json({ success: true, ...(await adsService.list(req.query)) })
+  const { items, total, page, totalPages } = await adsService.list(req.query)
+  res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
 }
 
 export async function getById(req, res) {
-  res.json(await adsService.getById(req.params.id))
+  const data = await adsService.getById(req.params.id)
+  res.json({ success: true, message: 'OK', data })
 }
 
 export async function create(req, res) {
@@ -26,43 +28,44 @@ export async function update(req, res) {
 export async function remove(req, res) {
   await adsService.remove(req.params.id)
   await log(req, 'delete', 'ads', req.params.id)
-  res.json({ success: true, message: 'Deleted' })
+  res.json({ success: true, message: 'Deleted', data: null })
 }
 
 // ── AdSense Settings ───────────────────────────────────────────────────────
 export async function getAdsenseSettings(req, res) {
-  res.json(await adsenseService.getSettings())
+  const data = await adsenseService.getSettings()
+  res.json({ success: true, message: 'OK', data })
 }
 
 export async function connectAdsense(req, res) {
   const data = await adsenseService.connect(req.body)
-  res.json({ success: true, data })
+  res.json({ success: true, message: 'Connected', data })
 }
 
 export async function updateAdsense(req, res) {
   const data = await adsenseService.update(req.body)
-  res.json({ success: true, data })
+  res.json({ success: true, message: 'Updated', data })
 }
 
 export async function disconnectAdsense(req, res) {
   const data = await adsenseService.disconnect()
-  res.json({ success: true, data })
+  res.json({ success: true, message: 'Disconnected', data })
 }
 
 // ── Count increments (RULE 11 — public, no auth) ──────────────────────────
 export async function incrementPageViews(req, res) {
   await adsService.incrementViews(req.params.id, 'pageViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }
 export async function incrementCardViews(req, res) {
   await adsService.incrementViews(req.params.id, 'cardViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }
 export async function incrementImpressions(req, res) {
   await adsService.incrementViews(req.params.id, 'impressions')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }
 export async function incrementClicks(req, res) {
   await adsService.incrementViews(req.params.id, 'clicks')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }

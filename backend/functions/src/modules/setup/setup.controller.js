@@ -2,8 +2,8 @@ import { getSetupStatus, createSuperadmin } from './setup.service.js'
 
 export const setupCtrl = {
   async status(req, res) {
-    const status = await getSetupStatus()
-    res.json(status)
+    const data = await getSetupStatus()
+    res.json({ success: true, message: 'OK', data })
   },
 
   async bootstrap(req, res) {
@@ -11,7 +11,7 @@ export const setupCtrl = {
     res.status(201).json({
       success: true,
       message: 'Superadmin created. A password-set email has been sent to their inbox.',
-      user:    result.user,
+      data:    { user: result.user },
     })
   },
 }

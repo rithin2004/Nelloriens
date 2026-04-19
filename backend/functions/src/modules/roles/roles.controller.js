@@ -10,11 +10,13 @@ function isSuperadminName(name) {
 
 export const rolesCtrl = {
   async list(req, res) {
-    res.json({ success: true, ...(await rolesService.list(req.query)) })
+    const { items, total, page, totalPages } = await rolesService.list(req.query)
+    res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
   },
 
   async getById(req, res) {
-    res.json(await rolesService.getById(req.params.id))
+    const data = await rolesService.getById(req.params.id)
+    res.json({ success: true, message: 'OK', data })
   },
 
   async create(req, res) {
@@ -23,7 +25,7 @@ export const rolesCtrl = {
     if (isSuperadminName(name)) forbidden('Cannot create a role named superadmin')
     validatePermissions(permissions)
     const role = await rolesService.create({ name: name.trim(), permissions })
-    res.status(201).json({ success: true, data: role })
+    res.status(201).json({ success: true, message: 'Created', data: role })
   },
 
   async update(req, res) {
@@ -38,12 +40,12 @@ export const rolesCtrl = {
     if (permissions) updates.permissions = permissions
 
     const role = await rolesService.update(req.params.id, updates)
-    res.json({ success: true, data: role })
+    res.json({ success: true, message: 'Updated', data: role })
   },
 
   async remove(req, res) {
     if (req.params.id === SUPERADMIN_ROLE_ID) forbidden('Superadmin role cannot be deleted')
     await rolesService.remove(req.params.id)
-    res.json({ success: true, message: 'Role deleted' })
+    res.json({ success: true, message: 'Role deleted', data: null })
   },
 }

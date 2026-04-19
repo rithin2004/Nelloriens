@@ -413,6 +413,9 @@ export const paths = {
     },
   },
 
+  '/leads/{id}/views':      { post: { tags: ['Leads'], summary: 'Increment page views on a lead (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/leads/{id}/card-views': { post: { tags: ['Leads'], summary: 'Increment card views on a lead (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
   // ─────────────────────────────────────────────────────────────────────────
   // NEWS
   // ─────────────────────────────────────────────────────────────────────────
@@ -470,6 +473,9 @@ export const paths = {
       responses: { ...ok('Article deleted.'), ...fail },
     },
   },
+
+  '/news/{id}/views':      { post: { tags: ['News'], summary: 'Increment page views on a news article (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/news/{id}/card-views': { post: { tags: ['News'], summary: 'Increment card views on a news article (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
 
   '/news/delete-batch': {
     post: {
@@ -761,6 +767,25 @@ export const paths = {
   '/foods/sweets/create':      { post:   { tags: ['Foods'], summary: 'Create a sweet record', security: auth, requestBody: body('#/components/schemas/FoodSweetRequest'), responses: { ...created('Created.'), ...fail } } },
   '/foods/sweets/update/{id}': { put:    { tags: ['Foods'], summary: 'Update a sweet record', security: auth, parameters: id, requestBody: body('#/components/schemas/FoodSweetRequest'), responses: { ...ok('Updated.'), ...fail } } },
   '/foods/sweets/delete/{id}': { delete: { tags: ['Foods'], summary: 'Delete a sweet record', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
+
+  '/foods/healthtips/list': {
+    get: {
+      tags: ['Foods'],
+      summary: 'List health tips (public)',
+      parameters: [
+        ...pagQ,
+        { name: 'search', in: 'query', schema: { type: 'string' }, description: 'Search by title.' },
+      ],
+      responses: { ...paginatedOk },
+    },
+  },
+
+  '/foods/healthtips/create':      { post:   { tags: ['Foods'], summary: 'Create a health tip', security: auth, requestBody: body('#/components/schemas/FoodHealthTipRequest'), responses: { ...created('Created.'), ...fail } } },
+  '/foods/healthtips/update/{id}': { put:    { tags: ['Foods'], summary: 'Update a health tip', security: auth, parameters: id, requestBody: body('#/components/schemas/FoodHealthTipRequest'), responses: { ...ok('Updated.'), ...fail } } },
+  '/foods/healthtips/delete/{id}': { delete: { tags: ['Foods'], summary: 'Delete a health tip', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
+
+  '/foods/healthtips/{id}/views':      { post: { tags: ['Foods'], summary: 'Increment health tip page views (public)', parameters: id, responses: { ...ok('Incremented.') } } },
+  '/foods/healthtips/{id}/card-views': { post: { tags: ['Foods'], summary: 'Increment health tip card views (public)', parameters: id, responses: { ...ok('Incremented.') } } },
 
   // ─────────────────────────────────────────────────────────────────────────
   // HISTORY
@@ -1607,7 +1632,7 @@ export const paths = {
         'Use this when you need the content ID to name the Storage file path (e.g. `realestate/thumbnails/RES00042.jpg`) before calling POST `/upload/{module}`.',
       security: auth,
       parameters: [
-        { name: 'module', in: 'query', required: true, schema: { type: 'string' }, description: 'Module prefix to generate ID for (e.g. realestate, tourism).', example: 'realestate' },
+        { name: 'prefix', in: 'query', required: true, schema: { type: 'string' }, description: 'Module prefix to generate ID for, e.g. NEW, EVT, JOB.', example: 'NEWS' },
       ],
       responses: {
         ...ok('Reserved ID.', '#/components/schemas/ReserveIdResponse'),
@@ -1615,4 +1640,65 @@ export const paths = {
       },
     },
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // VIEW INCREMENTS — remaining modules (RULE 11 — all public, no auth)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  '/jobs/{id}/views':      { post: { tags: ['Jobs'], summary: 'Increment page views on a job posting (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/jobs/{id}/card-views': { post: { tags: ['Jobs'], summary: 'Increment card views on a job posting (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/results/{id}/views':      { post: { tags: ['Results'], summary: 'Increment page views on a result (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/results/{id}/card-views': { post: { tags: ['Results'], summary: 'Increment card views on a result (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/sports/{id}/views':      { post: { tags: ['Sports'], summary: 'Increment page views on a sports entry (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/sports/{id}/card-views': { post: { tags: ['Sports'], summary: 'Increment card views on a sports entry (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/foods/{id}/views':      { post: { tags: ['Foods'], summary: 'Increment page views on a food entry (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/foods/{id}/card-views': { post: { tags: ['Foods'], summary: 'Increment card views on a food entry (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/foods/varieties/{id}/views':      { post: { tags: ['Foods'], summary: 'Increment page views on a food variety (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/foods/varieties/{id}/card-views': { post: { tags: ['Foods'], summary: 'Increment card views on a food variety (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/foods/sweets/{id}/views':      { post: { tags: ['Foods'], summary: 'Increment page views on a sweet (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/foods/sweets/{id}/card-views': { post: { tags: ['Foods'], summary: 'Increment card views on a sweet (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/history/{id}/views':      { post: { tags: ['History'], summary: 'Increment page views on a history entry (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/history/{id}/card-views': { post: { tags: ['History'], summary: 'Increment card views on a history entry (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/stays/{id}/views':      { post: { tags: ['Stays'], summary: 'Increment page views on a stay (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/stays/{id}/card-views': { post: { tags: ['Stays'], summary: 'Increment card views on a stay (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/events/{id}/views':      { post: { tags: ['Events'], summary: 'Increment page views on an event (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/events/{id}/card-views': { post: { tags: ['Events'], summary: 'Increment card views on an event (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/movies/{id}/views':      { post: { tags: ['Movies'], summary: 'Increment page views on a movie (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/movies/{id}/card-views': { post: { tags: ['Movies'], summary: 'Increment card views on a movie (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/transport/{id}/views':      { post: { tags: ['Transport'], summary: 'Increment page views on a transport entry (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/transport/{id}/card-views': { post: { tags: ['Transport'], summary: 'Increment card views on a transport entry (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/offers/{id}/views':      { post: { tags: ['Offers'], summary: 'Increment page views on an offer (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/offers/{id}/card-views': { post: { tags: ['Offers'], summary: 'Increment card views on an offer (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/tourism/{id}/views':      { post: { tags: ['Tourism'], summary: 'Increment page views on a tourist place (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/tourism/{id}/card-views': { post: { tags: ['Tourism'], summary: 'Increment card views on a tourist place (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/updates/{id}/views':      { post: { tags: ['Updates'], summary: 'Increment page views on an update (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/updates/{id}/card-views': { post: { tags: ['Updates'], summary: 'Increment card views on an update (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/ads/{id}/views':        { post: { tags: ['Ads'], summary: 'Increment page views on an ad (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/ads/{id}/card-views':   { post: { tags: ['Ads'], summary: 'Increment card views on an ad (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+  '/ads/{id}/impressions':  { post: { tags: ['Ads'], summary: 'Increment impressions on an ad (public)', parameters: id, responses: { ...ok('Impressions incremented.') } } },
+  '/ads/{id}/clicks':       { post: { tags: ['Ads'], summary: 'Increment clicks on an ad (public)', parameters: id, responses: { ...ok('Clicks incremented.') } } },
+
+  '/sponsorships/{id}/views':       { post: { tags: ['Sponsorships'], summary: 'Increment page views on a sponsorship (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/sponsorships/{id}/card-views':  { post: { tags: ['Sponsorships'], summary: 'Increment card views on a sponsorship (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+  '/sponsorships/{id}/impressions': { post: { tags: ['Sponsorships'], summary: 'Increment impressions on a sponsorship (public)', parameters: id, responses: { ...ok('Impressions incremented.') } } },
+  '/sponsorships/{id}/clicks':      { post: { tags: ['Sponsorships'], summary: 'Increment clicks on a sponsorship (public)', parameters: id, responses: { ...ok('Clicks incremented.') } } },
+
+  '/instagram/posts/{id}/views':       { post: { tags: ['Instagram'], summary: 'Increment page views on an Instagram post (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
+  '/instagram/posts/{id}/card-views':  { post: { tags: ['Instagram'], summary: 'Increment card views on an Instagram post (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+  '/instagram/posts/{id}/impressions': { post: { tags: ['Instagram'], summary: 'Increment impressions on an Instagram post (public)', parameters: id, responses: { ...ok('Impressions incremented.') } } },
+  '/instagram/posts/{id}/touches':     { post: { tags: ['Instagram'], summary: 'Increment touches on an Instagram post (public)', parameters: id, responses: { ...ok('Touches incremented.') } } },
 }

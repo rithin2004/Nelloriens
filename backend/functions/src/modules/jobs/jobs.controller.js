@@ -5,11 +5,13 @@ import { createTracking, updateTracking } from '../../utils/userTracking.js'
 // ── Jobs ───────────────────────────────────────────────────────────────────
 
 export async function list(req, res) {
-  res.json({ success: true, ...(await jobsService.list(req.query)) })
+  const { items, total, page, totalPages } = await jobsService.list(req.query)
+  res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
 }
 
 export async function getById(req, res) {
-  res.json(await jobsService.getById(req.params.id))
+  const data = await jobsService.getById(req.params.id)
+  res.json({ success: true, message: 'OK', data })
 }
 
 export async function create(req, res) {
@@ -27,57 +29,59 @@ export async function update(req, res) {
 export async function remove(req, res) {
   await jobsService.remove(req.params.id)
   await log(req, 'delete', 'jobs', req.params.id)
-  res.json({ success: true, message: 'Deleted' })
+  res.json({ success: true, message: 'Deleted', data: null })
 }
 
 // ── Categories ─────────────────────────────────────────────────────────────
 
 export async function listCategories(req, res) {
-  res.json(await jobCatService.list())
+  const data = await jobCatService.list()
+  res.json({ success: true, message: 'OK', data })
 }
 
 export async function createCategory(req, res) {
   const data = await jobCatService.create(req.body.name)
-  res.status(201).json({ success: true, data })
+  res.status(201).json({ success: true, message: 'Created', data })
 }
 
 export async function updateCategory(req, res) {
   const data = await jobCatService.update(req.params.id, req.body.name)
-  res.json({ success: true, data })
+  res.json({ success: true, message: 'Updated', data })
 }
 
 export async function deleteCategory(req, res) {
   await jobCatService.remove(req.params.id)
-  res.json({ success: true, message: 'Deleted' })
+  res.json({ success: true, message: 'Deleted', data: null })
 }
 
 // ── Locations ──────────────────────────────────────────────────────────────
 
 export async function listLocations(req, res) {
-  res.json(await jobLocService.list())
+  const data = await jobLocService.list()
+  res.json({ success: true, message: 'OK', data })
 }
 
 export async function createLocation(req, res) {
   const data = await jobLocService.create(req.body.name)
-  res.status(201).json({ success: true, data })
+  res.status(201).json({ success: true, message: 'Created', data })
 }
 
 export async function updateLocation(req, res) {
   const data = await jobLocService.update(req.params.id, req.body.name)
-  res.json({ success: true, data })
+  res.json({ success: true, message: 'Updated', data })
 }
 
 export async function deleteLocation(req, res) {
   await jobLocService.remove(req.params.id)
-  res.json({ success: true, message: 'Deleted' })
+  res.json({ success: true, message: 'Deleted', data: null })
 }
 
 // ── View increments (RULE 11 — public, no auth) ────────────────────────────
 export async function incrementPageViews(req, res) {
   await jobsService.incrementViews(req.params.id, 'pageViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }
 export async function incrementCardViews(req, res) {
   await jobsService.incrementViews(req.params.id, 'cardViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }

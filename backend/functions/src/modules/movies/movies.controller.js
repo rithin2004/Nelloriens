@@ -5,11 +5,13 @@ import { createTracking, updateTracking } from '../../utils/userTracking.js'
 // ── Movies ─────────────────────────────────────────────────────────────────
 
 export async function list(req, res) {
-  res.json({ success: true, ...(await moviesService.list(req.query)) })
+  const { items, total, page, totalPages } = await moviesService.list(req.query)
+  res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
 }
 
 export async function getById(req, res) {
-  res.json(await moviesService.getById(req.params.id))
+  const data = await moviesService.getById(req.params.id)
+  res.json({ success: true, message: 'OK', data })
 }
 
 export async function create(req, res) {
@@ -27,13 +29,14 @@ export async function update(req, res) {
 export async function remove(req, res) {
   await moviesService.remove(req.params.id)
   await log(req, 'delete', 'movies', req.params.id)
-  res.json({ success: true, message: 'Deleted' })
+  res.json({ success: true, message: 'Deleted', data: null })
 }
 
 // ── Theatres ───────────────────────────────────────────────────────────────
 
 export async function listTheatres(req, res) {
-  res.json(await theatresService.list({}))
+  const { items, total, page, totalPages } = await theatresService.list({})
+  res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
 }
 
 export async function createTheatre(req, res) {
@@ -51,17 +54,19 @@ export async function updateTheatre(req, res) {
 export async function removeTheatre(req, res) {
   await theatresService.remove(req.params.id)
   await log(req, 'delete', 'theatres', req.params.id)
-  res.json({ success: true, message: 'Deleted' })
+  res.json({ success: true, message: 'Deleted', data: null })
 }
 
 // ── Trailers (RULE 35 — separate section) ─────────────────────────────────
 
 export async function listTrailers(req, res) {
-  res.json({ success: true, ...(await trailersService.list(req.query)) })
+  const { items, total, page, totalPages } = await trailersService.list(req.query)
+  res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
 }
 
 export async function getTrailerById(req, res) {
-  res.json(await trailersService.getById(req.params.id))
+  const data = await trailersService.getById(req.params.id)
+  res.json({ success: true, message: 'OK', data })
 }
 
 export async function createTrailer(req, res) {
@@ -79,23 +84,23 @@ export async function updateTrailer(req, res) {
 export async function removeTrailer(req, res) {
   await trailersService.remove(req.params.id)
   await log(req, 'delete', 'movies', req.params.id, { type: 'trailer' })
-  res.json({ success: true, message: 'Trailer deleted' })
+  res.json({ success: true, message: 'Trailer deleted', data: null })
 }
 
 // ── View increments (RULE 11 — public, no auth) ────────────────────────────
 export async function incrementPageViews(req, res) {
   await moviesService.incrementViews(req.params.id, 'pageViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }
 export async function incrementCardViews(req, res) {
   await moviesService.incrementViews(req.params.id, 'cardViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }
 export async function incrementTrailerPageViews(req, res) {
   await trailersService.incrementViews(req.params.id, 'pageViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }
 export async function incrementTrailerCardViews(req, res) {
   await trailersService.incrementViews(req.params.id, 'cardViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }

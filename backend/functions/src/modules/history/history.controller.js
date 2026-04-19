@@ -3,11 +3,13 @@ import { log } from '../../utils/auditLog.js'
 import { createTracking, updateTracking } from '../../utils/userTracking.js'
 
 export async function list(req, res) {
-  res.json({ success: true, ...(await historyService.list(req.query)) })
+  const { items, total, page, totalPages } = await historyService.list(req.query)
+  res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
 }
 
 export async function getById(req, res) {
-  res.json(await historyService.getById(req.params.id))
+  const data = await historyService.getById(req.params.id)
+  res.json({ success: true, message: 'OK', data })
 }
 
 export async function create(req, res) {
@@ -25,20 +27,20 @@ export async function update(req, res) {
 export async function remove(req, res) {
   await historyService.remove(req.params.id)
   await log(req, 'delete', 'history', req.params.id)
-  res.json({ success: true, message: 'Deleted' })
+  res.json({ success: true, message: 'Deleted', data: null })
 }
 
 export async function reorder(req, res) {
   await reorderHistory(req.body.ids)
-  res.json({ success: true, message: 'Reordered' })
+  res.json({ success: true, message: 'Reordered', data: null })
 }
 
 // ── View increments (RULE 11 — public, no auth) ────────────────────────────
 export async function incrementPageViews(req, res) {
   await historyService.incrementViews(req.params.id, 'pageViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }
 export async function incrementCardViews(req, res) {
   await historyService.incrementViews(req.params.id, 'cardViews')
-  res.json({ success: true })
+  res.json({ success: true, message: 'OK' })
 }

@@ -2,16 +2,18 @@ import { siteConfigService, auditLogsService } from './settings.service.js'
 
 export const siteCtrl = {
   async get(req, res) {
-    res.json(await siteConfigService.get())
+    const data = await siteConfigService.get()
+    res.json({ success: true, message: 'OK', data })
   },
   async update(req, res) {
     const data = await siteConfigService.update(req.body)
-    res.json({ success: true, data })
+    res.json({ success: true, message: 'Updated', data })
   },
 }
 
 export const auditCtrl = {
   async list(req, res) {
-    res.json({ success: true, ...(await auditLogsService.list(req.query)) })
+    const { items, total, page, totalPages } = await auditLogsService.list(req.query)
+    res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
   },
 }

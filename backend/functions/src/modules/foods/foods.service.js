@@ -1,4 +1,4 @@
-import { foodsRepo, photosRepo, varietiesRepo, sweetsRepo } from './foods.repository.js'
+import { foodsRepo, photosRepo, varietiesRepo, sweetsRepo, healthTipsRepo } from './foods.repository.js'
 import { CrudService, badReq, notFound }                    from '../../utils/serviceBase.js'
 import { db }                                               from '../../config/firebase.js'
 
@@ -89,6 +89,38 @@ export const varietiesService = {
     const item = await varietiesRepo.findById(id)
     if (!item) notFound('Variety not found')
     await varietiesRepo.delete(id)
+  },
+}
+
+// ── Health Tips ────────────────────────────────────────────────────────────
+export const healthTipsService = {
+  async incrementViews(id, field) {
+    await healthTipsRepo.incrementField(id, field)
+  },
+  async list(query = {}) {
+    const { page = 1, limit = 20, search = '' } = query
+    const all = await healthTipsRepo.findAll({ orderBy: 'createdAt', order: 'desc' })
+    const filtered = search
+      ? all.filter(t => t.title?.toLowerCase().includes(search.toLowerCase()))
+      : all
+    const total      = filtered.length
+    const totalPages = Math.ceil(total / limit) || 1
+    const items      = filtered.slice((page - 1) * limit, page * limit)
+    return { items, total, page: Number(page), totalPages }
+  },
+  async create(data) {
+    if (!data.title?.trim()) badReq('title is required')
+    return healthTipsRepo.create(data)
+  },
+  async update(id, data) {
+    const item = await healthTipsRepo.findById(id)
+    if (!item) notFound('Health tip not found')
+    return healthTipsRepo.update(id, data)
+  },
+  async remove(id) {
+    const item = await healthTipsRepo.findById(id)
+    if (!item) notFound('Health tip not found')
+    await healthTipsRepo.delete(id)
   },
 }
 

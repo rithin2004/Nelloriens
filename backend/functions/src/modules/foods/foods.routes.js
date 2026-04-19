@@ -34,6 +34,16 @@ router.delete('/sweets/delete/:id',   authenticate, permit(M,'delete'), a(c.dele
 router.post('/sweets/:id/views',      a(c.incrementSweetPageViews))
 router.post('/sweets/:id/card-views', a(c.incrementSweetCardViews))
 
+// Health Tips
+router.get   ('/healthtips/list',                          a(c.listHealthTips))
+router.post  ('/healthtips/create',       authenticate, permit(M,'create'), a(c.createHealthTip))
+router.put   ('/healthtips/update/:id',   authenticate, permit(M,'update'), a(c.updateHealthTip))
+router.delete('/healthtips/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteHealthTip))
+
+// Health Tips view increments — no auth (RULE 11)
+router.post('/healthtips/:id/views',      a(c.incrementHealthTipPageViews))
+router.post('/healthtips/:id/card-views', a(c.incrementHealthTipCardViews))
+
 // Foods CRUD
 router.get   ('/list',                   a(c.list))
 router.get   ('/get/:id',                a(c.getById))
