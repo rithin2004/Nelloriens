@@ -928,6 +928,11 @@ export const paths = {
   // OFFERS
   // ─────────────────────────────────────────────────────────────────────────
 
+  '/offers/categories/list':        { get:    { tags: ['Offers'], summary: 'List offer categories (public)', responses: { ...ok('Array of categories.') } } },
+  '/offers/categories/create':      { post:   { tags: ['Offers'], summary: 'Create an offer category', security: auth, requestBody: inlineBody(['name'], { name: { type: 'string', example: 'Food' } }), responses: { ...created('Created.'), ...fail } } },
+  '/offers/categories/update/{id}': { put:    { tags: ['Offers'], summary: 'Update an offer category', security: auth, parameters: id, requestBody: inlineBody([], { name: { type: 'string', example: 'Shopping' } }), responses: { ...ok('Updated.'), ...fail } } },
+  '/offers/categories/delete/{id}': { delete: { tags: ['Offers'], summary: 'Delete an offer category', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
+
   '/offers/list': {
     get: {
       tags: ['Offers'],

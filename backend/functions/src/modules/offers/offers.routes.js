@@ -8,6 +8,12 @@ const router = Router()
 const M = 'offers'
 const a = asyncHandler
 
+// Categories
+router.get   ('/categories/list',                          a(c.listCategories))
+router.post  ('/categories/create',       authenticate, permit(M,'create'), a(c.createCategory))
+router.put   ('/categories/update/:id',   authenticate, permit(M,'update'), a(c.updateCategory))
+router.delete('/categories/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteCategory))
+
 router.get   ('/list',                   a(c.list))
 router.get   ('/get/:id',                a(c.getById))
 router.post  ('/create',     authenticate, permit(M,'create'), a(c.create))
