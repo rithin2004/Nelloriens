@@ -69,7 +69,7 @@ export default function SportsList() {
   }, [tab, page, debouncedSearch, catFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    sportsApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
+    sportsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   }, [])
 
   const switchTab = (t) => { setTab(t); setPage(1); setSearch(''); setCatFilter('') }
@@ -89,7 +89,7 @@ export default function SportsList() {
   }
   const openEdit = async (id) => {
     setFormFetching(true); setFormDefaults(null); setFormEditId(id); setFormDirty(false); setFormOpen(true)
-    try { const r = await sportsApi.getById(id); setFormDefaults(r.data) }
+    try { const r = await sportsApi.getById(id); setFormDefaults(r.data.data) }
     catch { toast.error('Failed to load'); setFormOpen(false) }
     finally { setFormFetching(false) }
   }

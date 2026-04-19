@@ -56,12 +56,12 @@ export default function CategoryManager({
   const fetchData = () => {
     setLoading(true)
     getAll()
-      .then((r) => setItems(r.data || []))
+      .then((r) => setItems(r.data.data || []))
       .catch(() => toast.error(`Failed to load ${title}`))
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCreate = async () => {
     if (!addName.trim()) return

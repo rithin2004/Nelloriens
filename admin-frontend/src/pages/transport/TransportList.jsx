@@ -76,7 +76,7 @@ export default function TransportList() {
 
   const openEdit = async (id) => {
     setFormFetching(true); setFormDefaults(null); setFormEditId(id); setFormDirty(false); setFormOpen(true)
-    try { const r = await transportApi.getById(id); setFormDefaults(r.data) }
+    try { const r = await transportApi.getById(id); setFormDefaults(r.data.data) }
     catch { toast.error('Failed to load'); setFormOpen(false) }
     finally { setFormFetching(false) }
   }

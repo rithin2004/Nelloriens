@@ -27,7 +27,6 @@ const PAGE_SIZE = 20
 
 export default function ModuleList({
   title,
-  collectionName,        // kept for reference / future use
   store,                 // Zustand store hook for this module
   createPath,
   editPath,
@@ -38,7 +37,7 @@ export default function ModuleList({
   formModalTitle,
   extraFilters = [],
   headerExtra,
-  idPrefix,             // e.g. 'NEWS' — if set, reserves an ID before opening create form (RULE 10)
+  idPrefix,
 }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -64,7 +63,7 @@ export default function ModuleList({
   const extraFilterStr = JSON.stringify(extraFilterVals)
 
   // Fetch via store — store saves _params so SSE-triggered re-fetch uses same filters
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(() => {
     if (!fetch) return
     fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, ...extraFilterVals })
@@ -109,7 +108,7 @@ export default function ModuleList({
   const openEdit = async (id) => {
     if (!FormComponent) { navigate(editPath(id)); return }
     setFormFetching(true); setFormOpen(true); setFormDefaults(null); setFormEditId(id); setFormDirty(false)
-    try { const r = await api.getById(id); setFormDefaults(r.data) }
+    try { const r = await api.getById(id); setFormDefaults(r.data.data) }
     catch { toast.error('Failed to load item'); setFormOpen(false) }
     finally { setFormFetching(false) }
   }
@@ -230,7 +229,7 @@ export default function ModuleList({
 
       {/* Filters */}
       <div className="flex gap-3 mb-4 flex-wrap">
-        <div>
+        <div className="w-full sm:w-64">
           <label htmlFor={`search-${title.toLowerCase().replace(/\s+/g, '-')}`} className="sr-only">
             Search {title.toLowerCase()}
           </label>
@@ -240,20 +239,20 @@ export default function ModuleList({
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder={`Search ${title.toLowerCase()}…`}
-            className={`${inp} w-full sm:w-64`} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
+            className={`${inp} w-full`} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
           />
         </div>
         {extraFilters.map(({ key, label, options }) => {
           const filterId = `filter-${key}-${title.toLowerCase().replace(/\s+/g, '-')}`
           return (
-            <div key={key}>
+            <div key={key} className="w-full sm:w-auto">
               <label htmlFor={filterId} className="sr-only">Filter by {label}</label>
               <select
                 id={filterId}
                 name={`filter-${key}`}
                 value={extraFilterVals[key] || ''}
                 onChange={(e) => { setExtraFilterVals((p) => ({ ...p, [key]: e.target.value })); setPage(1) }}
-                className={inp} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
+                className={`${inp} w-full sm:w-auto`} style={inpStyle} onFocus={inpFocus} onBlur={inpBlur}
               >
                 <option value="">All {label}s</option>
                 {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}

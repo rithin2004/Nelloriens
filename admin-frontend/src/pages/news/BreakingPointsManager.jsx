@@ -76,7 +76,7 @@ export default function BreakingPointsManager() {
   const fetchData = () => {
     setLoading(true)
     newsApi.getBreakingPoints()
-      .then((r) => setItems(r.data || []))
+      .then((r) => setItems(r.data.data || []))
       .catch(() => toast.error('Failed to load'))
       .finally(() => setLoading(false))
   }
@@ -153,6 +153,9 @@ export default function BreakingPointsManager() {
         >
           <div className="flex flex-col sm:flex-row gap-2">
             <input
+              id="breaking-add-text"
+              name="addText"
+              autoComplete="off"
               value={addText}
               onChange={(e) => setAddText(e.target.value)}
               onKeyDown={(e) => {
@@ -209,6 +212,9 @@ export default function BreakingPointsManager() {
                       style={{ background: '#eef3fd', border: '1px solid #dce8fb' }}
                     >
                       <input
+                        id="breaking-edit-text"
+                        name="editText"
+                        autoComplete="off"
                         value={editText}
                         onChange={(e) => setEditText(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleUpdate(); if (e.key === 'Escape') cancelEdit() }}

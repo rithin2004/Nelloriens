@@ -70,8 +70,8 @@ export default function MoviesList() {
     setTrailersLoading(true)
     try {
       const r = await moviesApi.getTrailers({ page, limit: PAGE_SIZE, search: debouncedSearch })
-      setTrailersData(r.data?.items || r.data || [])
-      setTrailersTotalPages(r.data?.totalPages || 1)
+      setTrailersData(r.data?.data || [])
+      setTrailersTotalPages(r.data?.pagination?.totalPages || 1)
     } catch { toast.error('Failed to load trailers') }
     finally { setTrailersLoading(false) }
   }
@@ -118,7 +118,7 @@ export default function MoviesList() {
 
   const openEditMovie = async (id) => {
     setFormFetching(true); setFormDefaults(null); setFormEditId(id); setFormDirty(false); setFormOpen(true)
-    try { const r = await moviesApi.getById(id); setFormDefaults(r.data) }
+    try { const r = await moviesApi.getById(id); setFormDefaults(r.data.data) }
     catch { toast.error('Failed to load'); setFormOpen(false) }
     finally { setFormFetching(false) }
   }

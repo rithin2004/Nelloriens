@@ -21,7 +21,7 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
   const [runningUntil, setRunningUntil] = useState(defaultValues?.runningUntil ? new Date(defaultValues.runningUntil) : null)
 
   useEffect(() => {
-    moviesApi.getTheatres().then((r) => setTheatres(r.data?.items || [])).catch(() => {})
+    moviesApi.getTheatres().then((r) => setTheatres(r.data?.data || [])).catch(() => {})
   }, [])
 
   const addTiming = () => setTimings([...timings, ''])
@@ -52,7 +52,7 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
 
         <div>
           <label htmlFor="mov-theatre" className={lbl} style={lblStyle}>Theatre *</label>
-          <select id="mov-theatre" name="theatre"
+          <select id="mov-theatre" name="theatre" autoComplete="off"
             {...register('theatre', { required: 'Required' })} className={inp}>
             <option value="">Select theatre</option>
             {theatres.map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}
@@ -62,7 +62,7 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
 
         <div>
           <label htmlFor="mov-lang" className={lbl} style={lblStyle}>Language *</label>
-          <select id="mov-lang" name="language"
+          <select id="mov-lang" name="language" autoComplete="off"
             {...register('language', { required: 'Required' })} className={inp}>
             <option value="">Select</option>
             {['Telugu', 'Hindi', 'Tamil', 'English', 'Other'].map((l) => <option key={l} value={l}>{l}</option>)}
@@ -70,10 +70,10 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
         </div>
 
         <div>
-          <label className={lbl} style={lblStyle}>Show Timings</label>
+          <p className={lbl} style={lblStyle}>Show Timings</p>
           {timings.map((t, i) => (
             <div key={i} className="flex gap-2 mb-2">
-              <input value={t} onChange={(e) => updateTiming(i, e.target.value)}
+              <input id={`mov-timing-${i}`} name={`showTimings[${i}]`} value={t} onChange={(e) => updateTiming(i, e.target.value)}
                 className={`${inp} flex-1`} placeholder="10:00 AM" autoComplete="off" />
               {timings.length > 1 && (
                 <button type="button" onClick={() => removeTiming(i)}
@@ -114,7 +114,7 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
           </div>
           <div>
             <label htmlFor="mov-rating" className={lbl} style={lblStyle}>Rating</label>
-            <select id="mov-rating" name="rating"
+            <select id="mov-rating" name="rating" autoComplete="off"
               {...register('rating')} className={inp}>
               <option value="">Select</option>
               <option value="U">U</option>
@@ -138,7 +138,7 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
 
         <div>
           <label htmlFor="mov-status" className={lbl} style={lblStyle}>Status *</label>
-          <select id="mov-status" name="status"
+          <select id="mov-status" name="status" autoComplete="off"
             {...register('status', { required: 'Required' })} className={inp}>
             <option value="now_showing">Now Showing</option>
             <option value="coming_soon">Coming Soon</option>
@@ -152,7 +152,7 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="mov-scope" className={lbl} style={lblStyle}>Scope *</label>
-            <select id="mov-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+            <select id="mov-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

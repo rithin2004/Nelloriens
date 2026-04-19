@@ -67,6 +67,9 @@ export default function InlineCategoryAdd({ onAdd, placeholder = 'Enter name', l
           <form onSubmit={handleSubmit}>
             <input
               ref={inputRef}
+              id="inline-cat-input"
+              name="categoryName"
+              autoComplete="off"
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Escape') { setOpen(false); setValue('') } }}

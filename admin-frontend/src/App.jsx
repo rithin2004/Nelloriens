@@ -17,11 +17,11 @@ function SetupGuard({ children }) {
     if (location.pathname === '/setup') { setChecked(true); return }
     setupApi.getStatus()
       .then((r) => {
-        if (!r.data.initialized) navigate('/setup', { replace: true })
+        if (!r.data.data?.initialized) navigate('/setup', { replace: true })
       })
       .catch(() => {/* network error — let the app load normally */})
       .finally(() => setChecked(true))
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!checked && location.pathname !== '/setup') {
     return <div className="min-h-screen flex items-center justify-center text-slate-400 text-sm">Loading…</div>

@@ -38,7 +38,7 @@ export default function NewsForm({ defaultValues, onSubmit, loading, contentId }
   const [publishedAt, setPublishedAt] = useState(defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date())
   const redirectUrl = watch('redirectUrl', '')
 
-  const fetchCategories = () => newsApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
+  const fetchCategories = () => newsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   useEffect(() => { fetchCategories() }, [])
 
   const submit = (data) => {
@@ -72,7 +72,7 @@ export default function NewsForm({ defaultValues, onSubmit, loading, contentId }
               }}
             />
           </div>
-          <select id="news-category" name="category"
+          <select id="news-category" name="category" autoComplete="off"
             {...register('category', { required: 'Required' })} className={inp}>
             <option value="">Select category</option>
             {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
@@ -102,7 +102,7 @@ export default function NewsForm({ defaultValues, onSubmit, loading, contentId }
         </div>
         {!redirectUrl && (
           <div>
-            <label className={lbl} style={lblStyle}>Body Content</label>
+            <p className={lbl} style={lblStyle}>Body Content</p>
             <RichTextEditor value={body} onChange={setBody} />
           </div>
         )}
@@ -139,7 +139,7 @@ export default function NewsForm({ defaultValues, onSubmit, loading, contentId }
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="news-scope" className={lbl} style={lblStyle}>Scope *</label>
-            <select id="news-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+            <select id="news-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

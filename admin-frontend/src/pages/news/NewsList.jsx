@@ -75,20 +75,20 @@ export default function NewsList() {
   const [reservedId,     setReservedId]     = useState(null)
 
   // Re-fetch via store on filter/tab/page change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(() => {
     fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, category: categoryFilter, isImportant: tab === 'important' ? 'true' : 'false' })
   }, [tab, page, debouncedSearch, categoryFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load categories once
   useEffect(() => {
-    newsApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
+    newsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   }, [])
 
   // Auto-open create form when navigated from Quick Actions
   useEffect(() => {
     if (location.state?.openCreate) { openCreate(); window.history.replaceState({}, '') }
-  }, [location.state]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.state])  
 
   const switchTab = (t) => { setTab(t); setPage(1) }
 
@@ -138,7 +138,7 @@ export default function NewsList() {
 
   const openEdit = async (id) => {
     setFormFetching(true); setFormDefaults(null); setFormEditId(id); setFormDirty(false); setFormOpen(true)
-    try { const r = await newsApi.getById(id); setFormDefaults(r.data) }
+    try { const r = await newsApi.getById(id); setFormDefaults(r.data.data) }
     catch { toast.error('Failed to load'); setFormOpen(false) }
     finally { setFormFetching(false) }
   }

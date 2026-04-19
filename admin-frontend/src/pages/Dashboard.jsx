@@ -6,7 +6,7 @@ import {
   Inbox, Bell, Star, Play, Clock,
 } from 'lucide-react'
 import { dashboardApi } from '../services/api'
-import { timeAgo, formatDate } from '../utils/helpers'
+import { timeAgo } from '../utils/helpers'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 
 const P  = '#0a3d95'
@@ -44,7 +44,8 @@ function StatCard({ s, value }) {
   )
 }
 
-function SectionCard({ icon: Icon, iconColor, title, children, action }) {
+function SectionCard({ icon, iconColor, title, children, action }) {
+  const Icon = icon
   return (
     <div className="rounded-xl overflow-hidden bg-white" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
       <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: `1px solid ${PL}`, background: PB }}>
@@ -69,10 +70,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     Promise.all([
-      dashboardApi.getStats().then((r) => setStats(r.data)).catch(() => {}),
-      dashboardApi.getRecentLeads().then((r) => setRecentLeads(r.data || [])).catch(() => {}),
-      dashboardApi.getActivity({ page: 1, limit: 5 }).then((r) => setRecentActivity(r.data?.items || [])).catch(() => {}),
-      dashboardApi.getFeatured().then((r) => setFeatured(r.data || {})).catch(() => {}),
+      dashboardApi.getStats().then((r) => setStats(r.data.data || {})).catch(() => {}),
+      dashboardApi.getRecentLeads().then((r) => setRecentLeads(r.data.data || [])).catch(() => {}),
+      dashboardApi.getActivity({ page: 1, limit: 5 }).then((r) => setRecentActivity(r.data?.data || [])).catch(() => {}),
+      dashboardApi.getFeatured().then((r) => setFeatured(r.data.data || {})).catch(() => {}),
     ]).finally(() => setLoading(false))
   }, [])
 

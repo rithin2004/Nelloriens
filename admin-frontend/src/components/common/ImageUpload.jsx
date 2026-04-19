@@ -29,7 +29,7 @@ export default function ImageUpload({ module, contentId, section, index, value, 
     try {
       setUploading(true)
       const res = await uploadApi.upload(module, fd)
-      onChange(res.data.url)
+      onChange(res.data.data.url)
     } catch (err) {
       toast.error('Upload failed: ' + err.message)
     } finally {
@@ -38,7 +38,7 @@ export default function ImageUpload({ module, contentId, section, index, value, 
   }
 
   const handleRemove = async () => {
-    if (value) { try { await uploadApi.delete(value) } catch {} }
+    if (value) { try { await uploadApi.delete(value) } catch { /* ignore storage delete errors */ } }
     onChange('')
     if (onAltChange) onAltChange('')
     if (inputRef.current) inputRef.current.value = ''

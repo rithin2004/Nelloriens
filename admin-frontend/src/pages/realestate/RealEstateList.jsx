@@ -54,9 +54,9 @@ export default function RealEstateList() {
   const { items: data, totalPages, loading, fetch } = useRealEstateStore()
 
   useEffect(() => {
-    realEstateApi.getLocations().then((r) => setLocations(r.data || [])).catch(() => {})
-    realEstateApi.getTypes().then((r) => setPropertyTypes(r.data || [])).catch(() => {})
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    realEstateApi.getLocations().then((r) => setLocations(r.data.data || [])).catch(() => {})
+    realEstateApi.getTypes().then((r) => setPropertyTypes(r.data.data || [])).catch(() => {})
+  }, [])  
 
   useEffect(() => {
     fetch({
@@ -90,7 +90,7 @@ export default function RealEstateList() {
 
   const openEdit = async (id) => {
     setFormFetching(true); setFormDefaults(null); setFormEditId(id); setFormDirty(false); setFormOpen(true)
-    try { const r = await realEstateApi.getById(id); setFormDefaults(r.data) }
+    try { const r = await realEstateApi.getById(id); setFormDefaults(r.data.data) }
     catch { toast.error('Failed to load'); setFormOpen(false) }
     finally { setFormFetching(false) }
   }
@@ -216,19 +216,22 @@ export default function RealEstateList() {
 
       {/* Tab switcher — Sale | Rent */}
       <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit" style={{ background: '#F1F5F9' }}>
-        {TABS.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            onClick={() => switchTab(key)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
-            style={activeTab === key
-              ? { background: '#FFFFFF', color: P, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }
-              : { color: '#64748B' }}
-          >
-            <Icon className="w-4 h-4" />
-            {label}
-          </button>
-        ))}
+        {TABS.map(({ key, label, icon }) => {
+          const Icon = icon
+          return (
+            <button
+              key={key}
+              onClick={() => switchTab(key)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+              style={activeTab === key
+                ? { background: '#FFFFFF', color: P, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }
+                : { color: '#64748B' }}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
+          )
+        })}
       </div>
 
       {/* Filters */}

@@ -35,8 +35,8 @@ export default function TourismForm({ defaultValues, onSubmit, loading, contentI
   const [location, setLocation] = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
 
   useEffect(() => {
-    tourismApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
-    tourismApi.getLocations().then((r)  => setLocations(r.data  || [])).catch(() => {})
+    tourismApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
+    tourismApi.getLocations().then((r)  => setLocations(r.data.data  || [])).catch(() => {})
   }, [])
 
   const handleMapChange = ({ lat, lng }) => {
@@ -64,12 +64,12 @@ export default function TourismForm({ defaultValues, onSubmit, loading, contentI
         </div>
         <div>
           <label htmlFor="tur-category" className={field}>Category *</label>
-          <select id="tur-category" name="category" {...register('category', { required: true })} className={input}>
+          <select id="tur-category" name="category" autoComplete="off" {...register('category', { required: true })} className={input}>
             <option value="">Select</option>
             {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
         </div>
-        <div><label className={field}>Description *</label><RichTextEditor value={description} onChange={setDescription} /></div>
+        <div><p className={field}>Description *</p><RichTextEditor value={description} onChange={setDescription} /></div>
         <ImageUpload module="tourism" label="Thumbnail *" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
       </div>
 
@@ -119,7 +119,7 @@ export default function TourismForm({ defaultValues, onSubmit, loading, contentI
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="tourism-scope" className={field}>Scope *</label>
-            <select id="tourism-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+            <select id="tourism-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={input}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>
@@ -133,7 +133,7 @@ export default function TourismForm({ defaultValues, onSubmit, loading, contentI
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="tourism-location" className={field}>Location</label>
-            <select id="tourism-location" name="location" {...register('location')} className={input}>
+            <select id="tourism-location" name="location" autoComplete="off" {...register('location')} className={input}>
               <option value="">Select location</option>
               {locations.map((l) => <option key={l._id} value={l.name}>{l.name}</option>)}
             </select>

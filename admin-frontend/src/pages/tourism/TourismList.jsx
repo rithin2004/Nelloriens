@@ -133,8 +133,8 @@ export default function TourismList() {
   // Load display photos
   useEffect(() => {
     loadDisplayPhotos()
-    tourismApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    tourismApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
+  }, [])  
 
   const loadDisplayPhotos = async () => {
     setPhotosLoading(true)
@@ -149,7 +149,7 @@ export default function TourismList() {
 
   useEffect(() => {
     if (routerLocation.state?.openCreate) { openCreate(); window.history.replaceState({}, '') }
-  }, [routerLocation.state]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [routerLocation.state])  
 
   // ── Display Photos handlers ──────────────────────────────────────────────
 
@@ -170,10 +170,10 @@ export default function TourismList() {
     setPhotoUploading(true)
     try {
       const r = await uploadApi.upload('tourism', fd)
-      const url = r.data.url
+      const url = r.data.data.url
       if (existingPhoto) {
         // Replace — delete old file, update doc
-        if (existingPhoto.url) { try { await uploadApi.delete(existingPhoto.url) } catch {} }
+        if (existingPhoto.url) { try { await uploadApi.delete(existingPhoto.url) } catch { /* ignore */ } }
         await tourismApi.updateDisplayPhoto(existingPhoto._id, { url })
       } else {
         await tourismApi.createDisplayPhoto({ url })
@@ -193,7 +193,7 @@ export default function TourismList() {
     setDeletingPhoto(true)
     try {
       const photo = displayPhotos.find(p => p._id === deletePhotoId)
-      if (photo?.url) { try { await uploadApi.delete(photo.url) } catch {} }
+      if (photo?.url) { try { await uploadApi.delete(photo.url) } catch { /* ignore */ } }
       await tourismApi.deleteDisplayPhoto(deletePhotoId)
       setDeletePhotoId(null)
       await loadDisplayPhotos()
@@ -261,7 +261,7 @@ export default function TourismList() {
 
   const openEdit = async (id) => {
     setFormFetching(true); setFormDefaults(null); setFormEditId(id); setFormOpen(true)
-    try { const r = await tourismApi.getById(id); setFormDefaults(r.data) }
+    try { const r = await tourismApi.getById(id); setFormDefaults(r.data.data) }
     catch { toast.error('Failed to load'); setFormOpen(false) }
     finally { setFormFetching(false) }
   }

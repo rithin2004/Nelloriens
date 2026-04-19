@@ -220,7 +220,7 @@ function exportPDF(data, companyName = 'Admin') {
       <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Subject</th><th>Message</th><th>Status</th><th>Date</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <script>window.onload = () => { window.print() }<\/script>
+    <script>window.onload = () => { window.print() }</script>
     </body></html>`)
   win.document.close()
 }
@@ -244,7 +244,7 @@ export default function LeadsList() {
   // Data from Zustand store — updated by useSSE in Layout automatically
   const { items: data, total, totalPages, loading, fetch } = useLeadsStore()
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(() => {
     fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, status, dateFrom, dateTo })
   }, [page, debouncedSearch, status, dateFrom, dateTo]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -278,7 +278,7 @@ export default function LeadsList() {
         page: 1, limit: 10000,
         search: debouncedSearch, status, dateFrom, dateTo,
       })
-      const exportData = r.data.items || []
+      const exportData = r.data.data || []
       if (format === 'csv') exportCSV(exportData)
       else exportPDF(exportData, companyName)
     } catch { toast.error('Export failed') }

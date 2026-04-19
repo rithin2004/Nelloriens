@@ -30,7 +30,7 @@ export default function Login() {
           navigate('/onboarding/company', { replace: true })
           return
         }
-      } catch {}
+      } catch { /* company check optional — proceed to dashboard */ }
       navigate('/dashboard')
     } catch {
       setError('Invalid email or password')

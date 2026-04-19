@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { useForm } from 'react-hook-form'
 import {
   Upload, Loader, X, Plus, Pencil, Trash2, Star, GripVertical,
-  UtensilsCrossed, Camera,
+  UtensilsCrossed, Camera, HeartPulse,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { foodsApi, uploadApi } from '../../services/api'
@@ -87,6 +87,30 @@ function SweetForm({ defaultValues, onSubmit, loading }) {
   )
 }
 
+// ── Health Tip form ───────────────────────────────────────────────────────────
+function HealthTipForm({ defaultValues, onSubmit, loading }) {
+  const { register, handleSubmit } = useForm({ defaultValues: defaultValues || { title: '', tip: '' } })
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
+        <label htmlFor="ht-title" className={lbl}>Title *</label>
+        <input id="ht-title" name="title" autoComplete="off"
+          {...register('title', { required: true })} placeholder="e.g. Eat seasonal fruits" className={inp} />
+      </div>
+      <div>
+        <label htmlFor="ht-tip" className={lbl}>Tip / Description *</label>
+        <textarea id="ht-tip" name="tip" autoComplete="off"
+          {...register('tip', { required: true })} rows={4} placeholder="Write the health tip here…" className={inp} style={{ resize: 'none' }} />
+      </div>
+      <button type="submit" disabled={loading}
+        className="w-full py-2.5 text-white font-semibold rounded-lg disabled:opacity-50"
+        style={{ background: 'linear-gradient(135deg,#10B981,#059669)', boxShadow: '0 4px 16px rgba(16,185,129,0.25)' }}>
+        {loading ? 'Saving…' : 'Save Tip'}
+      </button>
+    </form>
+  )
+}
+
 // ── Sortable photo card ───────────────────────────────────────────────────────
 function SortablePhoto({ photo, idx, onDelete }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo._id })
@@ -149,19 +173,34 @@ export default function FoodsList() {
   const [deleteSweetId, setDeleteSweetId]     = useState(null)
   const [deletingSweet, setDeletingSweet]     = useState(false)
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
-  const fetchPhotos    = useCallback(() => { setPhotosLoading(true);    foodsApi.getPhotos().then((r)    => setPhotos(r.data    || [])).catch(() => {}).finally(() => setPhotosLoading(false)) },    [])
-  const fetchVarieties = useCallback(() => { setVarietiesLoading(true); foodsApi.getVarieties().then((r) => setVarieties(r.data || [])).catch(() => {}).finally(() => setVarietiesLoading(false)) }, [])
-  const fetchSweets    = useCallback(() => { setSweetsLoading(true);    foodsApi.getSweets().then((r)    => setSweets(r.data    || [])).catch(() => {}).finally(() => setSweetsLoading(false)) },    [])
+  // Health Tips
+  const [healthTips, setHealthTips]             = useState([])
+  const [tipsLoading, setTipsLoading]           = useState(true)
+  const [tipSearch, setTipSearch]               = useState('')
+  const [tipFormOpen, setTipFormOpen]           = useState(false)
+  const [tipDefaults, setTipDefaults]           = useState(null)
+  const [tipEditId, setTipEditId]               = useState(null)
+  const [tipSaving, setTipSaving]               = useState(false)
+  const [deleteTipId, setDeleteTipId]           = useState(null)
+  const [deletingTip, setDeletingTip]           = useState(false)
 
-  useEffect(() => { fetchPhotos(); fetchVarieties(); fetchSweets() }, [fetchPhotos, fetchVarieties, fetchSweets])
+  // ── Fetch ─────────────────────────────────────────────────────────────────
+  const fetchPhotos     = useCallback(() => { setPhotosLoading(true);    foodsApi.getPhotos().then((r)    => setPhotos(r.data.data    || [])).catch(() => {}).finally(() => setPhotosLoading(false)) },    [])
+  const fetchVarieties  = useCallback(() => { setVarietiesLoading(true); foodsApi.getVarieties().then((r) => setVarieties(r.data.data || [])).catch(() => {}).finally(() => setVarietiesLoading(false)) }, [])
+  const fetchSweets     = useCallback(() => { setSweetsLoading(true);    foodsApi.getSweets().then((r)    => setSweets(r.data.data    || [])).catch(() => {}).finally(() => setSweetsLoading(false)) },    [])
+  const fetchHealthTips = useCallback((search = '') => {
+    setTipsLoading(true)
+    foodsApi.getHealthTips({ search }).then((r) => setHealthTips(r.data.data || [])).catch(() => {}).finally(() => setTipsLoading(false))
+  }, [])
+
+  useEffect(() => { fetchPhotos(); fetchVarieties(); fetchSweets(); fetchHealthTips() }, [fetchPhotos, fetchVarieties, fetchSweets, fetchHealthTips])
 
   // SSE refresh: when store items change (SSE triggered), re-fetch all sub-sections
   useEffect(() => {
     if (_sseItems === prevSseRef.current) return
     prevSseRef.current = _sseItems
-    fetchPhotos(); fetchVarieties(); fetchSweets()
-  }, [_sseItems, fetchPhotos, fetchVarieties, fetchSweets])
+    fetchPhotos(); fetchVarieties(); fetchSweets(); fetchHealthTips(tipSearch)
+  }, [_sseItems, fetchPhotos, fetchVarieties, fetchSweets, fetchHealthTips, tipSearch])
 
   // ── Photos handlers ───────────────────────────────────────────────────────
   const handlePhotoUpload = async (e) => {
@@ -188,7 +227,7 @@ export default function FoodsList() {
     setDeletingPhoto(true)
     try {
       await foodsApi.deletePhoto(deletePhoto._id)
-      try { await uploadApi.delete(deletePhoto.url) } catch {}
+      try { await uploadApi.delete(deletePhoto.url) } catch { /* ignore storage delete errors */ }
       toast.success('Photo removed'); setDeletePhoto(null); fetchPhotos()
     } catch { toast.error('Delete failed') }
     finally { setDeletingPhoto(false) }
@@ -273,6 +312,27 @@ export default function FoodsList() {
     try { await foodsApi.deleteSweet(deleteSweetId); setDeleteSweetId(null); toast.success('Deleted'); fetchSweets() }
     catch { toast.error('Delete failed') }
     finally { setDeletingSweet(false) }
+  }
+
+  // ── Health Tip handlers ───────────────────────────────────────────────────
+  const openTipCreate = () => { setTipDefaults({}); setTipEditId(null); setTipFormOpen(true) }
+  const openTipEdit   = (t) => { setTipDefaults(t); setTipEditId(t._id); setTipFormOpen(true) }
+
+  const handleTipSubmit = async (data) => {
+    setTipSaving(true)
+    try {
+      if (tipEditId) { await foodsApi.updateHealthTip(tipEditId, data); toast.success('Tip updated!') }
+      else           { await foodsApi.createHealthTip(data);             toast.success('Tip added!') }
+      setTipFormOpen(false); fetchHealthTips(tipSearch)
+    } catch (e) { toast.error(e?.response?.data?.message || 'Save failed') }
+    finally { setTipSaving(false) }
+  }
+
+  const handleDeleteTip = async () => {
+    setDeletingTip(true)
+    try { await foodsApi.deleteHealthTip(deleteTipId); setDeleteTipId(null); toast.success('Deleted'); fetchHealthTips(tipSearch) }
+    catch { toast.error('Delete failed') }
+    finally { setDeletingTip(false) }
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -466,10 +526,64 @@ export default function FoodsList() {
         </div>
       </div>
 
+      {/* ══ SECTION 4 — HEALTH TIPS ══ */}
+      <div style={card}>
+        <div className="flex items-center justify-between px-5 py-4" style={sectionHeader}>
+          <div className="flex items-center gap-2">
+            <HeartPulse className="w-4 h-4 text-emerald-500" />
+            <h2 className="font-bold text-slate-700">Healthy Foods / Tips</h2>
+            <span className="text-xs text-slate-400">{healthTips.length} total</span>
+          </div>
+          <button
+            onClick={openTipCreate}
+            className="btn-shine flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-semibold rounded-lg"
+            style={{ background: 'linear-gradient(135deg,#10B981,#059669)', boxShadow: '0 4px 10px rgba(16,185,129,0.25)' }}
+          >
+            <Plus className="w-3.5 h-3.5" /> Add Tip
+          </button>
+        </div>
+
+        <div className="px-5 pt-4">
+          <label htmlFor="tip-search" className="sr-only">Search health tips</label>
+          <input
+            id="tip-search" name="tipSearch" autoComplete="off"
+            value={tipSearch}
+            onChange={(e) => { setTipSearch(e.target.value); fetchHealthTips(e.target.value) }}
+            placeholder="Search tips…"
+            className="w-full sm:w-64 px-3 py-2 text-sm rounded-lg"
+            style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#0F172A' }}
+          />
+        </div>
+
+        <div className="p-5">
+          {tipsLoading ? <LoadingSpinner /> : healthTips.length === 0 ? (
+            <div className="text-center py-10 rounded-xl" style={{ border: '1px dashed #CBD5E1' }}>
+              <p className="text-sm text-slate-400">No health tips yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {healthTips.map((t) => (
+                <div key={t._id} className="flex items-start gap-4 p-4 rounded-xl" style={{ background: '#FAFAFA', border: '1px solid #E2E8F0' }}>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-800">{t.title}</p>
+                    {t.tip && <p className="text-sm text-slate-500 mt-1 line-clamp-2">{t.tip}</p>}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => openTipEdit(t)} className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 transition-colors" onMouseEnter={(e) => e.currentTarget.style.background = '#eef3fd'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}><Pencil className="w-4 h-4" /></button>
+                    <button onClick={() => setDeleteTipId(t._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 transition-colors" onMouseEnter={(e) => e.currentTarget.style.background = '#FEE2E2'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* ── Confirm modals ── */}
       <ConfirmModal isOpen={!!deletePhoto}      title="Remove Photo"    message="Remove this photo?"         onConfirm={handleDeletePhoto}    onCancel={() => setDeletePhoto(null)}      loading={deletingPhoto} />
       <ConfirmModal isOpen={!!deleteVarietyId}  title="Delete Variety"  message="Delete this variety?"       onConfirm={handleDeleteVariety}  onCancel={() => setDeleteVarietyId(null)}  loading={deletingVariety} />
       <ConfirmModal isOpen={!!deleteSweetId}    title="Delete Sweet"    message="Delete this sweet?"         onConfirm={handleDeleteSweet}    onCancel={() => setDeleteSweetId(null)}    loading={deletingSweet} />
+      <ConfirmModal isOpen={!!deleteTipId}      title="Delete Health Tip" message="Delete this health tip?" onConfirm={handleDeleteTip}      onCancel={() => setDeleteTipId(null)}      loading={deletingTip} />
 
       {/* ── Variety form modal ── */}
       <FormModal isOpen={varietyFormOpen} onClose={() => setVarietyFormOpen(false)} title={varietyEditId ? 'Edit Variety' : 'Add Variety'}>
@@ -479,6 +593,11 @@ export default function FoodsList() {
       {/* ── Sweet form modal ── */}
       <FormModal isOpen={sweetFormOpen} onClose={() => setSweetFormOpen(false)} title={sweetEditId ? 'Edit Sweet' : 'Add Sweet'}>
         <SweetForm defaultValues={sweetDefaults} onSubmit={handleSweetSubmit} loading={sweetSaving} />
+      </FormModal>
+
+      {/* ── Health Tip form modal ── */}
+      <FormModal isOpen={tipFormOpen} onClose={() => setTipFormOpen(false)} title={tipEditId ? 'Edit Health Tip' : 'Add Health Tip'}>
+        <HealthTipForm defaultValues={tipDefaults} onSubmit={handleTipSubmit} loading={tipSaving} />
       </FormModal>
 
       {/* RULE 13 — Replace prompt for popular max 6 globally */}

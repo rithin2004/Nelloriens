@@ -3,15 +3,21 @@
  *
  * Tracks user activity events (mouse, keyboard, touch, scroll).
  * Resets the idle timer on every activity.
+ * Persists lastActivityAt to localStorage so a browser reopen after >1hr
+ * triggers immediate logout — not a fresh 1-hour timer.
  * Shows a warning modal 5 minutes before the timeout fires.
  * On timeout → calls logout() from AuthContext.
  */
 import { useEffect, useRef, useCallback } from 'react'
 import { useAuth } from './useAuth'
 
-const TIMEOUT_MS  = 60 * 60 * 1000       // 1 hour
-const WARNING_MS  = 5  * 60 * 1000       // warn 5 min before
-const EVENTS      = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click']
+const TIMEOUT_MS       = 60 * 60 * 1000       // 1 hour
+const WARNING_MS       = 5  * 60 * 1000       // warn 5 min before
+const EVENTS           = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click']
+const STORAGE_KEY      = '_lastActivity'
+
+const stampActivity = () => localStorage.setItem(STORAGE_KEY, Date.now().toString())
+const readLastActivity = () => parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10)
 
 export function useInactivityLogout({ onWarn, onDismissWarn }) {
   const { logout } = useAuth()
@@ -24,35 +30,54 @@ export function useInactivityLogout({ onWarn, onDismissWarn }) {
     if (warnTimer.current)   clearTimeout(warnTimer.current)
   }, [])
 
-  const resetTimers = useCallback(() => {
+  const resetTimers = useCallback((remainingMs = TIMEOUT_MS) => {
     clearTimers()
     warnFired.current = false
 
-    // Warning fires at (TIMEOUT_MS - WARNING_MS)
-    warnTimer.current = setTimeout(() => {
+    const warnDelay = remainingMs - WARNING_MS
+    if (warnDelay > 0) {
+      warnTimer.current = setTimeout(() => {
+        warnFired.current = true
+        onWarn?.()
+      }, warnDelay)
+    } else {
+      // Less than 5 min remaining — show warning immediately
       warnFired.current = true
       onWarn?.()
-    }, TIMEOUT_MS - WARNING_MS)
+    }
 
-    // Logout fires at TIMEOUT_MS
     logoutTimer.current = setTimeout(() => {
+      localStorage.removeItem(STORAGE_KEY)
       logout()
-    }, TIMEOUT_MS)
+    }, remainingMs)
   }, [clearTimers, logout, onWarn])
 
-  // Allow the warn modal's "Stay Logged In" button to reset the timer
   const extendSession = useCallback(() => {
     onDismissWarn?.()
+    stampActivity()
     resetTimers()
   }, [resetTimers, onDismissWarn])
 
   useEffect(() => {
-    resetTimers()
+    // On mount: check if user was away for more than 1 hour (tab closed/reopened)
+    const last = readLastActivity()
+    if (last > 0) {
+      const elapsed = Date.now() - last
+      if (elapsed >= TIMEOUT_MS) {
+        localStorage.removeItem(STORAGE_KEY)
+        logout()
+        return
+      }
+      // Resume the remaining countdown rather than restarting from 1hr
+      resetTimers(TIMEOUT_MS - elapsed)
+    } else {
+      stampActivity()
+      resetTimers()
+    }
 
     const handleActivity = () => {
-      // If the warning is already visible, don't auto-dismiss on activity —
-      // let the user explicitly click "Stay Logged In"
       if (warnFired.current) return
+      stampActivity()
       resetTimers()
     }
 
@@ -62,7 +87,7 @@ export function useInactivityLogout({ onWarn, onDismissWarn }) {
       clearTimers()
       EVENTS.forEach((e) => window.removeEventListener(e, handleActivity))
     }
-  }, [resetTimers, clearTimers])
+  }, [resetTimers, clearTimers, logout])
 
   return { extendSession }
 }

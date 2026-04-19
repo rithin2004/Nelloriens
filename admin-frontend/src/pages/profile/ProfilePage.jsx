@@ -205,7 +205,8 @@ function EditProfilePopup({ userDoc, user, onClose, onSaved }) {
 }
 
 /* ── Info field ──────────────────────────────────────────────────────────── */
-function InfoField({ icon: Icon, label, value, mono }) {
+function InfoField({ icon, label, value, mono }) {
+  const Icon = icon
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: '#F8FAFC', border: '1px solid #F1F5F9' }}>
       <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: PB }}>

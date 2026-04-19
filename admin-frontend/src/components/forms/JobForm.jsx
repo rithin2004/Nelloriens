@@ -27,7 +27,11 @@ function CompanyLogoField({ logo, onChange, companyName }) {
         </div>
         <div className="flex-1 flex flex-col gap-1">
           <input
-            type="url" placeholder="Paste logo URL"
+            id="job-company-logo"
+            name="companyLogo"
+            type="url"
+            placeholder="Paste logo URL"
+            autoComplete="url"
             value={logo} onChange={(e) => onChange(e.target.value)}
             className="w-full px-2.5 py-1.5 rounded-lg text-xs"
             style={{ background: '#eef3fd', border: '1px solid #dce8fb', color: '#0F172A' }}
@@ -60,8 +64,8 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId })
   const [lastDate, setLastDate] = useState(defaultValues?.lastDate ? new Date(defaultValues.lastDate) : null)
   const [publishedAt, setPublishedAt] = useState(defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date())
 
-  const fetchCategories = () => jobsApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
-  const fetchLocations  = () => jobsApi.getLocations().then((r)  => setLocations(r.data  || [])).catch(() => {})
+  const fetchCategories = () => jobsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
+  const fetchLocations  = () => jobsApi.getLocations().then((r)  => setLocations(r.data.data  || [])).catch(() => {})
 
   useEffect(() => { fetchCategories(); fetchLocations() }, [])
 
@@ -104,7 +108,7 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId })
                 }}
               />
             </div>
-            <select id="job-category" name="category"
+            <select id="job-category" name="category" autoComplete="off"
               {...register('category', { required: 'Required' })} className={inp}>
               <option value="">Select category</option>
               {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
@@ -114,7 +118,7 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId })
 
           <div>
             <label htmlFor="job-exptype" className={lbl} style={lblStyle}>Experience Type *</label>
-            <select id="job-exptype" name="experienceType"
+            <select id="job-exptype" name="experienceType" autoComplete="off"
               {...register('experienceType', { required: 'Required' })} className={inp}>
               <option value="">Select</option>
               <option value="fresher">Fresher</option>
@@ -137,7 +141,7 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId })
               }}
             />
           </div>
-          <select id="job-location" name="location"
+          <select id="job-location" name="location" autoComplete="off"
             {...register('location', { required: 'Required' })} className={inp}>
             <option value="">Select location</option>
             {locations.map((l) => <option key={l._id} value={l._id}>{l.name}</option>)}
@@ -161,7 +165,7 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId })
             {...register('redirectUrl')} placeholder="https://" className={inp} />
         </div>
         <div>
-          <label className={lbl} style={lblStyle}>Full Description</label>
+          <p className={lbl} style={lblStyle}>Full Description</p>
           <RichTextEditor value={description} onChange={setDescription} />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -210,7 +214,7 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId })
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="job-scope" className={lbl} style={lblStyle}>Scope *</label>
-            <select id="job-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+            <select id="job-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

@@ -27,7 +27,7 @@ export default function AdForm({ defaultValues, onSubmit, loading }) {
         </div>
         <div>
           <label htmlFor="ad-placement" className={field}>Placement *</label>
-          <select id="ad-placement" name="placement" {...register('placement', { required: true })} className={input}>
+          <select id="ad-placement" name="placement" autoComplete="off" {...register('placement', { required: true })} className={input}>
             <option value="">Select placement</option>
             {PLACEMENTS.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
@@ -57,7 +57,7 @@ export default function AdForm({ defaultValues, onSubmit, loading }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="ad-scope" className={field}>Scope *</label>
-            <select id="ad-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+            <select id="ad-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={input}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

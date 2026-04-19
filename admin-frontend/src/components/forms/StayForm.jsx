@@ -26,7 +26,7 @@ const section = 'bg-white rounded-xl border border-slate-200 p-5 space-y-4'
 const AMENITIES = ['WiFi', 'AC', 'Parking', 'Pool', 'Restaurant', 'Gym']
 
 export default function StayForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
-  const { register, handleSubmit, setValue, formState: { errors, isDirty } } = useForm({ defaultValues })
+  const { register, handleSubmit, setValue, formState: { isDirty } } = useForm({ defaultValues })
   const [isTop, setIsTop] = useState(defaultValues?.isTop || false)
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
   const [location, setLocation] = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
@@ -91,7 +91,7 @@ export default function StayForm({ defaultValues, onSubmit, loading, contentId, 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="sty-stars" className={field}>Star Rating</label>
-            <select id="sty-stars" name="starRating" {...register('starRating')} className={input}>
+            <select id="sty-stars" name="starRating" autoComplete="off" {...register('starRating')} className={input}>
               <option value="">Select</option>
               {[1,2,3,4,5].map((s) => <option key={s} value={s}>{s} Star</option>)}
             </select>
@@ -114,7 +114,7 @@ export default function StayForm({ defaultValues, onSubmit, loading, contentId, 
           <input id="sty-booking" name="bookingUrl" type="url" autoComplete="url" {...register('bookingUrl')} className={input} placeholder="Generic booking link" />
         </div>
         <div>
-          <label className={field}>Amenities</label>
+          <p className={field}>Amenities</p>
           <div className="flex flex-wrap gap-3 mt-1">
             {AMENITIES.map((a) => (
               <label key={a} className="flex items-center gap-1.5 cursor-pointer text-sm text-slate-700">
@@ -131,7 +131,7 @@ export default function StayForm({ defaultValues, onSubmit, loading, contentId, 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="stay-scope" className={field}>Scope *</label>
-            <select id="stay-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+            <select id="stay-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={input}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

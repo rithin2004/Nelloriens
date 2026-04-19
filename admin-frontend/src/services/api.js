@@ -91,6 +91,11 @@ export const foodsApi = {
   createSweet: (data)       => api.post('/foods/sweets/create', data),
   updateSweet: (id, data)   => api.put(`/foods/sweets/update/${id}`, data),
   deleteSweet: (id)         => api.delete(`/foods/sweets/delete/${id}`),
+  // Health Tips
+  getHealthTips:    (params)     => api.get('/foods/healthtips/list', { params }),
+  createHealthTip:  (data)       => api.post('/foods/healthtips/create', data),
+  updateHealthTip:  (id, data)   => api.put(`/foods/healthtips/update/${id}`, data),
+  deleteHealthTip:  (id)         => api.delete(`/foods/healthtips/delete/${id}`),
 }
 
 // ── History ────────────────────────────────────────────────────────────────
@@ -270,10 +275,11 @@ export const instagramApi = {
 
 // ── Dashboard ──────────────────────────────────────────────────────────────
 export const dashboardApi = {
-  getStats:       ()       => api.get('/dashboard/stats'),
-  getActivity:    (params) => api.get('/dashboard/activity', { params }),
-  getRecentLeads: ()       => api.get('/dashboard/recent-leads'),
-  getFeatured:    ()       => api.get('/dashboard/featured'),
+  getStats:          ()       => api.get('/dashboard/stats'),
+  getActivity:       (params) => api.get('/dashboard/activity', { params }),
+  getRecentLeads:    ()       => api.get('/dashboard/recent-leads'),
+  getRecentUpdates:  ()       => api.get('/dashboard/recent-updates'),
+  getFeatured:       ()       => api.get('/dashboard/featured'),
 }
 
 // ── Search ─────────────────────────────────────────────────────────────────

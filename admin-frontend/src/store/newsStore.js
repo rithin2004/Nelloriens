@@ -19,9 +19,9 @@ const useNewsStore = create((set, get) => ({
     try {
       const r = await newsApi.getAll(p)
       set({
-        items:      r.data.items      || [],
-        total:      r.data.total      || 0,
-        totalPages: r.data.totalPages || 1,
+        items:      r.data.data                  || [],
+        total:      r.data.pagination?.total      || 0,
+        totalPages: r.data.pagination?.totalPages || 1,
         loading:    false,
       })
     } catch (e) {

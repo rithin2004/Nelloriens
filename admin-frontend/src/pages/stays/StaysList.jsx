@@ -73,7 +73,7 @@ export default function StaysList() {
 
   useEffect(() => {
     if (location.state?.openCreate) { openCreate(); window.history.replaceState({}, '') }
-  }, [location.state]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.state])  
 
   const handleToggleTop = async (item) => {
     setTogglingId(item._id)
@@ -120,7 +120,7 @@ export default function StaysList() {
 
   const openEdit = async (id) => {
     setFormFetching(true); setFormDefaults(null); setFormEditId(id); setFormDirty(false); setFormOpen(true)
-    try { const r = await staysApi.getById(id); setFormDefaults(r.data) }
+    try { const r = await staysApi.getById(id); setFormDefaults(r.data.data) }
     catch { toast.error('Failed to load'); setFormOpen(false) }
     finally { setFormFetching(false) }
   }

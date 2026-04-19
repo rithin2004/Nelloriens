@@ -299,16 +299,19 @@ export default function ProfileModal({ isOpen, onClose }) {
 
         {/* Tabs */}
         <div className="flex gap-1 px-4 pt-3" style={{ borderBottom: '1px solid #1E293B' }}>
-          {TABS.map(({ id, label, icon: Icon }) => (
-            <button key={id} onClick={() => setTab(id)}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all"
-              style={tab === id
-                ? { color: '#A78BFA', background: 'rgba(139,92,246,0.12)', borderBottom: '2px solid #8B5CF6' }
-                : { color: '#64748B' }}>
-              <Icon className="w-3.5 h-3.5" />
-              {label}
-            </button>
-          ))}
+          {TABS.map(({ id, label, icon }) => {
+            const Icon = icon
+            return (
+              <button key={id} onClick={() => setTab(id)}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg transition-all"
+                style={tab === id
+                  ? { color: '#A78BFA', background: 'rgba(139,92,246,0.12)', borderBottom: '2px solid #8B5CF6' }
+                  : { color: '#64748B' }}>
+                <Icon className="w-3.5 h-3.5" />
+                {label}
+              </button>
+            )
+          })}
         </div>
 
         {/* Body */}

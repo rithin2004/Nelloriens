@@ -17,7 +17,7 @@ export default function UpdateForm({ defaultValues, onSubmit, loading, contentId
   const [dateTime, setDateTime] = useState(defaultValues?.validUntil ? new Date(defaultValues.validUntil) : null)
   const [categories, setCategories] = useState([])
 
-  const fetchCategories = () => updatesApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
+  const fetchCategories = () => updatesApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   useEffect(() => { fetchCategories() }, [])
 
   const submit = (data) => {
@@ -44,14 +44,14 @@ export default function UpdateForm({ defaultValues, onSubmit, loading, contentId
               onAdd={async (name) => { await updatesApi.createCategory({ name }); await fetchCategories() }}
             />
           </div>
-          <select id="upd-category" name="category" {...register('category')} className={input}>
+          <select id="upd-category" name="category" autoComplete="off" {...register('category')} className={input}>
             <option value="">No category</option>
             {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
         </div>
         <div>
           <label htmlFor="upd-type" className={field}>Update Type *</label>
-          <select id="upd-type" name="updateType" {...register('updateType', { required: true })} className={input}>
+          <select id="upd-type" name="updateType" autoComplete="off" {...register('updateType', { required: true })} className={input}>
             <option value="banner">Banner</option>
             <option value="popup">Popup</option>
             <option value="ticker">Ticker</option>
@@ -90,7 +90,7 @@ export default function UpdateForm({ defaultValues, onSubmit, loading, contentId
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="update-scope" className={field}>Scope *</label>
-            <select id="update-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+            <select id="update-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={input}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

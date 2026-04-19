@@ -24,7 +24,7 @@ export default function Setup() {
   useEffect(() => {
     setupApi.getStatus()
       .then((r) => {
-        if (r.data?.initialized) {
+        if (r.data?.data?.initialized) {
           navigate('/login', { replace: true })
         }
       })

@@ -45,7 +45,8 @@ function SectionCard({ title, children }) {
   )
 }
 
-function InfoRow({ icon: Icon, label, value }) {
+function InfoRow({ icon, label, value }) {
+  const Icon = icon
   if (!value) return null
   return (
     <div className="flex items-start gap-3">
@@ -74,7 +75,7 @@ export default function CompanySettings() {
     setLoading(true)
     companyApi.get()
       .then((r) => {
-        const d = r.data || {}
+        const d = r.data.data || {}
         setIsNew(!d._exists)
         setData(d)
       })
@@ -282,18 +283,18 @@ export default function CompanySettings() {
             <p className={lbl} style={{ color: P }}>Basic Info</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className={lbl}>Company Name *</label>
-                <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                <label htmlFor="com-name" className={lbl}>Company Name *</label>
+                <input id="com-name" name="name" autoComplete="organization" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                   value={form.name || ''} onChange={set('name')} required />
               </div>
               <div>
-                <label className={lbl}>Tagline</label>
-                <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                <label htmlFor="com-tagline" className={lbl}>Tagline</label>
+                <input id="com-tagline" name="tagline" autoComplete="off" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                   value={form.tagline || ''} onChange={set('tagline')} />
               </div>
               <div className="sm:col-span-2">
-                <label className={lbl}>Description</label>
-                <textarea className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                <label htmlFor="com-description" className={lbl}>Description</label>
+                <textarea id="com-description" name="description" autoComplete="off" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                   rows={2} value={form.description || ''} onChange={set('description')} />
               </div>
             </div>
@@ -304,23 +305,23 @@ export default function CompanySettings() {
             <p className={lbl} style={{ color: P }}>Contact</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className={lbl}>Contact Email *</label>
-                <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                <label htmlFor="com-email" className={lbl}>Contact Email *</label>
+                <input id="com-email" name="email" autoComplete="email" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                   type="email" value={form.email || ''} onChange={set('email')} required />
               </div>
               <div>
-                <label className={lbl}>Support Email</label>
-                <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                <label htmlFor="com-support-email" className={lbl}>Support Email</label>
+                <input id="com-support-email" name="supportEmail" autoComplete="email" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                   type="email" value={form.supportEmail || ''} onChange={set('supportEmail')} />
               </div>
               <div>
-                <label className={lbl}>Phone Number *</label>
-                <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                <label htmlFor="com-phone" className={lbl}>Phone Number *</label>
+                <input id="com-phone" name="phone" autoComplete="tel" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                   value={form.phone || ''} onChange={set('phone')} required />
               </div>
               <div>
-                <label className={lbl}>WhatsApp Number</label>
-                <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                <label htmlFor="com-whatsapp" className={lbl}>WhatsApp Number</label>
+                <input id="com-whatsapp" name="whatsappNumber" autoComplete="tel" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                   placeholder="+91 XXXXX XXXXX" value={form.whatsappNumber || ''} onChange={set('whatsappNumber')} />
               </div>
             </div>
@@ -331,14 +332,19 @@ export default function CompanySettings() {
             <p className={lbl} style={{ color: P }}>Address</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className={lbl}>Street Address</label>
-                <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                <label htmlFor="com-address" className={lbl}>Street Address</label>
+                <input id="com-address" name="address" autoComplete="street-address" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                   value={form.address || ''} onChange={set('address')} />
               </div>
-              {['city', 'state', 'pincode', 'country'].map((k) => (
+              {[
+                { k: 'city',    ac: 'address-level2' },
+                { k: 'state',   ac: 'address-level1' },
+                { k: 'pincode', ac: 'postal-code' },
+                { k: 'country', ac: 'country-name' },
+              ].map(({ k, ac }) => (
                 <div key={k}>
-                  <label className={lbl}>{k.charAt(0).toUpperCase() + k.slice(1)}</label>
-                  <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                  <label htmlFor={`com-${k}`} className={lbl}>{k.charAt(0).toUpperCase() + k.slice(1)}</label>
+                  <input id={`com-${k}`} name={k} autoComplete={ac} className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                     value={form[k] || ''} onChange={set(k)} />
                 </div>
               ))}
@@ -350,18 +356,18 @@ export default function CompanySettings() {
             <p className={lbl} style={{ color: P }}>Online Presence</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className={lbl}>Website URL</label>
-                <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                <label htmlFor="com-website" className={lbl}>Website URL</label>
+                <input id="com-website" name="website" autoComplete="url" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                   type="url" value={form.website || ''} onChange={set('website')} />
               </div>
               <div>
-                <label className={lbl}>Google Maps Embed URL</label>
-                <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                <label htmlFor="com-mapembed" className={lbl}>Google Maps Embed URL</label>
+                <input id="com-mapembed" name="mapEmbedUrl" autoComplete="url" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                   type="url" value={form.mapEmbedUrl || ''} onChange={set('mapEmbedUrl')} />
               </div>
               <div>
-                <label className={lbl}>Google Analytics ID</label>
-                <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                <label htmlFor="com-gaid" className={lbl}>Google Analytics ID</label>
+                <input id="com-gaid" name="gaId" autoComplete="off" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                   placeholder="G-XXXXXXXXXX" value={form.gaId || ''} onChange={set('gaId')} />
               </div>
             </div>
@@ -373,8 +379,8 @@ export default function CompanySettings() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {SOCIAL_FIELDS.map(({ key, label, placeholder }) => (
                 <div key={key}>
-                  <label className={lbl}>{label}</label>
-                  <input className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
+                  <label htmlFor={`com-social-${key}`} className={lbl}>{label}</label>
+                  <input id={`com-social-${key}`} name={`socialLinks.${key}`} autoComplete="url" className={inp} style={inpS} onFocus={focusOn} onBlur={focusOff}
                     type="url" placeholder={placeholder}
                     value={form.socialLinks?.[key] || ''} onChange={setSocial(key)} />
                 </div>

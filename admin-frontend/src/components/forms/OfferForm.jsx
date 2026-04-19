@@ -32,7 +32,7 @@ export default function OfferForm({ defaultValues, onSubmit, loading, contentId 
         </div>
         <div>
           <label htmlFor="ofr-category" className={field}>Category *</label>
-          <select id="ofr-category" name="category" {...register('category', { required: true })} className={input}>
+          <select id="ofr-category" name="category" autoComplete="off" {...register('category', { required: true })} className={input}>
             <option value="">Select</option>
             {['Food', 'Shopping', 'Medical', 'Education', 'Other'].map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -77,7 +77,7 @@ export default function OfferForm({ defaultValues, onSubmit, loading, contentId 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="offer-scope" className={field}>Scope *</label>
-            <select id="offer-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+            <select id="offer-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={input}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

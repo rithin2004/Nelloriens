@@ -95,22 +95,21 @@ export default function EventsList() {
     setInfLoading(true)
     eventsApi.getInfluencerEvents({ page: infPage, limit: PAGE_SIZE, search: debouncedSearch })
       .then(r => {
-        const d = r.data
-        setInfItems(d.items || [])
-        setInfTotal(d.total || 0)
-        setInfTotalPages(d.totalPages || 1)
+        setInfItems(r.data.data || [])
+        setInfTotal(r.data.pagination?.total || 0)
+        setInfTotalPages(r.data.pagination?.totalPages || 1)
       })
       .catch(() => toast.error('Failed to load influencer events'))
       .finally(() => setInfLoading(false))
-  }, [tab, infPage, debouncedSearch]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tab, infPage, debouncedSearch])  
 
   useEffect(() => {
-    eventsApi.getCategories().then(r => setCategories(r.data || [])).catch(() => {})
+    eventsApi.getCategories().then(r => setCategories(r.data.data || [])).catch(() => {})
   }, [])
 
   useEffect(() => {
     if (location.state?.openCreate) { openCreate(); window.history.replaceState({}, '') }
-  }, [location.state]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.state])  
 
   const switchTab = (t) => { setTab(t); setPage(1); setInfPage(1) }
 
@@ -166,7 +165,7 @@ export default function EventsList() {
       const r = tab === 'influencer'
         ? await eventsApi.getInfluencerEventById(id)
         : await eventsApi.getById(id)
-      setFormDefaults(r.data)
+      setFormDefaults(r.data.data)
     } catch { toast.error('Failed to load'); setFormOpen(false) }
     finally { setFormFetching(false) }
   }
@@ -188,7 +187,7 @@ export default function EventsList() {
       // Re-fetch influencer list since it's not Zustand-driven
       if (tab === 'influencer') {
         eventsApi.getInfluencerEvents({ page: infPage, limit: PAGE_SIZE })
-          .then(r => { setInfItems(r.data.items || []); setInfTotal(r.data.total || 0); setInfTotalPages(r.data.totalPages || 1) })
+          .then(r => { setInfItems(r.data.data || []); setInfTotal(r.data.pagination?.total || 0); setInfTotalPages(r.data.pagination?.totalPages || 1) })
           .catch(() => {})
       }
     } catch (e) { toast.error(e?.response?.data?.message || 'Save failed') }

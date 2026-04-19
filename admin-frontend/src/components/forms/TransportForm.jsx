@@ -70,7 +70,7 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
         <div className={sec} style={secSt}>
           <div>
             <label htmlFor="transport-type" className={lbl} style={lblSt}>Transport Section *</label>
-            <select id="transport-type" name="type" {...register('type')} className={inp} style={inpSt}>
+            <select id="transport-type" name="type" autoComplete="off" {...register('type')} className={inp} style={inpSt}>
               <option value="train">Train</option>
               <option value="bus">Bus</option>
               <option value="airport">Airport</option>
@@ -101,7 +101,7 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
             </div>
             <div>
               <label htmlFor="t-traintype" className={lbl} style={lblSt}>Train Type</label>
-              <select id="t-traintype" name="trainType" {...register('trainType')} className={inp} style={inpSt}>
+              <select id="t-traintype" name="trainType" autoComplete="off" {...register('trainType')} className={inp} style={inpSt}>
                 <option value="">Select</option>
                 {TRAIN_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -135,7 +135,7 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
           </div>
 
           <div>
-            <label className={lbl} style={lblSt}>Days of Operation</label>
+            <p className={lbl} style={lblSt}>Days of Operation</p>
             <div className="flex flex-wrap gap-2 mt-1">
               {DAYS.map(day => (
                 <button key={day} type="button"
@@ -224,7 +224,7 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
             </div>
             <div>
               <label htmlFor="b-bustype" className={lbl} style={lblSt}>Bus Type</label>
-              <select id="b-bustype" name="busType" {...register('busType')} className={inp} style={inpSt}>
+              <select id="b-bustype" name="busType" autoComplete="off" {...register('busType')} className={inp} style={inpSt}>
                 <option value="">Select</option>
                 {BUS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -325,7 +325,7 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
 
           <div>
             <label htmlFor="l-servicetype" className={lbl} style={lblSt}>Type</label>
-            <select id="l-servicetype" name="serviceType" {...register('serviceType')} className={inp} style={inpSt}>
+            <select id="l-servicetype" name="serviceType" autoComplete="off" {...register('serviceType')} className={inp} style={inpSt}>
               <option value="">Select type</option>
               {LOCAL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
@@ -394,7 +394,7 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="trn-scope" className={lbl} style={lblSt}>Scope *</label>
-            <select id="trn-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp} style={inpSt}>
+            <select id="trn-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp} style={inpSt}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

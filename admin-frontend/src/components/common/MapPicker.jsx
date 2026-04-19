@@ -1,5 +1,4 @@
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
-import { useState } from 'react'
 import { NELLORE_CENTER } from '../../utils/constants'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'

@@ -38,9 +38,9 @@ export default function ActivityLog() {
     setLoading(true)
     dashboardApi.getActivity({ page, limit: 30 })
       .then((r) => {
-        setLogs(r.data?.items || [])
-        setTotalPages(r.data?.totalPages || 1)
-        setTotal(r.data?.total || 0)
+        setLogs(r.data?.data || [])
+        setTotalPages(r.data?.pagination?.totalPages || 1)
+        setTotal(r.data?.pagination?.total || 0)
       })
       .catch(() => {})
       .finally(() => setLoading(false))

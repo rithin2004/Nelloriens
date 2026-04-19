@@ -112,7 +112,7 @@ export default function HistoryList() {
     setFormOpen(true)
     try {
       const r = await historyApi.getById(id)
-      setFormDefaults(r.data)
+      setFormDefaults(r.data.data)
     } catch {
       toast.error('Failed to load')
       setFormOpen(false)

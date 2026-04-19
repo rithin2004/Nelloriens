@@ -137,9 +137,11 @@ export default function ChangePasswordModal({ onClose }) {
 
           {/* Current password */}
           <div>
-            <label className={lbl}>Current Password</label>
+            <label htmlFor="changepw-current" className={lbl}>Current Password</label>
             <div className="relative">
               <input
+                id="changepw-current"
+                name="currentPassword"
                 type={showCur ? 'text' : 'password'}
                 value={currentPw}
                 onChange={(e) => { setCurrentPw(e.target.value); setError('') }}
@@ -160,9 +162,11 @@ export default function ChangePasswordModal({ onClose }) {
 
           {/* New password */}
           <div>
-            <label className={lbl}>New Password</label>
+            <label htmlFor="changepw-new" className={lbl}>New Password</label>
             <div className="relative">
               <input
+                id="changepw-new"
+                name="newPassword"
                 type={showNew ? 'text' : 'password'}
                 value={newPw}
                 onChange={(e) => { setNewPw(e.target.value); setError('') }}
@@ -193,9 +197,11 @@ export default function ChangePasswordModal({ onClose }) {
 
           {/* Confirm password */}
           <div>
-            <label className={lbl}>Confirm New Password</label>
+            <label htmlFor="changepw-confirm" className={lbl}>Confirm New Password</label>
             <div className="relative">
               <input
+                id="changepw-confirm"
+                name="confirmPassword"
                 type={showConf ? 'text' : 'password'}
                 value={confirmPw}
                 onChange={(e) => { setConfirmPw(e.target.value); setError('') }}

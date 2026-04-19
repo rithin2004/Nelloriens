@@ -37,8 +37,8 @@ export default function InstagramManager() {
   const fetchAll = () => {
     setLoading(true)
     Promise.all([
-      instagramApi.getStatus().then((r) => setStatus(r.data)).catch(() => {}),
-      instagramApi.getPosts().then((r) => setPosts(r.data?.items || r.data || [])).catch(() => {}),
+      instagramApi.getStatus().then((r) => setStatus(r.data.data)).catch(() => {}),
+      instagramApi.getPosts().then((r) => setPosts(r.data.data || [])).catch(() => {}),
     ]).finally(() => setLoading(false))
   }
 
@@ -261,8 +261,9 @@ export default function InstagramManager() {
       <FormModal isOpen={connectOpen} onClose={() => setConnectOpen(false)} title="Connect Instagram" maxWidth="max-w-md">
         <form onSubmit={handleConnect} className="space-y-4">
           <div>
-            <label className={lbl}>Instagram Access Token *</label>
-            <input className={inpC} style={inpS} value={connectForm.accessToken}
+            <label htmlFor="instagram-access-token" className={lbl}>Instagram Access Token *</label>
+            <input id="instagram-access-token" name="accessToken" autoComplete="off"
+              className={inpC} style={inpS} value={connectForm.accessToken}
               onChange={(e) => setConnectForm((p) => ({ ...p, accessToken: e.target.value }))}
               placeholder="Paste your long-lived access token" required />
             <p className="text-xs text-slate-400 mt-1.5">
@@ -270,8 +271,9 @@ export default function InstagramManager() {
             </p>
           </div>
           <div>
-            <label className={lbl}>Instagram Username (optional)</label>
-            <input className={inpC} style={inpS} value={connectForm.username}
+            <label htmlFor="instagram-username" className={lbl}>Instagram Username (optional)</label>
+            <input id="instagram-username" name="username" autoComplete="username"
+              className={inpC} style={inpS} value={connectForm.username}
               onChange={(e) => setConnectForm((p) => ({ ...p, username: e.target.value }))}
               placeholder="@username" />
           </div>
@@ -301,19 +303,22 @@ export default function InstagramManager() {
             <ImageUpload module="instagram" label="" value={postForm.thumbnailUrl || ''} onChange={(url) => setPostForm((p) => ({ ...p, thumbnailUrl: url, mediaUrl: url }))} contentId={postEditId || postReservedId} section="thumbnails" />
           </div>
           <div>
-            <label className={lbl}>Caption</label>
-            <textarea className={inpC} style={inpS} rows={3}
+            <label htmlFor="post-caption" className={lbl}>Caption</label>
+            <textarea id="post-caption" name="caption" autoComplete="off"
+              className={inpC} style={inpS} rows={3}
               value={postForm.caption || ''}
               onChange={(e) => setPostForm((p) => ({ ...p, caption: e.target.value }))} />
           </div>
           <div>
-            <label className={lbl}>Post Link (Permalink)</label>
-            <input className={inpC} style={inpS} type="url" value={postForm.permalink || ''}
+            <label htmlFor="post-permalink" className={lbl}>Post Link (Permalink)</label>
+            <input id="post-permalink" name="permalink" autoComplete="url"
+              className={inpC} style={inpS} type="url" value={postForm.permalink || ''}
               onChange={(e) => setPostForm((p) => ({ ...p, permalink: e.target.value }))} />
           </div>
           <div>
-            <label className={lbl}>Media Type</label>
-            <select className={inpC} style={inpS} value={postForm.mediaType || 'IMAGE'}
+            <label htmlFor="post-media-type" className={lbl}>Media Type</label>
+            <select id="post-media-type" name="mediaType" autoComplete="off"
+              className={inpC} style={inpS} value={postForm.mediaType || 'IMAGE'}
               onChange={(e) => setPostForm((p) => ({ ...p, mediaType: e.target.value }))}>
               <option value="IMAGE">Image</option>
               <option value="VIDEO">Video</option>

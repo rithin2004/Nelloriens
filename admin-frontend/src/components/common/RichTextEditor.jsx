@@ -19,7 +19,7 @@ function ToolbarBtn({ onClick, active, title, children }) {
   )
 }
 
-export default function RichTextEditor({ value, onChange, placeholder = 'Start writing...' }) {
+export default function RichTextEditor({ value, onChange }) {
   const editor = useEditor({
     extensions: [StarterKit],
     content: value || '',
@@ -32,7 +32,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
     if (editor && value !== editor.getHTML()) {
       editor.commands.setContent(value || '', false)
     }
-  }, [value])
+  }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!editor) return null
 

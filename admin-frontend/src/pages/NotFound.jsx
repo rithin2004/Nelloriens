@@ -4,7 +4,6 @@ import { ArrowLeft, Home, AlertTriangle } from 'lucide-react'
 export default function NotFound() {
   const navigate  = useNavigate()
   const location  = useLocation()
-  const pageName  = location.pathname.split('/').filter(Boolean).join(' / ') || '—'
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: '#eef3fd' }}>

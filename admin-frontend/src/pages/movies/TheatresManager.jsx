@@ -23,7 +23,7 @@ export default function TheatresManager() {
   const fetchData = () => {
     setLoading(true)
     moviesApi.getTheatres()
-      .then((r) => setTheatres(r.data?.items || []))
+      .then((r) => setTheatres(r.data?.data || []))
       .catch(() => toast.error('Failed to load'))
       .finally(() => setLoading(false))
   }

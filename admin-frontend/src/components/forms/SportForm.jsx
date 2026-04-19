@@ -31,7 +31,7 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
 
   useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
-  const fetchCategories = () => sportsApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
+  const fetchCategories = () => sportsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   useEffect(() => { fetchCategories() }, [])
 
   const submit = (data) => {
@@ -53,7 +53,7 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
         <div className={section} style={sectionStyle}>
           <div>
             <label htmlFor="sport-type-select" className={lbl} style={lblStyle}>Section *</label>
-            <select id="sport-type-select" name="type"
+            <select id="sport-type-select" name="type" autoComplete="off"
               {...register('type', { required: true })}
               className={inp} style={inpStyle}>
               <option value="entry">Sports Entry</option>
@@ -87,7 +87,7 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
               onAdd={async (name) => { await sportsApi.createCategory({ name }); await fetchCategories() }}
             />
           </div>
-          <select id="sport-category" name="category"
+          <select id="sport-category" name="category" autoComplete="off"
             {...register('category', { required: 'Category is required' })}
             className={inp} style={inpStyle}>
             <option value="">Select category</option>
@@ -123,7 +123,7 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
           </div>
 
           <div>
-            <label className={lbl} style={lblStyle}>Photos (up to 5)</label>
+            <p className={lbl} style={lblStyle}>Photos (up to 5)</p>
             {[0, 1, 2, 3, 4].map((i) => (
               <div key={i} className="mb-2">
                 <ImageUpload
@@ -149,7 +149,7 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
             </div>
             <div>
               <label htmlFor="sport-scope" className={lbl} style={lblStyle}>Scope *</label>
-              <select id="sport-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp} style={inpStyle}>
+              <select id="sport-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp} style={inpStyle}>
                 <option value="nellore">Nellore</option>
                 <option value="worldwide">Worldwide</option>
               </select>
@@ -216,7 +216,7 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
 
           <div>
             <label htmlFor="sport-matchstatus" className={lbl} style={lblStyle}>Match Status</label>
-            <select id="sport-matchstatus" name="matchStatus" {...register('matchStatus')} className={inp} style={inpStyle}>
+            <select id="sport-matchstatus" name="matchStatus" autoComplete="off" {...register('matchStatus')} className={inp} style={inpStyle}>
               <option value="upcoming">Upcoming</option>
               <option value="live">Live</option>
               <option value="completed">Completed</option>
@@ -252,7 +252,7 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="sport-scope2" className={lbl} style={lblStyle}>Scope *</label>
-              <select id="sport-scope2" name="scope" {...register('scope', { required: 'Required' })} className={inp} style={inpStyle}>
+              <select id="sport-scope2" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp} style={inpStyle}>
                 <option value="nellore">Nellore</option>
                 <option value="worldwide">Worldwide</option>
               </select>

@@ -30,7 +30,7 @@ export default function AdsList() {
   const fetchSettings = () => {
     setSettingsLoading(true)
     adsApi.getAdsenseSettings()
-      .then((r) => setSettings(r.data || {}))
+      .then((r) => setSettings(r.data.data || {}))
       .catch(() => setSettings({}))
       .finally(() => setSettingsLoading(false))
   }

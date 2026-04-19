@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { Plus, Trash2, Star, Upload, Loader, X } from 'lucide-react'
 import RichTextEditor from '../common/RichTextEditor'
 import ImageUpload from '../common/ImageUpload'
@@ -15,26 +15,39 @@ const MAX_PHOTOS   = 5
 const MAX_SWEETS   = 8
 const MAX_POPULAR  = 6  // user-side display limit
 
+function ToggleSwitch({ id, checked, onChange }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} id={id}
+      onClick={() => onChange(!checked)}
+      className="relative inline-flex items-center rounded-full transition-colors w-10 h-6 shrink-0"
+      style={{ background: checked ? '#10B981' : '#D1D5DB' }}>
+      <span className="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform"
+        style={{ transform: checked ? 'translateX(22px)' : 'translateX(2px)' }} />
+    </button>
+  )
+}
+
 function RestaurantPair({ register, prefix, label }) {
+  const safeId = prefix.replace(/[.[\]]/g, '-')
   return (
     <div className="p-3 rounded-lg space-y-3" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
       <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{label}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className={lbl}>Restaurant Name</label>
-          <input {...register(`${prefix}.name`)} placeholder="e.g. Hotel Vijaya" className={inp} />
+          <label htmlFor={`${safeId}-name`} className={lbl}>Restaurant Name</label>
+          <input id={`${safeId}-name`} autoComplete="organization" {...register(`${prefix}.name`)} placeholder="e.g. Hotel Vijaya" className={inp} />
         </div>
         <div>
-          <label className={lbl}>Order Link (URL)</label>
-          <input {...register(`${prefix}.orderLink`)} type="url" placeholder="https://…" className={inp} />
+          <label htmlFor={`${safeId}-link`} className={lbl}>Order Link (URL)</label>
+          <input id={`${safeId}-link`} autoComplete="url" {...register(`${prefix}.orderLink`)} type="url" placeholder="https://…" className={inp} />
         </div>
         <div>
-          <label className={lbl}>Price (approx.)</label>
-          <input {...register(`${prefix}.price`)} placeholder="e.g. ₹120" className={inp} />
+          <label htmlFor={`${safeId}-price`} className={lbl}>Price (approx.)</label>
+          <input id={`${safeId}-price`} autoComplete="off" {...register(`${prefix}.price`)} placeholder="e.g. ₹120" className={inp} />
         </div>
         <div>
-          <label className={lbl}>Rating (out of 5)</label>
-          <input {...register(`${prefix}.rating`)} type="number" min="0" max="5" step="0.1" placeholder="e.g. 4.2" className={inp} />
+          <label htmlFor={`${safeId}-rating`} className={lbl}>Rating (out of 5)</label>
+          <input id={`${safeId}-rating`} autoComplete="off" {...register(`${prefix}.rating`)} type="number" min="0" max="5" step="0.1" placeholder="e.g. 4.2" className={inp} />
         </div>
       </div>
     </div>
@@ -60,6 +73,7 @@ export default function FoodForm({ defaultValues, onSubmit, loading, contentId }
   // Varieties & Sweets via useFieldArray
   const { fields: varietyFields, append: appendVariety, remove: removeVariety } = useFieldArray({ control, name: 'varieties' })
   const { fields: sweetFields,   append: appendSweet,   remove: removeSweet   } = useFieldArray({ control, name: 'sweets' })
+  const watchedVarieties = useWatch({ control, name: 'varieties' })
 
   const handleMapChange = ({ lat, lng }) => {
     setLocation({ lat, lng })
@@ -87,7 +101,7 @@ export default function FoodForm({ defaultValues, onSubmit, loading, contentId }
   }
 
   const removePhoto = async (idx) => {
-    try { await uploadApi.delete(photos[idx]) } catch {}
+    try { await uploadApi.delete(photos[idx]) } catch { /* ignore storage delete errors */ }
     const next = photos.filter((_, i) => i !== idx)
     setPhotos(next)
     setValue('photos', next)
@@ -112,7 +126,7 @@ export default function FoodForm({ defaultValues, onSubmit, loading, contentId }
           <input id="fod-restaurant" name="restaurantName" autoComplete="organization" {...register('restaurantName', { required: 'Required' })} className={inp} />
           {errors.restaurantName && <p className="text-xs text-red-600 mt-1">{errors.restaurantName.message}</p>}
         </div>
-        <div><label className={lbl}>Description *</label><RichTextEditor value={description} onChange={setDescription} /></div>
+        <div><p className={lbl}>Description *</p><RichTextEditor value={description} onChange={setDescription} /></div>
       </div>
 
       {/* ── Photos (max 5) ── */}
@@ -187,22 +201,27 @@ export default function FoodForm({ defaultValues, onSubmit, loading, contentId }
         <h3 className="font-semibold text-slate-800">More Info</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={lbl}>Price Range</label>
-            <select {...register('priceRange')} className={inp}>
+            <label htmlFor="fod-pricerange" className={lbl}>Price Range</label>
+            <select id="fod-pricerange" name="priceRange" autoComplete="off" {...register('priceRange')} className={inp}>
               <option value="">Select</option>
               <option value="₹">₹</option>
               <option value="₹₹">₹₹</option>
               <option value="₹₹₹">₹₹₹</option>
             </select>
           </div>
-          <div><label className={lbl}>Food Category</label><input {...register('foodCategory')} className={inp} /></div>
+          <div>
+            <label htmlFor="fod-category" className={lbl}>Food Category</label>
+            <input id="fod-category" name="foodCategory" autoComplete="off" {...register('foodCategory')} className={inp} />
+          </div>
         </div>
-        <div><label className={lbl}>Timing</label><input {...register('timing')} placeholder="7:00 AM – 10:00 PM" className={inp} /></div>
-        <div><label className={lbl}>Phone</label><input {...register('phone')} className={inp} /></div>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" {...register('isFamous')} className="w-4 h-4 accent-purple-600" />
-          <span className="text-sm text-slate-700">Is Famous (Iconic Nellore Dish)</span>
-        </label>
+        <div>
+          <label htmlFor="fod-timing" className={lbl}>Timing</label>
+          <input id="fod-timing" name="timing" autoComplete="off" {...register('timing')} placeholder="7:00 AM – 10:00 PM" className={inp} />
+        </div>
+        <div>
+          <label htmlFor="fod-phone" className={lbl}>Phone</label>
+          <input id="fod-phone" name="phone" autoComplete="tel" {...register('phone')} className={inp} />
+        </div>
       </div>
 
       {/* ── Varieties ── */}
@@ -230,8 +249,8 @@ export default function FoodForm({ defaultValues, onSubmit, loading, contentId }
           <div key={field.id} className="rounded-xl p-4 space-y-3" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1">
-                <label className={lbl}>Variety Name *</label>
-                <input {...register(`varieties.${idx}.name`, { required: 'Required' })} className={inp} placeholder="e.g. Biryani" />
+                <label className={lbl} htmlFor={`variety-name-${idx}`}>Variety Name *</label>
+                <input id={`variety-name-${idx}`} {...register(`varieties.${idx}.name`, { required: 'Required' })} className={inp} placeholder="e.g. Biryani" />
               </div>
               <div className="shrink-0 pt-5">
                 <button type="button" onClick={() => removeVariety(idx)} className="p-2 rounded-lg text-red-400 hover:bg-red-50 transition-colors">
@@ -242,17 +261,21 @@ export default function FoodForm({ defaultValues, onSubmit, loading, contentId }
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className={lbl}>Total Restaurants</label>
-                <input {...register(`varieties.${idx}.totalRestaurants`)} type="number" min="0" placeholder="e.g. 12" className={inp} />
+                <label className={lbl} htmlFor={`variety-totalr-${idx}`}>Total Restaurants</label>
+                <input id={`variety-totalr-${idx}`} {...register(`varieties.${idx}.totalRestaurants`)} type="number" min="0" placeholder="e.g. 12" className={inp} />
               </div>
               <div className="flex items-end pb-1">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" {...register(`varieties.${idx}.popular`)} className="w-4 h-4 accent-purple-600" />
-                  <span className="text-sm text-slate-700 flex items-center gap-1">
+                <div className="flex items-center gap-2">
+                  <ToggleSwitch
+                    id={`variety-popular-${idx}`}
+                    checked={!!watchedVarieties?.[idx]?.popular}
+                    onChange={(val) => setValue(`varieties.${idx}.popular`, val, { shouldDirty: true })}
+                  />
+                  <label htmlFor={`variety-popular-${idx}`} className="text-sm text-slate-700 flex items-center gap-1 cursor-pointer">
                     <Star className="w-3.5 h-3.5 text-amber-400" /> Popular
-                    <span className="text-xs text-slate-400">(max {MAX_POPULAR} on user side)</span>
-                  </span>
-                </label>
+                    <span className="text-xs text-slate-400">(max {MAX_POPULAR})</span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -289,8 +312,8 @@ export default function FoodForm({ defaultValues, onSubmit, loading, contentId }
           <div key={field.id} className="rounded-xl p-4 space-y-3" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1">
-                <label className={lbl}>Sweet Name *</label>
-                <input {...register(`sweets.${idx}.name`, { required: 'Required' })} className={inp} placeholder="e.g. Pootharekulu" />
+                <label className={lbl} htmlFor={`sweet-name-${idx}`}>Sweet Name *</label>
+                <input id={`sweet-name-${idx}`} {...register(`sweets.${idx}.name`, { required: 'Required' })} className={inp} placeholder="e.g. Pootharekulu" />
               </div>
               <div className="shrink-0 pt-5">
                 <button type="button" onClick={() => removeSweet(idx)} className="p-2 rounded-lg text-red-400 hover:bg-red-50 transition-colors">
@@ -310,7 +333,7 @@ export default function FoodForm({ defaultValues, onSubmit, loading, contentId }
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="food-scope" className={lbl}>Scope *</label>
-            <select id="food-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+            <select id="food-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

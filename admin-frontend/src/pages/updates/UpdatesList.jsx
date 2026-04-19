@@ -8,7 +8,7 @@ export default function UpdatesList() {
   const [categories, setCategories] = useState([])
 
   useEffect(() => {
-    updatesApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
+    updatesApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   }, [])
 
   return (

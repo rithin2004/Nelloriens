@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { usersApi, rolesApi } from '../../services/api'
+import { usersApi } from '../../services/api'
 import { useDebounce } from '../../hooks/useDebounce'
 import useUsersStore from '../../store/usersStore'
 import useRolesStore from '../../store/rolesStore'

@@ -1,8 +1,11 @@
 import { X } from 'lucide-react'
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { useUnsavedWarning } from '../../hooks/useUnsavedWarning'
 
-export default function FormModal({ isOpen, onClose, title, subtitle, children, maxWidth = 'max-w-2xl' }) {
+export default function FormModal({ isOpen, onClose, title, subtitle, children, maxWidth = 'max-w-2xl', isDirty = false }) {
+  useUnsavedWarning(isOpen && isDirty)
+
   useEffect(() => {
     if (!isOpen) return
     const handler = (e) => { if (e.key === 'Escape') onClose() }

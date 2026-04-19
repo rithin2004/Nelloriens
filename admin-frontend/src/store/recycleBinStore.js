@@ -21,7 +21,7 @@ const useRecycleBinStore = create((set, get) => ({
     set({ loading: true, _params: p, error: null })
     try {
       const r = await recycleBinApi.list(p)
-      set({ items: r.data.items || [], total: r.data.total || 0, totalPages: r.data.totalPages || 1, loading: false })
+      set({ items: r.data.data || [], total: r.data.pagination?.total || 0, totalPages: r.data.pagination?.totalPages || 1, loading: false })
     } catch (e) {
       set({ error: e.message || 'Failed to load', loading: false })
     }
@@ -31,7 +31,7 @@ const useRecycleBinStore = create((set, get) => ({
     set({ statsLoading: true })
     try {
       const r = await recycleBinApi.stats()
-      set({ stats: r.data.data || r.data || null, statsLoading: false })
+      set({ stats: r.data.data || null, statsLoading: false })
     } catch {
       set({ statsLoading: false })
     }

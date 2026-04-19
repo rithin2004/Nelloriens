@@ -44,7 +44,7 @@ export default function HistoryForm({ defaultValues, onSubmit, loading, contentI
         </div>
 
         <div>
-          <label className={lbl} style={lblStyle}>Description *</label>
+          <p className={lbl} style={lblStyle}>Description *</p>
           <RichTextEditor value={description} onChange={setDescription} />
         </div>
 
@@ -83,7 +83,7 @@ export default function HistoryForm({ defaultValues, onSubmit, loading, contentI
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="his-scope" className={lbl} style={lblStyle}>Scope *</label>
-            <select id="his-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+            <select id="his-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

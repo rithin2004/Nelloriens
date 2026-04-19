@@ -30,7 +30,7 @@ export default function SponsorForm({ defaultValues, onSubmit, loading, contentI
         <ImageUpload module="sponsorships" label="Logo *" value={logo} onChange={setLogo} contentId={contentId} section="logos" />
         <div>
           <label htmlFor="spn-type" className={field}>Sponsor Type *</label>
-          <select id="spn-type" name="sponsorType" {...register('sponsorType', { required: true })} className={input}>
+          <select id="spn-type" name="sponsorType" autoComplete="off" {...register('sponsorType', { required: true })} className={input}>
             <option value="">Select</option>
             {['Gold', 'Silver', 'Bronze', 'Title', 'Event'].map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
@@ -58,7 +58,7 @@ export default function SponsorForm({ defaultValues, onSubmit, loading, contentI
           <input id="spn-display-order" name="displayOrder" autoComplete="off" {...register('displayOrder')} type="number" className={input} />
         </div>
         <div>
-          <label className={field}>Placement Pages</label>
+          <p className={field}>Placement Pages</p>
           <div className="flex flex-wrap gap-3 mt-1">
             {PAGES.map((p) => (
               <label key={p} className="flex items-center gap-1.5 cursor-pointer text-sm text-slate-700 capitalize">
@@ -75,7 +75,7 @@ export default function SponsorForm({ defaultValues, onSubmit, loading, contentI
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="spn-scope" className={field}>Scope *</label>
-            <select id="spn-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+            <select id="spn-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={input}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

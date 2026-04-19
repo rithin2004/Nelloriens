@@ -21,7 +21,7 @@ export default function ResultForm({ defaultValues, onSubmit, loading, contentId
   const [resultDate, setResultDate] = useState(defaultValues?.resultDate ? new Date(defaultValues.resultDate) : null)
   const [publishedAt, setPublishedAt] = useState(defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date())
 
-  const fetchCategories = () => resultsApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
+  const fetchCategories = () => resultsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   useEffect(() => { fetchCategories() }, [])
 
   const submit = (data) => {
@@ -51,7 +51,7 @@ export default function ResultForm({ defaultValues, onSubmit, loading, contentId
               }}
             />
           </div>
-          <select id="result-category" name="category"
+          <select id="result-category" name="category" autoComplete="off"
             {...register('category', { required: 'Required' })} className={inp}>
             <option value="">Select category</option>
             {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
@@ -79,7 +79,7 @@ export default function ResultForm({ defaultValues, onSubmit, loading, contentId
         </div>
 
         <div>
-          <label className={lbl} style={lblStyle}>Full Details</label>
+          <p className={lbl} style={lblStyle}>Full Details</p>
           <RichTextEditor value={details} onChange={setDetails} />
         </div>
 
@@ -112,7 +112,7 @@ export default function ResultForm({ defaultValues, onSubmit, loading, contentId
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="result-scope" className={lbl} style={lblStyle}>Scope *</label>
-            <select id="result-scope" name="scope" {...register('scope', { required: 'Required' })} className={inp}>
+            <select id="result-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

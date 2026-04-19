@@ -18,7 +18,7 @@ const useTransportStore = create((set, get) => ({
     set({ loading: true, _params: p, error: null })
     try {
       const r = await transportApi.getAll(p)
-      set({ items: r.data.items || [], total: r.data.total || 0, totalPages: r.data.totalPages || 1, loading: false })
+      set({ items: r.data.data || [], total: r.data.pagination?.total || 0, totalPages: r.data.pagination?.totalPages || 1, loading: false })
     } catch (e) {
       set({ error: e.message || 'Failed to load', loading: false })
     }

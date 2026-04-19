@@ -12,8 +12,8 @@ export default function JobsList() {
   const [locations,  setLocations]  = useState([])
 
   useEffect(() => {
-    jobsApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
-    jobsApi.getLocations().then((r)  => setLocations(r.data  || [])).catch(() => {})
+    jobsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
+    jobsApi.getLocations().then((r)  => setLocations(r.data.data  || [])).catch(() => {})
   }, [])
 
   const btnBase = 'flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all'

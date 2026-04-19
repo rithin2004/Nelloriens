@@ -10,26 +10,6 @@ const PB = '#eef3fd'
 
 function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate() }
 
-function boxBtn(active, onMouseEnter, onMouseLeave, onClick, children, small = false) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      className="rounded-lg font-semibold transition-all focus:outline-none"
-      style={{
-        padding: small ? '5px 2px' : '7px 4px',
-        fontSize: small ? '12px' : '13px',
-        background: active ? P : '#F8FAFC',
-        color: active ? '#FFFFFF' : '#374151',
-        border: `1px solid ${active ? P : '#E2E8F0'}`,
-      }}
-    >
-      {children}
-    </button>
-  )
-}
 
 export default function DateTimePicker({
   value,

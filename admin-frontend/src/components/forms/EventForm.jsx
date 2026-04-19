@@ -33,7 +33,7 @@ function ToggleSwitch({ id, checked, onChange, label, hint }) {
 }
 
 export default function EventForm({ defaultValues, onSubmit, loading, contentId, isInfluencer = false, onDirtyChange }) {
-  const { register, handleSubmit, setValue, formState: { errors, isDirty } } = useForm({ defaultValues })
+  const { register, handleSubmit, formState: { errors, isDirty } } = useForm({ defaultValues })
   const [categories,   setCategories]   = useState([])
   const [isPopular,    setIsPopular]    = useState(defaultValues?.isPopular || false)
   const [description,  setDescription]  = useState(defaultValues?.description || '')
@@ -46,7 +46,7 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
 
   useEffect(() => {
     if (!isInfluencer) {
-      eventsApi.getCategories().then((r) => setCategories(r.data || [])).catch(() => {})
+      eventsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
     }
   }, [isInfluencer])
 
@@ -100,7 +100,7 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
         {!isInfluencer && (
           <div>
             <label htmlFor="event-category" className={field}>Category *</label>
-            <select id="event-category" name="category"
+            <select id="event-category" name="category" autoComplete="off"
               {...register('category', { required: 'Category is required' })}
               className={input}>
               <option value="">Select category</option>
@@ -153,7 +153,7 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
         />
 
         <div>
-          <label className={field}>Description</label>
+          <p className={field}>Description</p>
           <RichTextEditor value={description} onChange={setDescription} />
         </div>
       </div>
@@ -200,7 +200,7 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="event-scope" className={field}>Scope *</label>
-            <select id="event-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+            <select id="event-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={input}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>

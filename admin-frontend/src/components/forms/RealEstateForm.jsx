@@ -27,8 +27,8 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
   const isSale = (defaultValues?.section || 'sale') === 'sale'
 
   useEffect(() => {
-    realEstateApi.getLocations().then((r) => setLocations(r.data || [])).catch(() => {})
-    realEstateApi.getTypes().then((r) => setPropertyTypes(r.data || [])).catch(() => {})
+    realEstateApi.getLocations().then((r) => setLocations(r.data.data || [])).catch(() => {})
+    realEstateApi.getTypes().then((r) => setPropertyTypes(r.data.data || [])).catch(() => {})
   }, [])
 
   const handleMapChange = ({ lat, lng }) => {
@@ -49,16 +49,17 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
     setPhotoUploading(true)
     try {
       const r = await uploadApi.upload('realestate', fd)
-      setPhotos((prev) => [...prev, r.data.url])
+      setPhotos((prev) => [...prev, r.data.data.url])
     } catch { toast.error('Photo upload failed') }
     finally { setPhotoUploading(false); e.target.value = '' }
   }
 
   const removePhoto = async (idx) => {
     const url = photos[idx]
-    if (url) { try { await uploadApi.delete(url) } catch {} }
+    if (url) { try { await uploadApi.delete(url) } catch { /* ignore storage delete errors */ } }
     setPhotos((prev) => prev.filter((_, i) => i !== idx))
   }
+
 
   const submit = (data) => {
     onSubmit({ ...data, thumbnail, photos, latitude: location.lat, longitude: location.lng })
@@ -77,7 +78,7 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="res-type" className={field}>Type *</label>
-            <select id="res-type" name="type" {...register('type', { required: 'Required' })} className={input}>
+            <select id="res-type" name="type" autoComplete="off" {...register('type', { required: 'Required' })} className={input}>
               <option value="">Select type</option>
               {(propertyTypes.length > 0 ? propertyTypes.map((t) => t.name) : FALLBACK_TYPES).map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
@@ -85,7 +86,7 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
           </div>
           <div>
             <label htmlFor="res-location" className={field}>Location</label>
-            <select id="res-location" name="location" {...register('location')} className={input}>
+            <select id="res-location" name="location" autoComplete="off" {...register('location')} className={input}>
               <option value="">Select location</option>
               {locations.map((l) => <option key={l._id} value={l.name}>{l.name}</option>)}
             </select>
@@ -209,7 +210,7 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="res-scope" className={field}>Scope *</label>
-            <select id="res-scope" name="scope" {...register('scope', { required: 'Required' })} className={input}>
+            <select id="res-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={input}>
               <option value="nellore">Nellore</option>
               <option value="worldwide">Worldwide</option>
             </select>
