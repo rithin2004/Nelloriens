@@ -15,13 +15,12 @@ const inpStyle = { background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#
 
 export default function SportForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
   const { register, handleSubmit, control, watch, formState: { errors, isDirty } } = useForm({
-    defaultValues: { type: 'entry', ...defaultValues },
+    defaultValues: { type: 'livescore', ...defaultValues },
   })
-  const [categories, setCategories] = useState([])
-  const [thumbnail,    setThumbnail]    = useState(defaultValues?.thumbnail || '')
-  const [photos,       setPhotos]       = useState(defaultValues?.photos || [])
-  const [matchDateTime, setMatchDateTime] = useState(
-    defaultValues?.matchDateTime ? new Date(defaultValues.matchDateTime) : null
+  const [categories,  setCategories]  = useState([])
+  const [thumbnail,   setThumbnail]   = useState(defaultValues?.thumbnail || '')
+  const [validUpto,   setValidUpto]   = useState(
+    defaultValues?.validUpto ? new Date(defaultValues.validUpto) : null
   )
   const [publishedAt, setPublishedAt] = useState(
     defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date()
@@ -35,20 +34,23 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
   useEffect(() => { fetchCategories() }, [])
 
   const submit = (data) => {
+    if (type === 'livescore') {
+      onSubmit({ sportName: data.sportName, liveUrl: data.liveUrl, type: 'livescore' })
+      return
+    }
     const payload = {
       ...data,
       thumbnail,
       publishedAt: publishedAt?.toISOString(),
     }
-    if (type === 'upcoming') payload.matchDateTime = matchDateTime?.toISOString()
-    if (type === 'entry')    payload.photos = photos
+    if (type === 'upcoming') payload.validUpto = validUpto?.toISOString() ?? null
     onSubmit(payload)
   }
 
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-5">
 
-      {/* Type selector — only shown on create (no editId = no pre-set type) */}
+      {/* Type selector — only shown on create */}
       {!defaultValues?._id && (
         <div className={section} style={sectionStyle}>
           <div>
@@ -56,138 +58,102 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
             <select id="sport-type-select" name="type" autoComplete="off"
               {...register('type', { required: true })}
               className={inp} style={inpStyle}>
-              <option value="entry">Sports Entry</option>
-              <option value="upcoming">Upcoming Sport</option>
+              <option value="livescore">Live Score</option>
+              <option value="upcoming">Upcoming Event</option>
               <option value="article">News / Article</option>
             </select>
           </div>
         </div>
       )}
 
-      {/* Common fields for all types */}
-      <div className={section} style={sectionStyle}>
-        <h3 className="font-semibold text-slate-800">
-          {type === 'entry' ? 'Entry Details' : type === 'upcoming' ? 'Event Details' : 'Article Details'}
-        </h3>
-
-        <div>
-          <label htmlFor="sport-title" className={lbl} style={lblStyle}>Title *</label>
-          <input id="sport-title" name="title" autoComplete="off"
-            {...register('title', { required: 'Title is required' })}
-            className={inp} style={inpStyle} />
-          {errors.title && <p className="text-xs mt-1 text-red-600">{errors.title.message}</p>}
-        </div>
-
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <label htmlFor="sport-category" className={lbl} style={{ ...lblStyle, marginBottom: 0 }}>Category *</label>
-            <InlineCategoryAdd
-              label="Category"
-              placeholder="e.g. Cricket"
-              onAdd={async (name) => { await sportsApi.createCategory({ name }); await fetchCategories() }}
-            />
-          </div>
-          <select id="sport-category" name="category" autoComplete="off"
-            {...register('category', { required: 'Category is required' })}
-            className={inp} style={inpStyle}>
-            <option value="">Select category</option>
-            {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
-          </select>
-          {errors.category && <p className="text-xs mt-1 text-red-600">{errors.category.message}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="sport-description" className={lbl} style={lblStyle}>Description</label>
-          <textarea id="sport-description" name="description" autoComplete="off"
-            {...register('description')} rows={3}
-            className={`${inp} resize-none`} style={inpStyle} />
-        </div>
-
-        {/* Thumbnail — all types */}
-        <ImageUpload
-          module="sports" label="Thumbnail *" value={thumbnail}
-          onChange={setThumbnail} contentId={contentId} section="thumbnails"
-        />
-      </div>
-
-      {/* ── Sports Entry fields ── */}
-      {type === 'entry' && (
+      {/* ── Live Score fields ── */}
+      {type === 'livescore' && (
         <div className={section} style={sectionStyle}>
-          <h3 className="font-semibold text-slate-800">Entry Media & Links</h3>
-
+          <h3 className="font-semibold text-slate-800">Live Score Link</h3>
           <div>
-            <label htmlFor="sport-livescore" className={lbl} style={lblStyle}>Live Score URL</label>
-            <input id="sport-livescore" name="liveScoreUrl" type="url" autoComplete="url"
-              {...register('liveScoreUrl')} placeholder="Generic live score link"
+            <label htmlFor="sport-name" className={lbl} style={lblStyle}>Sport / Match Name *</label>
+            <input id="sport-name" name="sportName" autoComplete="off"
+              {...register('sportName', { required: 'Sport name is required' })}
+              placeholder="e.g. Cricket — AP vs Hyderabad"
               className={inp} style={inpStyle} />
+            {errors.sportName && <p className="text-xs mt-1 text-red-600">{errors.sportName.message}</p>}
           </div>
-
           <div>
-            <p className={lbl} style={lblStyle}>Photos (up to 5)</p>
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="mb-2">
-                <ImageUpload
-                  module="sports" label={`Photo ${i + 1}`}
-                  value={photos[i] || ''}
-                  onChange={(url) => {
-                    const next = [...photos]
-                    next[i] = url
-                    setPhotos(next.filter(Boolean).slice(0, 5))
-                  }}
-                  contentId={`${contentId}/${i + 1}`}
-                  section="photos"
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="sport-location" className={lbl} style={lblStyle}>Location</label>
-              <input id="sport-location" name="location" autoComplete="off"
-                {...register('location')} className={inp} style={inpStyle} />
-            </div>
-            <div>
-              <label htmlFor="sport-scope" className={lbl} style={lblStyle}>Scope *</label>
-              <select id="sport-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp} style={inpStyle}>
-                <option value="nellore">Nellore</option>
-                <option value="worldwide">Worldwide</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="sport-city" className={lbl} style={lblStyle}>City</label>
-              <input id="sport-city" name="city" autoComplete="address-level2"
-                {...register('city')} className={inp} style={inpStyle} />
-            </div>
-            <div>
-              <label htmlFor="sport-region" className={lbl} style={lblStyle}>Region</label>
-              <input id="sport-region" name="region" autoComplete="off"
-                {...register('region')} className={inp} style={inpStyle} />
-            </div>
+            <label htmlFor="sport-liveurl" className={lbl} style={lblStyle}>Live Score URL *</label>
+            <input id="sport-liveurl" name="liveUrl" type="url" autoComplete="url"
+              {...register('liveUrl', { required: 'Live URL is required' })}
+              placeholder="https://cricbuzz.com/..."
+              className={inp} style={inpStyle} />
+            {errors.liveUrl && <p className="text-xs mt-1 text-red-600">{errors.liveUrl.message}</p>}
           </div>
         </div>
       )}
 
-      {/* ── Upcoming Sport fields ── */}
+      {/* Common fields for upcoming + article */}
+      {type !== 'livescore' && (
+        <div className={section} style={sectionStyle}>
+          <h3 className="font-semibold text-slate-800">
+            {type === 'upcoming' ? 'Event Details' : 'Article Details'}
+          </h3>
+
+          <div>
+            <label htmlFor="sport-title" className={lbl} style={lblStyle}>Title *</label>
+            <input id="sport-title" name="title" autoComplete="off"
+              {...register('title', { required: 'Title is required' })}
+              className={inp} style={inpStyle} />
+            {errors.title && <p className="text-xs mt-1 text-red-600">{errors.title.message}</p>}
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <label htmlFor="sport-category" className={lbl} style={{ ...lblStyle, marginBottom: 0 }}>Category *</label>
+              <InlineCategoryAdd
+                label="Category"
+                placeholder="e.g. Cricket"
+                onAdd={async (name) => { await sportsApi.createCategory({ name }); await fetchCategories() }}
+              />
+            </div>
+            <select id="sport-category" name="category" autoComplete="off"
+              {...register('category', { required: 'Category is required' })}
+              className={inp} style={inpStyle}>
+              <option value="">Select category</option>
+              {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+            </select>
+            {errors.category && <p className="text-xs mt-1 text-red-600">{errors.category.message}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="sport-description" className={lbl} style={lblStyle}>Description</label>
+            <textarea id="sport-description" name="description" autoComplete="off"
+              {...register('description')} rows={3}
+              className={`${inp} resize-none`} style={inpStyle} />
+          </div>
+
+          <ImageUpload
+            module="sports" label="Thumbnail *" value={thumbnail}
+            onChange={setThumbnail} contentId={contentId} section="thumbnails"
+          />
+        </div>
+      )}
+
+      {/* ── Upcoming Event fields ── */}
       {type === 'upcoming' && (
         <div className={section} style={sectionStyle}>
           <h3 className="font-semibold text-slate-800">Event Schedule</h3>
 
           <div>
-            <label htmlFor="sport-datetime" className={lbl} style={lblStyle}>Date & Time *</label>
+            <label htmlFor="sport-validupto" className={lbl} style={lblStyle}>Valid Upto *</label>
             <Controller
               control={control}
-              name="_matchDateTimeCtrl"
+              name="_validUptoCtrl"
               render={() => (
                 <DatePicker
-                  id="sport-datetime"
-                  selected={matchDateTime}
-                  onChange={setMatchDateTime}
+                  id="sport-validupto"
+                  selected={validUpto}
+                  onChange={setValidUpto}
                   showTimeSelect
                   dateFormat="dd/MM/yyyy HH:mm"
-                  placeholderText="Select date & time"
+                  placeholderText="Event ends at (date & time)"
                   className="w-full px-3 py-2.5 rounded-lg text-sm"
                   style={inpStyle}
                 />
@@ -213,22 +179,6 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
                 {...register('teamB')} className={inp} style={inpStyle} />
             </div>
           </div>
-
-          <div>
-            <label htmlFor="sport-matchstatus" className={lbl} style={lblStyle}>Match Status</label>
-            <select id="sport-matchstatus" name="matchStatus" autoComplete="off" {...register('matchStatus')} className={inp} style={inpStyle}>
-              <option value="upcoming">Upcoming</option>
-              <option value="live">Live</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="sport-stream" className={lbl} style={lblStyle}>Live Stream URL</label>
-            <input id="sport-stream" name="liveStreamUrl" type="url" autoComplete="url"
-              {...register('liveStreamUrl')} placeholder="YouTube/streaming link"
-              className={inp} style={inpStyle} />
-          </div>
         </div>
       )}
 
@@ -245,60 +195,62 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
         </div>
       )}
 
-      {/* Location & Scope — for upcoming and article types (entry type has these in its own section) */}
-      {type !== 'entry' && (
+      {/* Location & Scope — for upcoming and article */}
+      {type !== 'livescore' && (
         <div className={section} style={sectionStyle}>
           <h3 className="font-semibold text-slate-800">Location & Scope</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="sport-scope2" className={lbl} style={lblStyle}>Scope *</label>
-              <select id="sport-scope2" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp} style={inpStyle}>
+              <label htmlFor="sport-scope" className={lbl} style={lblStyle}>Scope *</label>
+              <select id="sport-scope" name="scope" autoComplete="off" {...register('scope', { required: 'Required' })} className={inp} style={inpStyle}>
                 <option value="nellore">Nellore</option>
                 <option value="worldwide">Worldwide</option>
               </select>
             </div>
             <div>
-              <label htmlFor="sport-city2" className={lbl} style={lblStyle}>City</label>
-              <input id="sport-city2" name="city" autoComplete="address-level2"
+              <label htmlFor="sport-city" className={lbl} style={lblStyle}>City</label>
+              <input id="sport-city" name="city" autoComplete="address-level2"
                 {...register('city')} className={inp} style={inpStyle} />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="sport-location2" className={lbl} style={lblStyle}>Location</label>
-              <input id="sport-location2" name="location" autoComplete="off"
+              <label htmlFor="sport-location" className={lbl} style={lblStyle}>Location</label>
+              <input id="sport-location" name="location" autoComplete="off"
                 {...register('location')} className={inp} style={inpStyle} />
             </div>
             <div>
-              <label htmlFor="sport-region2" className={lbl} style={lblStyle}>Region</label>
-              <input id="sport-region2" name="region" autoComplete="off"
+              <label htmlFor="sport-region" className={lbl} style={lblStyle}>Region</label>
+              <input id="sport-region" name="region" autoComplete="off"
                 {...register('region')} className={inp} style={inpStyle} />
             </div>
           </div>
         </div>
       )}
 
-      {/* Published At */}
-      <div className={section} style={sectionStyle}>
-        <div>
-          <label htmlFor="sport-publishedat" className={lbl} style={lblStyle}>Published At *</label>
-          <Controller
-            control={control}
-            name="_publishedAtCtrl"
-            render={() => (
-              <DatePicker
-                id="sport-publishedat"
-                selected={publishedAt}
-                onChange={setPublishedAt}
-                showTimeSelect
-                dateFormat="dd/MM/yyyy HH:mm"
-                className="w-full px-3 py-2.5 rounded-lg text-sm"
-                style={inpStyle}
-              />
-            )}
-          />
+      {/* Published At — not needed for live scores */}
+      {type !== 'livescore' && (
+        <div className={section} style={sectionStyle}>
+          <div>
+            <label htmlFor="sport-publishedat" className={lbl} style={lblStyle}>Published At *</label>
+            <Controller
+              control={control}
+              name="_publishedAtCtrl"
+              render={() => (
+                <DatePicker
+                  id="sport-publishedat"
+                  selected={publishedAt}
+                  onChange={setPublishedAt}
+                  showTimeSelect
+                  dateFormat="dd/MM/yyyy HH:mm"
+                  className="w-full px-3 py-2.5 rounded-lg text-sm"
+                  style={inpStyle}
+                />
+              )}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <button type="submit" disabled={loading}
         className="w-full py-2.5 text-white font-semibold rounded-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, Trophy, Newspaper, Tag, Eye, Info, Layers } from 'lucide-react'
+import { Plus, Pencil, Trash2, Trophy, Newspaper, Tag, Eye, Info, Wifi } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { sportsApi, uploadApi } from '../../services/api'
@@ -18,9 +18,9 @@ const PB = '#eef3fd'
 const PAGE_SIZE = 20
 
 const TABS = [
-  { key: 'entry',    label: 'Sports Entries',  icon: Layers    },
-  { key: 'upcoming', label: 'Upcoming Sports',  icon: Trophy    },
-  { key: 'article',  label: 'News & Articles',  icon: Newspaper },
+  { key: 'livescores', label: 'Live Scores',      icon: Wifi      },
+  { key: 'upcoming',   label: 'Upcoming Events',   icon: Trophy    },
+  { key: 'article',    label: 'News & Articles',   icon: Newspaper },
 ]
 
 const inp = 'px-3 py-2 text-sm rounded-lg focus:outline-none transition-all'
@@ -28,33 +28,27 @@ const inpStyle = { background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#
 const inpFocus = (e) => { e.target.style.borderColor = P; e.target.style.boxShadow = '0 0 0 3px rgba(10,61,149,0.1)' }
 const inpBlur  = (e) => { e.target.style.borderColor = '#CBD5E1'; e.target.style.boxShadow = '' }
 
-function MatchStatusBadge({ status }) {
-  const map = {
-    upcoming:  { bg: '#DBEAFE', color: '#1D4ED8', label: 'Upcoming' },
-    live:      { bg: '#DCFCE7', color: '#15803D', label: '● Live'   },
-    completed: { bg: '#F1F5F9', color: '#64748B', label: 'Completed' },
-  }
-  const s = map[status] || { bg: '#F1F5F9', color: '#64748B', label: status }
-  return (
-    <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: s.bg, color: s.color }}>
-      {s.label}
-    </span>
-  )
-}
-
 export default function SportsList() {
   const navigate = useNavigate()
-  const [tab,        setTab]        = useState('entry')
+  const [tab,        setTab]        = useState('livescores')
   const [categories, setCategories] = useState([])
   const [search,     setSearch]     = useState('')
   const [catFilter,  setCatFilter]  = useState('')
   const [page,       setPage]       = useState(1)
   const debouncedSearch = useDebounce(search)
 
+  // Live scores managed locally (separate endpoint)
+  const [liveScores,      setLiveScores]      = useState([])
+  const [liveScoresTotal, setLiveScoresTotal] = useState(0)
+  const [liveScoresPages, setLiveScoresPages] = useState(1)
+  const [liveLoading,     setLiveLoading]     = useState(false)
+
   const { items: data, totalPages, loading, fetch } = useSportsStore()
 
-  const [deleteId, setDeleteId] = useState(null)
-  const [deleting, setDeleting] = useState(false)
+  const [deleteId,       setDeleteId]       = useState(null)
+  const [deleting,       setDeleting]       = useState(false)
+  const [deleteLiveId,   setDeleteLiveId]   = useState(null)
+  const [deletingLive,   setDeletingLive]   = useState(false)
 
   const [formOpen,       setFormOpen]       = useState(false)
   const [formDefaults,   setFormDefaults]   = useState(null)
@@ -64,8 +58,24 @@ export default function SportsList() {
   const [formDirty,      setFormDirty]      = useState(false)
   const [reservedId,     setReservedId]     = useState(null)
 
+  const fetchLiveScores = () => {
+    setLiveLoading(true)
+    sportsApi.getLiveScores({ page, limit: PAGE_SIZE, search: debouncedSearch })
+      .then((r) => {
+        setLiveScores(r.data.data || [])
+        setLiveScoresTotal(r.data.pagination?.total || 0)
+        setLiveScoresPages(r.data.pagination?.totalPages || 1)
+      })
+      .catch(() => {})
+      .finally(() => setLiveLoading(false))
+  }
+
   useEffect(() => {
-    fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, category: catFilter, type: tab })
+    if (tab === 'livescores') {
+      fetchLiveScores()
+    } else {
+      fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, category: catFilter, type: tab })
+    }
   }, [tab, page, debouncedSearch, catFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -81,15 +91,38 @@ export default function SportsList() {
     finally { setDeleting(false) }
   }
 
+  const handleDeleteLive = async () => {
+    setDeletingLive(true)
+    try {
+      await sportsApi.deleteLiveScore(deleteLiveId)
+      toast.success('Deleted')
+      setDeleteLiveId(null)
+      fetchLiveScores()
+    }
+    catch { toast.error('Delete failed') }
+    finally { setDeletingLive(false) }
+  }
+
   const openCreate = async () => {
     setFormEditId(null); setFormDirty(false)
-    try { const r = await uploadApi.reserveId('SPT'); setReservedId(r.data.data.id) }
-    catch { toast.error('Failed to reserve ID — please try again'); return }
-    setFormDefaults({ type: tab }); setFormOpen(true)
+    if (tab !== 'livescores') {
+      try { const r = await uploadApi.reserveId('SPT'); setReservedId(r.data.data.id) }
+      catch { toast.error('Failed to reserve ID — please try again'); return }
+    }
+    setFormDefaults({ type: tab === 'livescores' ? 'livescore' : tab }); setFormOpen(true)
   }
-  const openEdit = async (id) => {
+
+  const openEdit = async (id, isLive = false) => {
     setFormFetching(true); setFormDefaults(null); setFormEditId(id); setFormDirty(false); setFormOpen(true)
-    try { const r = await sportsApi.getById(id); setFormDefaults(r.data.data) }
+    try {
+      if (isLive) {
+        const item = liveScores.find(s => s._id === id)
+        setFormDefaults(item ? { ...item, type: 'livescore' } : { type: 'livescore' })
+      } else {
+        const r = await sportsApi.getById(id)
+        setFormDefaults(r.data.data)
+      }
+    }
     catch { toast.error('Failed to load'); setFormOpen(false) }
     finally { setFormFetching(false) }
   }
@@ -97,8 +130,16 @@ export default function SportsList() {
   const handleFormSubmit = async (formData) => {
     setFormSubmitting(true)
     try {
-      if (formEditId) { await sportsApi.update(formEditId, formData); toast.success('Updated!') }
-      else            { await sportsApi.create(reservedId ? { ...formData, _reservedId: reservedId } : formData); toast.success('Created!') }
+      if (formData.type === 'livescore') {
+        if (formEditId) await sportsApi.updateLiveScore(formEditId, formData)
+        else             await sportsApi.createLiveScore(formData)
+        toast.success(formEditId ? 'Updated!' : 'Created!')
+        fetchLiveScores()
+      } else {
+        if (formEditId) await sportsApi.update(formEditId, formData)
+        else            await sportsApi.create(reservedId ? { ...formData, _reservedId: reservedId } : formData)
+        toast.success(formEditId ? 'Updated!' : 'Created!')
+      }
       setFormOpen(false); setFormDirty(false); setReservedId(null)
     } catch (e) { toast.error(e?.response?.data?.message || 'Save failed') }
     finally { setFormSubmitting(false) }
@@ -109,15 +150,15 @@ export default function SportsList() {
     setFormOpen(false); setFormDirty(false); setReservedId(null)
   }
 
-  const actionButtons = (row) => (
+  const actionButtons = (row, isLive = false) => (
     <div className="flex gap-1">
-      <button onClick={() => openEdit(row.original._id)}
+      <button onClick={() => openEdit(row.original._id, isLive)}
         className="p-1.5 rounded-lg text-slate-400 transition-colors"
         onMouseEnter={(e) => { e.currentTarget.style.color = P; e.currentTarget.style.background = PB }}
         onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.background = 'transparent' }}>
         <Pencil className="w-4 h-4" />
       </button>
-      <button onClick={() => setDeleteId(row.original._id)}
+      <button onClick={() => isLive ? setDeleteLiveId(row.original._id) : setDeleteId(row.original._id)}
         className="p-1.5 rounded-lg text-slate-400 transition-colors"
         onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.background = '#FEE2E2' }}
         onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.background = 'transparent' }}>
@@ -126,32 +167,20 @@ export default function SportsList() {
     </div>
   )
 
-  // Tab 1 — Sports Entries columns
-  const entryColumns = [
+  // Tab 1 — Live Scores columns
+  const liveScoreColumns = [
     {
-      accessorKey: 'thumbnail',
-      header: '',
-      cell: ({ row }) => row.original.thumbnail
-        ? <img src={row.original.thumbnail} className="w-10 h-8 object-cover rounded-lg" alt="" />
-        : <div className="w-10 h-8 rounded-lg bg-slate-100" />,
+      accessorKey: 'sportName',
+      header: 'Sport / Match',
+      cell: ({ getValue }) => <span className="font-semibold text-slate-800">{truncate(getValue() || '', 60)}</span>,
     },
     {
-      accessorKey: 'title',
-      header: 'Title',
-      cell: ({ getValue }) => <span className="font-semibold text-slate-800">{truncate(getValue() || '', 50)}</span>,
-    },
-    {
-      accessorKey: 'category',
-      header: 'Category',
-      cell: ({ row }) => <span className="text-slate-500 text-xs">{row.original.category?.name || row.original.category || '—'}</span>,
-    },
-    {
-      accessorKey: 'pageViews',
-      header: 'Views',
-      cell: ({ row }) => (
-        <span className="flex items-center gap-1 text-slate-400 text-xs">
-          <Eye className="w-3 h-3" /> {row.original.pageViews ?? 0}
-        </span>
+      accessorKey: 'liveUrl',
+      header: 'Live URL',
+      cell: ({ getValue }) => (
+        <a href={getValue()} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-xs truncate max-w-50 block">
+          {truncate(getValue() || '', 50)}
+        </a>
       ),
     },
     {
@@ -159,10 +188,10 @@ export default function SportsList() {
       header: 'Added',
       cell: ({ getValue }) => <span className="text-slate-500 text-xs">{formatDate(getValue())}</span>,
     },
-    { id: 'actions', header: '', cell: ({ row }) => actionButtons(row) },
+    { id: 'actions', header: '', cell: ({ row }) => actionButtons(row, true) },
   ]
 
-  // Tab 2 — Upcoming Sports columns
+  // Tab 2 — Upcoming Events columns
   const upcomingColumns = [
     {
       accessorKey: 'thumbnail',
@@ -182,19 +211,14 @@ export default function SportsList() {
       cell: ({ row }) => <span className="text-slate-500 text-xs">{row.original.category?.name || row.original.category || '—'}</span>,
     },
     {
-      accessorKey: 'matchDateTime',
-      header: 'Date & Time',
+      accessorKey: 'validUpto',
+      header: 'Valid Upto',
       cell: ({ getValue }) => <span className="text-slate-500 text-xs">{getValue() ? formatDate(getValue()) : '—'}</span>,
     },
     {
       accessorKey: 'venue',
       header: 'Venue',
       cell: ({ getValue }) => <span className="text-slate-500 text-xs">{getValue() || '—'}</span>,
-    },
-    {
-      accessorKey: 'matchStatus',
-      header: 'Status',
-      cell: ({ getValue }) => <MatchStatusBadge status={getValue()} />,
     },
     { id: 'actions', header: '', cell: ({ row }) => actionButtons(row) },
   ]
@@ -237,10 +261,9 @@ export default function SportsList() {
     { id: 'actions', header: '', cell: ({ row }) => actionButtons(row) },
   ]
 
-  const tabColumns = { entry: entryColumns, upcoming: upcomingColumns, article: articleColumns }
-  const tabTitles  = { entry: 'Add Entry', upcoming: 'Add Upcoming Sport', article: 'Add Article' }
-  const formTitle  = formEditId
-    ? (tab === 'entry' ? 'Edit Entry' : tab === 'upcoming' ? 'Edit Upcoming Sport' : 'Edit Article')
+  const tabTitles = { livescores: 'Add Live Score', upcoming: 'Add Upcoming Event', article: 'Add Article' }
+  const formTitle = formEditId
+    ? (tab === 'livescores' ? 'Edit Live Score' : tab === 'upcoming' ? 'Edit Upcoming Event' : 'Edit Article')
     : tabTitles[tab]
 
   return (
@@ -289,17 +312,16 @@ export default function SportsList() {
         })}
       </div>
 
-      {/* Info banner */}
-      {tab === 'entry' && (
-        <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg text-xs" style={{ background: '#EDE9FE', border: '1px solid #DDD6FE', color: '#6D28D9' }}>
-          <Layers className="w-3.5 h-3.5 shrink-0" />
-          <span>Sports entries with photos, descriptions, and live score links.</span>
+      {tab === 'livescores' && (
+        <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg text-xs" style={{ background: '#DCFCE7', border: '1px solid #BBF7D0', color: '#15803D' }}>
+          <Wifi className="w-3.5 h-3.5 shrink-0" />
+          <span>Add sport name and a live score redirect URL (e.g. Cricbuzz link). Max 20 per page.</span>
         </div>
       )}
       {tab === 'upcoming' && (
         <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg text-xs" style={{ background: '#FEF3C7', border: '1px solid #FDE68A', color: '#92400E' }}>
           <Trophy className="w-3.5 h-3.5 shrink-0" />
-          <span>Upcoming and live sport events — add schedules, venues, and live stream links.</span>
+          <span>Upcoming sport events — set <strong>Valid Upto</strong> date. Events are auto-hidden after that date. Max 12.</span>
         </div>
       )}
       {tab === 'article' && (
@@ -324,7 +346,7 @@ export default function SportsList() {
             onBlur={inpBlur}
           />
         </div>
-        {categories.length > 0 && (
+        {tab !== 'livescores' && categories.length > 0 && (
           <div>
             <label htmlFor="filter-category-sports" className="sr-only">Filter by sport category</label>
             <select id="filter-category-sports" name="filter-category"
@@ -337,19 +359,30 @@ export default function SportsList() {
         )}
       </div>
 
-      <DataTable
-        columns={tabColumns[tab]}
-        data={data}
-        isLoading={loading}
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-      />
+      {tab === 'livescores' ? (
+        <DataTable
+          columns={liveScoreColumns}
+          data={liveScores}
+          isLoading={liveLoading}
+          page={page}
+          totalPages={liveScoresPages}
+          onPageChange={setPage}
+        />
+      ) : (
+        <DataTable
+          columns={tab === 'upcoming' ? upcomingColumns : articleColumns}
+          data={data}
+          isLoading={loading}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
+      )}
 
       <div className="flex items-center gap-4 mt-3 px-1 flex-wrap">
         <div className="flex items-center gap-1.5 text-xs text-slate-400"><Info className="w-3 h-3" /><span>Row actions:</span></div>
         <div className="flex items-center gap-1 text-xs text-slate-400"><Pencil className="w-3 h-3" style={{ color: P }} /><span>Edit</span></div>
-        <div className="flex items-center gap-1 text-xs text-slate-400"><Trash2 className="w-3 h-3 text-red-400" /><span>Delete (moves to Recycle Bin)</span></div>
+        <div className="flex items-center gap-1 text-xs text-slate-400"><Trash2 className="w-3 h-3 text-red-400" /><span>Delete</span></div>
       </div>
 
       <ConfirmModal
@@ -359,6 +392,15 @@ export default function SportsList() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
         loading={deleting}
+      />
+
+      <ConfirmModal
+        isOpen={!!deleteLiveId}
+        title="Delete Live Score"
+        message="This will permanently delete this live score link."
+        onConfirm={handleDeleteLive}
+        onCancel={() => setDeleteLiveId(null)}
+        loading={deletingLive}
       />
 
       <FormModal isOpen={formOpen} onClose={handleCloseForm} title={formTitle} maxWidth="max-w-2xl">

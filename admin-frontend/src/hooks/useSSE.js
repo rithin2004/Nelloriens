@@ -71,11 +71,11 @@ export function useSSE() {
           case 'jobs':              useJobsStore.getState().fetch();         break
           case 'results':           useResultsStore.getState().fetch();      break
           case 'sports':            useSportsStore.getState().fetch();       break
+          case 'sport_live_scores': useSportsStore.getState().fetch();       break
           case 'foods':             useFoodsStore.getState().fetch();        break
           case 'history':           useHistoryStore.getState().fetch();      break
           case 'stays':             useStaysStore.getState().fetch();        break
           case 'movies':            useMoviesStore.getState().fetch();       break
-          case 'movie_trailers':    useMoviesStore.getState().fetch();       break  // trailers update triggers movies page refresh
           case 'theatres':          useMoviesStore.getState().fetch();       break  // theatres update triggers movie list refresh
           case 'transport':         useTransportStore.getState().fetch();    break
           case 'offers':            useOffersStore.getState().fetch();       break

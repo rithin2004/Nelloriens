@@ -67,6 +67,11 @@ export const sportsApi = {
   createCategory: (data)       => api.post('/sports/categories/create', data),
   updateCategory: (id, data)   => api.put(`/sports/categories/update/${id}`, data),
   deleteCategory: (id)         => api.delete(`/sports/categories/delete/${id}`),
+  // Live Scores
+  getLiveScores:      (params)     => api.get('/sports/live-scores/list', { params }),
+  createLiveScore:    (data)       => api.post('/sports/live-scores/create', data),
+  updateLiveScore:    (id, data)   => api.put(`/sports/live-scores/update/${id}`, data),
+  deleteLiveScore:    (id)         => api.delete(`/sports/live-scores/delete/${id}`),
 }
 
 // ── Foods ──────────────────────────────────────────────────────────────────
@@ -149,12 +154,6 @@ export const moviesApi = {
   createTheatre: (data)       => api.post('/theatres/create', data),
   updateTheatre: (id, data)   => api.put(`/theatres/update/${id}`, data),
   deleteTheatre: (id)         => api.delete(`/theatres/delete/${id}`),
-  // Trailers (RULE 35)
-  getTrailers:    (params)     => api.get('/movies/trailers/list', { params }),
-  getTrailerById: (id)         => api.get(`/movies/trailers/get/${id}`),
-  createTrailer:  (data)       => api.post('/movies/trailers/create', data),
-  updateTrailer:  (id, data)   => api.put(`/movies/trailers/update/${id}`, data),
-  deleteTrailer:  (id)         => api.delete(`/movies/trailers/delete/${id}`),
 }
 
 // ── Transport ──────────────────────────────────────────────────────────────
