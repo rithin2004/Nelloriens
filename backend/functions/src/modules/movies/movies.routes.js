@@ -15,17 +15,8 @@ router.post  ('/create',     authenticate, permit(M,'create'), a(c.create))
 router.put   ('/update/:id', authenticate, permit(M,'update'), a(c.update))
 router.delete('/delete/:id', authenticate, permit(M,'delete'), a(c.remove))
 
-// ── Trailers (RULE 35 — separate section) ─────────────────────────────────
-router.get   ('/trailers/list',                    a(c.listTrailers))
-router.get   ('/trailers/get/:id',                 a(c.getTrailerById))
-router.post  ('/trailers/create',     authenticate, permit(M,'create'), a(c.createTrailer))
-router.put   ('/trailers/update/:id', authenticate, permit(M,'update'), a(c.updateTrailer))
-router.delete('/trailers/delete/:id', authenticate, permit(M,'delete'), a(c.removeTrailer))
-
 // Public view increments — no auth (RULE 11)
-router.post('/:id/views',               a(c.incrementPageViews))
-router.post('/:id/card-views',          a(c.incrementCardViews))
-router.post('/trailers/:id/views',      a(c.incrementTrailerPageViews))
-router.post('/trailers/:id/card-views', a(c.incrementTrailerCardViews))
+router.post('/:id/views',      a(c.incrementPageViews))
+router.post('/:id/card-views', a(c.incrementCardViews))
 
 export default router

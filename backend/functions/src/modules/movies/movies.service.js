@@ -1,4 +1,4 @@
-import { moviesRepo, theatresRepo, trailersRepo } from './movies.repository.js'
+import { moviesRepo, theatresRepo } from './movies.repository.js'
 import { CrudService }              from '../../utils/serviceBase.js'
 
 class MoviesService extends CrudService {
@@ -51,9 +51,3 @@ export const theatresService = new CrudService(theatresRepo, {
   searchField: 'name',
 })
 
-export const trailersService = new CrudService(trailersRepo, {
-  entityName:   'Trailer',
-  searchField:  'movieName',
-  orderBy:      'createdAt',
-  order:        'desc',
-})

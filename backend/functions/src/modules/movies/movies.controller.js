@@ -1,4 +1,4 @@
-import { moviesService, theatresService, trailersService } from './movies.service.js'
+import { moviesService, theatresService } from './movies.service.js'
 import { log } from '../../utils/auditLog.js'
 import { createTracking, updateTracking } from '../../utils/userTracking.js'
 
@@ -57,36 +57,6 @@ export async function removeTheatre(req, res) {
   res.json({ success: true, message: 'Deleted', data: null })
 }
 
-// ── Trailers (RULE 35 — separate section) ─────────────────────────────────
-
-export async function listTrailers(req, res) {
-  const { items, total, page, totalPages } = await trailersService.list(req.query)
-  res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
-}
-
-export async function getTrailerById(req, res) {
-  const data = await trailersService.getById(req.params.id)
-  res.json({ success: true, message: 'OK', data })
-}
-
-export async function createTrailer(req, res) {
-  const data = await trailersService.create({ ...req.body, ...createTracking(req.user) })
-  await log(req, 'create', 'movies', data._id, { movieName: data.movieName, type: 'trailer' })
-  res.status(201).json({ success: true, message: 'Trailer created', data })
-}
-
-export async function updateTrailer(req, res) {
-  const data = await trailersService.update(req.params.id, { ...req.body, ...updateTracking(req.user) })
-  await log(req, 'update', 'movies', req.params.id, { type: 'trailer' })
-  res.json({ success: true, message: 'Trailer updated', data })
-}
-
-export async function removeTrailer(req, res) {
-  await trailersService.remove(req.params.id)
-  await log(req, 'delete', 'movies', req.params.id, { type: 'trailer' })
-  res.json({ success: true, message: 'Trailer deleted', data: null })
-}
-
 // ── View increments (RULE 11 — public, no auth) ────────────────────────────
 export async function incrementPageViews(req, res) {
   await moviesService.incrementViews(req.params.id, 'pageViews')
@@ -94,13 +64,5 @@ export async function incrementPageViews(req, res) {
 }
 export async function incrementCardViews(req, res) {
   await moviesService.incrementViews(req.params.id, 'cardViews')
-  res.json({ success: true, message: 'OK' })
-}
-export async function incrementTrailerPageViews(req, res) {
-  await trailersService.incrementViews(req.params.id, 'pageViews')
-  res.json({ success: true, message: 'OK' })
-}
-export async function incrementTrailerCardViews(req, res) {
-  await trailersService.incrementViews(req.params.id, 'cardViews')
   res.json({ success: true, message: 'OK' })
 }

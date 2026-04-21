@@ -684,6 +684,11 @@ export const paths = {
   '/sports/categories/update/{id}': { put:    { tags: ['Sports'], summary: 'Update a sport category', security: auth, parameters: id, requestBody: inlineBody([], { name: { type: 'string', example: 'Kabaddi' } }), responses: { ...ok('Updated.'), ...fail } } },
   '/sports/categories/delete/{id}': { delete: { tags: ['Sports'], summary: 'Delete a sport category', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
 
+  '/sports/live-scores/list':        { get:    { tags: ['Sports'], summary: 'List live score links (public)', parameters: pagQ, responses: { ...ok('Array of live score links.') } } },
+  '/sports/live-scores/create':      { post:   { tags: ['Sports'], summary: 'Add a live score link', security: auth, requestBody: body('#/components/schemas/CreateLiveScoreRequest'), responses: { ...created('Created.'), ...fail } } },
+  '/sports/live-scores/update/{id}': { put:    { tags: ['Sports'], summary: 'Update a live score link', security: auth, parameters: id, requestBody: body('#/components/schemas/CreateLiveScoreRequest'), responses: { ...ok('Updated.'), ...fail } } },
+  '/sports/live-scores/delete/{id}': { delete: { tags: ['Sports'], summary: 'Delete a live score link', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
+
   // ─────────────────────────────────────────────────────────────────────────
   // FOODS
   // ─────────────────────────────────────────────────────────────────────────
@@ -1516,30 +1521,6 @@ export const paths = {
 
   '/events/influencer/{id}/views':      { post: { tags: ['Events'], summary: 'Increment page views on an influencer event (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
   '/events/influencer/{id}/card-views': { post: { tags: ['Events'], summary: 'Increment card views on an influencer event (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // MOVIES — TRAILERS
-  // ─────────────────────────────────────────────────────────────────────────
-
-  '/movies/trailers/list': {
-    get: {
-      tags: ['Movies'],
-      summary: 'List movie trailers (public)',
-      parameters: [
-        ...pagQ,
-        { name: 'search', in: 'query', schema: { type: 'string' }, description: 'Search by movie name.' },
-      ],
-      responses: { ...paginatedOk },
-    },
-  },
-
-  '/movies/trailers/get/{id}':    { get:    { tags: ['Movies'], summary: 'Get a trailer by ID (public)', parameters: id, responses: { ...ok('Trailer document.'), ...fail } } },
-  '/movies/trailers/create':      { post:   { tags: ['Movies'], summary: 'Create a trailer', security: auth, requestBody: body('#/components/schemas/CreateMovieRequest'), responses: { ...created('Created.'), ...fail } } },
-  '/movies/trailers/update/{id}': { put:    { tags: ['Movies'], summary: 'Update a trailer', security: auth, parameters: id, requestBody: body('#/components/schemas/CreateMovieRequest'), responses: { ...ok('Updated.'), ...fail } } },
-  '/movies/trailers/delete/{id}': { delete: { tags: ['Movies'], summary: 'Delete a trailer', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
-
-  '/movies/trailers/{id}/views':      { post: { tags: ['Movies'], summary: 'Increment page views on a trailer (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
-  '/movies/trailers/{id}/card-views': { post: { tags: ['Movies'], summary: 'Increment card views on a trailer (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
 
   // ─────────────────────────────────────────────────────────────────────────
   // TOURISM — LOCATIONS & DISPLAY PHOTOS

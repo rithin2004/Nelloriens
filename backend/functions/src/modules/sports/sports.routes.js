@@ -14,6 +14,12 @@ router.post  ('/categories/create',       authenticate, permit(M,'create'), a(c.
 router.put   ('/categories/update/:id',   authenticate, permit(M,'update'), a(c.updateCategory))
 router.delete('/categories/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteCategory))
 
+// Live Scores
+router.get   ('/live-scores/list',                         a(c.listLiveScores))
+router.post  ('/live-scores/create',      authenticate, permit(M,'create'), a(c.createLiveScore))
+router.put   ('/live-scores/update/:id',  authenticate, permit(M,'update'), a(c.updateLiveScore))
+router.delete('/live-scores/delete/:id',  authenticate, permit(M,'delete'), a(c.deleteLiveScore))
+
 // Sports CRUD
 router.get   ('/list',                   a(c.list))
 router.get   ('/get/:id',                a(c.getById))
