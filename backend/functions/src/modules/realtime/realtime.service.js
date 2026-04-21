@@ -13,8 +13,8 @@ import { db } from '../../config/firebase.js'
 const WATCHED_COLLECTIONS = [
   'news', 'events', 'influencer_events', 'breaking_points',
   'updates', 'history', 'transport', 'foods', 'stays',
-  'tourism', 'tourism_display_photos', 'offers', 'movies', 'movie_trailers', 'theatres',
-  'sports', 'company', 'leads',
+  'tourism', 'tourism_display_photos', 'offers', 'movies', 'theatres',
+  'sports', 'sport_live_scores', 'company', 'leads',
   'results', 'jobs', 'ads', 'sponsorships', 'instagram', 'recyclebin',
   'roles', 'users', 'activitylog', 'realestate',
 ]
