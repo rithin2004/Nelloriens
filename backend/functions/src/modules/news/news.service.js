@@ -2,7 +2,7 @@ import { newsRepo, newsCatRepo, bpRepo } from './news.repository.js'
 
 // ── Articles ───────────────────────────────────────────────────────────────
 
-export async function listNews({ page, limit, search, category, isImportant }) {
+export async function listNews({ page, limit, search, category, isImportant, scope }) {
   const safeLimit = Math.min(parseInt(limit) || 20, 100)
   const safePage  = Math.max(parseInt(page)  || 1, 1)
 
@@ -16,6 +16,7 @@ export async function listNews({ page, limit, search, category, isImportant }) {
   if (category)                items = items.filter(n => n.category === category)
   if (isImportant === 'true')  items = items.filter(n => n.isImportant === true)
   if (isImportant === 'false') items = items.filter(n => n.isImportant !== true)
+  if (scope && scope !== 'all') items = items.filter(n => n.scope === scope)
 
   const total = items.length
   return {
@@ -38,7 +39,7 @@ export async function getNewsById(id) {
 
 export async function createNewsArticle(data) {
   if (!data.title?.trim()) throw { status: 400, message: 'title is required' }
-  return newsRepo.create({ ...data, viewCount: 0, pageViews: 0, cardViews: 0 })
+  return newsRepo.create({ ...data, pageViews: 0, cardViews: 0 })
 }
 
 export async function updateNewsArticle(id, data) {

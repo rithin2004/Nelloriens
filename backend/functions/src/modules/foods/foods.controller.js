@@ -57,8 +57,8 @@ export async function reorderPhotos(req, res) {
 // ── Varieties ──────────────────────────────────────────────────────────────
 
 export async function listVarieties(req, res) {
-  const data = await varietiesService.list()
-  res.json({ success: true, message: 'OK', data })
+  const { items, total, page, totalPages } = await varietiesService.list(req.query)
+  res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
 }
 
 export async function createVariety(req, res) {
@@ -79,8 +79,8 @@ export async function deleteVariety(req, res) {
 // ── Sweets ─────────────────────────────────────────────────────────────────
 
 export async function listSweets(req, res) {
-  const data = await sweetsService.list()
-  res.json({ success: true, message: 'OK', data })
+  const { items, total, page, totalPages } = await sweetsService.list(req.query)
+  res.json({ success: true, message: 'OK', data: items, pagination: { page, total, totalPages } })
 }
 
 export async function createSweet(req, res) {

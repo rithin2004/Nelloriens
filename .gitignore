@@ -25,6 +25,7 @@ dist-ssr
 
 .claude
 .env
+.hintrc
 CLAUDE.md
 USER_SIDE_DEVELOPER_GUIDE.md
 functions/.env*

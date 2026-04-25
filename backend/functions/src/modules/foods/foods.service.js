@@ -55,8 +55,23 @@ export const varietiesService = {
   async incrementViews(id, field) {
     await varietiesRepo.incrementField(id, field)
   },
-  async list() {
-    return varietiesRepo.findAll({ orderBy: 'name', order: 'asc' })
+  async list(query = {}) {
+    const { page = 1, limit = 20, search = '', category = '' } = query
+    const lim = Math.min(parseInt(limit) || 20, 100)
+    const pg  = Math.max(parseInt(page)  || 1,  1)
+    let items = await varietiesRepo.findAll({ orderBy: 'name', order: 'asc' })
+    if (category && category !== 'All') items = items.filter(v => v.category === category)
+    if (search) {
+      const q = search.toLowerCase()
+      items = items.filter(v => v.name?.toLowerCase().includes(q))
+    }
+    const total = items.length
+    return {
+      items:      items.slice((pg - 1) * lim, pg * lim),
+      total,
+      page:       pg,
+      totalPages: Math.max(1, Math.ceil(total / lim)),
+    }
   },
   async create(data) {
     if (!data.name?.trim()) badReq('name is required')
@@ -85,10 +100,13 @@ export const varietiesService = {
     const { replaceId: _replaceId, ...cleanData } = data
     return varietiesRepo.update(id, cleanData)
   },
-  async remove(id) {
+  async remove(id, requestUser = null) {
     const item = await varietiesRepo.findById(id)
     if (!item) notFound('Variety not found')
-    await varietiesRepo.delete(id)
+    await varietiesRepo.softDelete(id, {
+      deletedBy: requestUser?.uid || null,
+      reason:    'manual',
+    })
   },
 }
 
@@ -117,10 +135,13 @@ export const healthTipsService = {
     if (!item) notFound('Health tip not found')
     return healthTipsRepo.update(id, data)
   },
-  async remove(id) {
+  async remove(id, requestUser = null) {
     const item = await healthTipsRepo.findById(id)
     if (!item) notFound('Health tip not found')
-    await healthTipsRepo.delete(id)
+    await healthTipsRepo.softDelete(id, {
+      deletedBy: requestUser?.uid || null,
+      reason:    'manual',
+    })
   },
 }
 
@@ -129,12 +150,32 @@ export const sweetsService = {
   async incrementViews(id, field) {
     await sweetsRepo.incrementField(id, field)
   },
-  async list() {
-    return sweetsRepo.findAll({ orderBy: 'name', order: 'asc' })
+  async list(query = {}) {
+    const { page = 1, limit = 20, search = '' } = query
+    const lim = Math.min(parseInt(limit) || 20, 100)
+    const pg  = Math.max(parseInt(page)  || 1,  1)
+    let items = await sweetsRepo.findAll({ orderBy: 'name', order: 'asc' })
+    if (search) {
+      const q = search.toLowerCase()
+      items = items.filter(s => s.name?.toLowerCase().includes(q))
+    }
+    const total = items.length
+    return {
+      items:      items.slice((pg - 1) * lim, pg * lim),
+      total,
+      page:       pg,
+      totalPages: Math.max(1, Math.ceil(total / lim)),
+    }
   },
   async create(data) {
     const all = await sweetsRepo.findAll({})
-    if (all.length >= 8) badReq('Maximum of 8 sweets allowed')
+    if (all.length >= 8) {
+      const err = new Error('Maximum 8 sweets allowed. Choose one to replace.')
+      err.status       = 409
+      err.code         = 'MAX_LIMIT_REACHED'
+      err.currentItems = all
+      throw err
+    }
     if (!data.name?.trim()) badReq('name is required')
     return sweetsRepo.create(data)
   },
@@ -143,9 +184,12 @@ export const sweetsService = {
     if (!item) notFound('Sweet not found')
     return sweetsRepo.update(id, data)
   },
-  async remove(id) {
+  async remove(id, requestUser = null) {
     const item = await sweetsRepo.findById(id)
     if (!item) notFound('Sweet not found')
-    await sweetsRepo.delete(id)
+    await sweetsRepo.softDelete(id, {
+      deletedBy: requestUser?.uid || null,
+      reason:    'manual',
+    })
   },
 }

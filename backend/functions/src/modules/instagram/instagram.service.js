@@ -130,10 +130,13 @@ export const instagramService = {
     await instagramRepo.incrementField(id, field)
   },
 
-  async hidePost(id) {
+  async hidePost(id, requestUser = null) {
     const item = await instagramRepo.findById(id)
     if (!item) notFound('Post not found')
-    await instagramRepo.delete(id)
+    await instagramRepo.softDelete(id, {
+      deletedBy: requestUser?.uid || null,
+      reason:    'manual',
+    })
   },
 
   async refreshToken() {

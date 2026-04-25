@@ -2,7 +2,16 @@ import { historyRepo }               from './history.repository.js'
 import { CrudService, badReq, notFound } from '../../utils/serviceBase.js'
 import { db }                        from '../../config/firebase.js'
 
-const _base = new CrudService(historyRepo, { entityName: 'History', orderBy: 'order', order: 'asc' })
+const _base = new CrudService(historyRepo, {
+  entityName:   'History',
+  orderBy:      'order',
+  order:        'asc',
+  extraFilters: ({ category }) => {
+    const f = []
+    if (category && category !== 'All') f.push(['category', '==', category])
+    return f
+  },
+})
 
 export const historyService = {
   list:           (...args) => _base.list(...args),
@@ -17,10 +26,13 @@ export const historyService = {
     return historyRepo.create({ ...data, order: nextOrder })
   },
 
-  async remove(id) {
+  async remove(id, requestUser = null) {
     const existing = await historyRepo.findById(id)
     if (!existing) notFound('History item not found')
-    await historyRepo.delete(id)
+    await historyRepo.softDelete(id, {
+      deletedBy: requestUser?.uid || null,
+      reason:    'manual',
+    })
     // Resequence remaining items so orders are 1…n with no gaps
     const remaining = await historyRepo.findAll({ orderBy: 'order', order: 'asc' })
     if (remaining.length > 0) {

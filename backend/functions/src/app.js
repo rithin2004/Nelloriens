@@ -4,6 +4,7 @@ import helmet    from 'helmet'
 import cors      from 'cors'
 import morgan    from 'morgan'
 import { globalLimit, strictLimit } from './middlewares/rateLimit.js'
+import { sanitizeInput }            from './middlewares/sanitize.middleware.js'
 import { createRequire } from 'module'
 const swaggerUi = createRequire(import.meta.url)('swagger-ui-express')
 
@@ -74,6 +75,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 // Rate limits
 app.use(globalLimit)
+
+// Input sanitization — strips XSS and NoSQL injection vectors
+app.use(sanitizeInput)
 
 // Swagger
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions))

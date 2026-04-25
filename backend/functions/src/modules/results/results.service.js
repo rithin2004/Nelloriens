@@ -6,9 +6,10 @@ export const resultsService = new CrudService(resultsRepo, {
   searchField:  'title',
   orderBy:      'publishedAt',
   order:        'desc',
-  extraFilters: ({ category }) => {
+  extraFilters: ({ category, status }) => {
     const f = []
     if (category) f.push(['category', '==', category])
+    if (status)   f.push(['status',   '==', status])
     return f
   },
 })
