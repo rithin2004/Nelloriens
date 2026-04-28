@@ -25,6 +25,12 @@ const PB = '#eef3fd'
 
 const PAGE_SIZE = 20
 
+const toSingular = (str) => {
+  if (str.endsWith('ies')) return str.slice(0, -3) + 'y'
+  if (/[^s]s$/.test(str)) return str.slice(0, -1)
+  return str
+}
+
 export default function ModuleList({
   title,
   store,                 // Zustand store hook for this module
@@ -83,6 +89,7 @@ export default function ModuleList({
       await api.delete(deleteId)
       toast.success('Moved to Recycle Bin')
       setDeleteId(null)
+      if (fetch) fetch()
     } catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
@@ -126,6 +133,7 @@ export default function ModuleList({
         toast.success('Created!')
       }
       setFormOpen(false); setFormDirty(false); setReservedId(null)
+      if (fetch) fetch()
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || 'Save failed')
     } finally {
@@ -281,8 +289,8 @@ export default function ModuleList({
 
       <ConfirmModal
         isOpen={!!deleteId}
-        title={`Delete ${title}`}
-        message={`This will move this ${title.toLowerCase()} to the Recycle Bin. You can restore it within 15 days.`}
+        title={`Delete ${toSingular(title)}`}
+        message={`This will move this ${toSingular(title).toLowerCase()} to the Recycle Bin. You can restore it within 15 days.`}
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
         loading={deleting}

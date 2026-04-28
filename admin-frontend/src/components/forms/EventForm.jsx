@@ -34,19 +34,25 @@ function ToggleSwitch({ id, checked, onChange, label, hint }) {
 
 export default function EventForm({ defaultValues, onSubmit, loading, contentId, isInfluencer = false, onDirtyChange }) {
   const { register, handleSubmit, formState: { errors, isDirty } } = useForm({ defaultValues })
-  const [categories,   setCategories]   = useState([])
-  const [isPopular,    setIsPopular]    = useState(defaultValues?.isPopular || false)
-  const [description,  setDescription]  = useState(defaultValues?.description || '')
-  const [thumbnail,    setThumbnail]    = useState(defaultValues?.thumbnail || '')
-  const [startDate,    setStartDate]    = useState(defaultValues?.startDate ? new Date(defaultValues.startDate) : null)
-  const [endDate,      setEndDate]      = useState(defaultValues?.endDate   ? new Date(defaultValues.endDate)   : null)
-  const [location,     setLocation]     = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
+  const [categories,            setCategories]            = useState([])
+  const [eventLocations,        setEventLocations]        = useState([])
+  const [isPopular,             setIsPopular]             = useState(defaultValues?.isPopular  || false)
+  const [isVerified,            setIsVerified]            = useState(defaultValues?.isVerified || false)
+  const [registrationRequired,  setRegistrationRequired]  = useState(defaultValues?.registrationRequired || false)
+  const [description,           setDescription]           = useState(defaultValues?.description || '')
+  const [thumbnail,             setThumbnail]             = useState(defaultValues?.thumbnail || '')
+  const [startDate,             setStartDate]             = useState(defaultValues?.startDate ? new Date(defaultValues.startDate) : null)
+  const [endDate,               setEndDate]               = useState(defaultValues?.endDate   ? new Date(defaultValues.endDate)   : null)
+  const [regStartDate,          setRegStartDate]          = useState(defaultValues?.registrationStartDate ? new Date(defaultValues.registrationStartDate) : null)
+  const [regEndDate,            setRegEndDate]            = useState(defaultValues?.registrationEndDate   ? new Date(defaultValues.registrationEndDate)   : null)
+  const [mapLocation,           setMapLocation]           = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
 
   useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   useEffect(() => {
     if (!isInfluencer) {
       eventsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
+      eventsApi.getLocations().then((r) => setEventLocations(r.data.data || [])).catch(() => {})
     }
   }, [isInfluencer])
 
@@ -56,10 +62,14 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
       description,
       thumbnail,
       isPopular,
-      startDate:  startDate?.toISOString(),
-      endDate:    endDate?.toISOString(),
-      latitude:   location.lat,
-      longitude:  location.lng,
+      isVerified,
+      registrationRequired,
+      startDate:              startDate?.toISOString(),
+      endDate:                endDate?.toISOString(),
+      registrationStartDate:  registrationRequired ? regStartDate?.toISOString() : null,
+      registrationEndDate:    registrationRequired ? regEndDate?.toISOString()   : null,
+      latitude:               mapLocation.lat,
+      longitude:              mapLocation.lng,
     })
   }
 
@@ -71,10 +81,13 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
           <h3 className="font-semibold text-slate-800">
             {isInfluencer ? 'Influencer Event Details' : 'Event Details'}
           </h3>
-          {!isInfluencer && (
-            <ToggleSwitch id="event-popular" checked={isPopular} onChange={setIsPopular}
-              label="Popular" hint="(max 3/category)" />
-          )}
+          <div className="flex items-center gap-3">
+            {!isInfluencer && (
+              <ToggleSwitch id="event-popular" checked={isPopular} onChange={setIsPopular}
+                label="Popular" hint="(max 3/category)" />
+            )}
+            <ToggleSwitch id="event-verified" checked={isVerified} onChange={setIsVerified} label="Verified" />
+          </div>
         </div>
 
         <div>
@@ -160,7 +173,7 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
 
       <div className={section}>
         <h3 className="font-semibold text-slate-800">Location (optional)</h3>
-        <MapPicker lat={location.lat} lng={location.lng} onChange={(latlng) => setLocation(latlng)} />
+        <MapPicker lat={mapLocation.lat} lng={mapLocation.lng} onChange={(latlng) => setMapLocation(latlng)} />
       </div>
 
       <div className={section}>
@@ -187,12 +200,44 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
               {...register('contactPhone')} className={input} />
           </div>
           <div>
-            <label htmlFor="event-ticket" className={field}>Ticket / Registration URL</label>
+            <label htmlFor="event-ticket" className={field}>Ticket URL</label>
             <input id="event-ticket" name="ticketUrl" type="url" autoComplete="url"
               {...register('ticketUrl')} className={input} />
           </div>
         </div>
 
+        {!isInfluencer && (
+          <div className="rounded-lg p-4 space-y-3" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+            <div className="flex items-center justify-between">
+              <p className={field} style={{ marginBottom: 0 }}>Registration</p>
+              <ToggleSwitch id="event-registration-req" checked={registrationRequired}
+                onChange={setRegistrationRequired} label="Registration Required" />
+            </div>
+            {registrationRequired && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="event-reg-start" className={field}>Registration Opens</label>
+                    <DatePicker id="event-reg-start" selected={regStartDate} onChange={setRegStartDate}
+                      showTimeSelect dateFormat="dd/MM/yyyy HH:mm" placeholderText="Select date"
+                      className={input} />
+                  </div>
+                  <div>
+                    <label htmlFor="event-reg-end" className={field}>Registration Closes</label>
+                    <DatePicker id="event-reg-end" selected={regEndDate} onChange={setRegEndDate}
+                      showTimeSelect dateFormat="dd/MM/yyyy HH:mm" minDate={regStartDate}
+                      placeholderText="Select date" className={input} />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="event-reg-url" className={field}>Registration URL</label>
+                  <input id="event-reg-url" name="registrationUrl" type="url" autoComplete="url"
+                    {...register('registrationUrl')} className={input} placeholder="https://…" />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className={section}>
@@ -214,8 +259,11 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="event-location" className={field}>Location</label>
-            <input id="event-location" name="location" autoComplete="off"
-              {...register('location')} className={input} />
+            <select id="event-location" name="location" autoComplete="off"
+              {...register('location')} className={input}>
+              <option value="">Select location</option>
+              {eventLocations.map((l) => <option key={l._id} value={l._id}>{l.name}</option>)}
+            </select>
           </div>
           <div>
             <label htmlFor="event-region" className={field}>Region</label>

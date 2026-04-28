@@ -62,7 +62,7 @@ export default function TransportList() {
 
   const handleDelete = async () => {
     setDeleting(true)
-    try { await transportApi.delete(deleteId); toast.success('Moved to Recycle Bin'); setDeleteId(null) }
+    try { await transportApi.delete(deleteId); toast.success('Moved to Recycle Bin'); setDeleteId(null); fetch() }
     catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
@@ -87,6 +87,7 @@ export default function TransportList() {
       if (formEditId) { await transportApi.update(formEditId, formData); toast.success('Updated!') }
       else            { await transportApi.create(reservedId ? { ...formData, _reservedId: reservedId } : formData); toast.success('Created!') }
       setFormOpen(false); setFormDirty(false); setReservedId(null)
+      fetch()
     } catch (e) { toast.error(e?.response?.data?.message || 'Save failed') }
     finally { setFormSubmitting(false) }
   }

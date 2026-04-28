@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Pencil, Trash2, Plus, Info } from 'lucide-react'
+import { Pencil, Trash2, Plus, Info, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import PageHeader from '../../components/common/PageHeader'
 import FormModal from '../../components/common/FormModal'
 import TheatreForm from '../../components/forms/TheatreForm'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
+import ShowtimesManager from './ShowtimesManager'
 import { moviesApi } from '../../services/api'
 
-export default function TheatresManager() {
+export default function TheatresManager({ hideHeader = false }) {
   const [theatres, setTheatres] = useState([])
   const [loading, setLoading] = useState(true)
   const [deleteId, setDeleteId] = useState(null)
@@ -19,6 +20,7 @@ export default function TheatresManager() {
   const [formDefaults, setFormDefaults] = useState(null)
   const [formEditId, setFormEditId] = useState(null)
   const [formSubmitting, setFormSubmitting] = useState(false)
+  const [showtimesTheatre, setShowtimesTheatre] = useState(null)
 
   const fetchData = () => {
     setLoading(true)
@@ -69,27 +71,41 @@ export default function TheatresManager() {
   }
 
   return (
-    <div className="animate-fade-in">
-      <PageHeader
-        title="Theatres"
-        backTo="/movies"
-        action={
+    <div className={hideHeader ? '' : 'animate-fade-in'}>
+      {!hideHeader && (
+        <PageHeader
+          title="Theatres"
+          backTo="/movies"
+          action={
+            <button
+              onClick={openCreate}
+              className="btn-shine flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg"
+              style={{ background: 'linear-gradient(135deg,#8B5CF6,#6366F1)', boxShadow: '0 4px 12px rgba(139,92,246,0.3)' }}
+            >
+              <Plus className="w-4 h-4" /> Add Theatre
+            </button>
+          }
+        />
+      )}
+      {hideHeader && (
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm text-slate-500">{theatres.length} {theatres.length === 1 ? 'theatre' : 'theatres'}</span>
           <button
             onClick={openCreate}
-            className="btn-shine flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-all"
             style={{ background: 'linear-gradient(135deg,#8B5CF6,#6366F1)', boxShadow: '0 4px 12px rgba(139,92,246,0.3)' }}
           >
             <Plus className="w-4 h-4" /> Add Theatre
           </button>
-        }
-      />
+        </div>
+      )}
 
       {loading ? <LoadingSpinner /> : (
         <div className="rounded-xl overflow-hidden overflow-x-auto" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           <table className="w-full text-sm">
             <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
               <tr>
-                {['Name', 'Address', 'Phone', 'Screens', ''].map((h) => (
+                {['Name', 'Address', 'Phone', 'Screens', 'Showtimes', ''].map((h) => (
                   <th key={h} className="text-left text-xs font-semibold uppercase tracking-wide px-4 py-3 whitespace-nowrap" style={{ color: '#64748B' }}>{h}</th>
                 ))}
               </tr>
@@ -97,7 +113,7 @@ export default function TheatresManager() {
             <tbody>
               {theatres.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-12 text-sm text-slate-400">
+                  <td colSpan={6} className="text-center py-12 text-sm text-slate-400">
                     No theatres yet. Click "Add Theatre" to create one.
                   </td>
                 </tr>
@@ -111,6 +127,15 @@ export default function TheatresManager() {
                   <td className="px-4 py-3 text-slate-600 max-w-48 truncate">{t.address}</td>
                   <td className="px-4 py-3 text-slate-600">{t.phone || '—'}</td>
                   <td className="px-4 py-3 text-slate-600">{t.screenCount || '—'}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => setShowtimesTheatre(t)}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors"
+                      style={{ background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE' }}
+                    >
+                      <Clock className="w-3 h-3" /> Showtimes
+                    </button>
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
                       <button
@@ -142,6 +167,10 @@ export default function TheatresManager() {
       </div>
 
       <ConfirmModal isOpen={!!deleteId} title="Delete Theatre" onConfirm={handleDelete} onCancel={() => setDeleteId(null)} loading={deleting} />
+
+      {showtimesTheatre && (
+        <ShowtimesManager theatre={showtimesTheatre} onClose={() => setShowtimesTheatre(null)} />
+      )}
 
       <FormModal isOpen={formOpen} onClose={() => setFormOpen(false)} title={formEditId ? 'Edit Theatre' : 'Add Theatre'}>
         {formDefaults !== null && (

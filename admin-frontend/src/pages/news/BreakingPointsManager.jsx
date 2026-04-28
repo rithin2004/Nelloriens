@@ -3,6 +3,8 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from 
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Pencil, Trash2, Plus, Check, X, AlertCircle } from 'lucide-react'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import toast from 'react-hot-toast'
 import { newsApi } from '../../services/api'
 import PageHeader from '../../components/common/PageHeader'
@@ -64,12 +66,14 @@ export default function BreakingPointsManager() {
   const [deleting, setDeleting] = useState(false)
 
   // inline add/edit
-  const [showAdd, setShowAdd]   = useState(false)
-  const [addText, setAddText]   = useState('')
-  const [adding, setAdding]     = useState(false)
-  const [editItem, setEditItem] = useState(null)   // { _id, text }
-  const [editText, setEditText] = useState('')
-  const [saving, setSaving]     = useState(false)
+  const [showAdd,       setShowAdd]       = useState(false)
+  const [addText,       setAddText]       = useState('')
+  const [addExpiresAt,  setAddExpiresAt]  = useState(null)
+  const [adding,        setAdding]        = useState(false)
+  const [editItem,      setEditItem]      = useState(null)
+  const [editText,      setEditText]      = useState('')
+  const [editExpiresAt, setEditExpiresAt] = useState(null)
+  const [saving,        setSaving]        = useState(false)
 
   const sensors = useSensors(useSensor(PointerSensor))
 
@@ -84,12 +88,11 @@ export default function BreakingPointsManager() {
   useEffect(() => { fetchData() }, [])
 
   const handleAdd = async () => {
-    if (!addText.trim()) return
+    if (!addText.trim()) { toast.error('Breaking news text cannot be empty'); return }
     setAdding(true)
     try {
-      await newsApi.createBreakingPoint({ text: addText.trim() })
-      setAddText('')
-      setShowAdd(false)
+      await newsApi.createBreakingPoint({ text: addText.trim(), expiresAt: addExpiresAt?.toISOString() || null })
+      setAddText(''); setAddExpiresAt(null); setShowAdd(false)
       toast.success('Point added')
       fetchData()
     } catch (e) { toast.error(e?.response?.data?.message || 'Failed to add') }
@@ -97,10 +100,11 @@ export default function BreakingPointsManager() {
   }
 
   const handleUpdate = async () => {
-    if (!editText.trim() || !editItem) return
+    if (!editItem) return
+    if (!editText.trim()) { toast.error('Breaking news text cannot be empty'); return }
     setSaving(true)
     try {
-      await newsApi.updateBreakingPoint(editItem._id, { text: editText.trim() })
+      await newsApi.updateBreakingPoint(editItem._id, { text: editText.trim(), expiresAt: editExpiresAt?.toISOString() || null })
       setEditItem(null)
       toast.success('Updated')
       fetchData()
@@ -126,7 +130,7 @@ export default function BreakingPointsManager() {
     } catch { toast.error('Reorder failed'); fetchData() }
   }
 
-  const openEdit = (item) => { setEditItem(item); setEditText(item.text) }
+  const openEdit = (item) => { setEditItem(item); setEditText(item.text); setEditExpiresAt(item.expiresAt ? new Date(item.expiresAt) : null) }
   const cancelEdit = () => { setEditItem(null); setEditText('') }
 
   return (
@@ -151,7 +155,7 @@ export default function BreakingPointsManager() {
           className="mb-5 p-4 rounded-xl"
           style={{ background: '#FFFFFF', border: '2px solid #DC2626', boxShadow: '0 0 0 4px rgba(220,38,38,0.06)' }}
         >
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col gap-2">
             <input
               id="breaking-add-text"
               name="addText"
@@ -164,27 +168,43 @@ export default function BreakingPointsManager() {
               }}
               placeholder="Enter breaking news text…"
               autoFocus
-              className={`${inp} flex-1`}
+              className={`${inp} w-full`}
               style={inpStyle}
               onFocus={focusOn}
               onBlur={focusOff}
             />
-            <button
-              onClick={handleAdd}
-              disabled={adding || !addText.trim()}
-              className="flex items-center justify-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all disabled:opacity-50 shrink-0"
-              style={{ background: 'linear-gradient(135deg,#DC2626,#B91C1C)', boxShadow: '0 4px 12px rgba(220,38,38,0.25)' }}
-            >
-              <Plus className="w-4 h-4" />
-              {adding ? 'Adding…' : 'Add Point'}
-            </button>
-            <button
-              onClick={() => { setShowAdd(false); setAddText('') }}
-              className="px-3 py-2 text-sm rounded-lg text-slate-500 hover:bg-slate-100 transition-colors shrink-0"
-              style={{ border: '1px solid #E2E8F0' }}
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <label htmlFor="breaking-add-expires" className="text-xs text-slate-500 shrink-0">Expires at</label>
+              <DatePicker
+                id="breaking-add-expires"
+                selected={addExpiresAt}
+                onChange={setAddExpiresAt}
+                showTimeSelect
+                dateFormat="dd/MM/yyyy HH:mm"
+                placeholderText="Optional expiry"
+                isClearable
+                className="flex-1 px-3 py-2 text-sm rounded-lg w-full"
+                style={inpStyle}
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleAdd}
+                disabled={adding || !addText.trim()}
+                className="flex items-center justify-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg,#DC2626,#B91C1C)', boxShadow: '0 4px 12px rgba(220,38,38,0.25)' }}
+              >
+                <Plus className="w-4 h-4" />
+                {adding ? 'Adding…' : 'Add Point'}
+              </button>
+              <button
+                onClick={() => { setShowAdd(false); setAddText(''); setAddExpiresAt(null) }}
+                className="px-3 py-2 text-sm rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+                style={{ border: '1px solid #E2E8F0' }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -208,7 +228,7 @@ export default function BreakingPointsManager() {
                     /* inline edit row */
                     <div
                       key={item._id}
-                      className="flex items-center gap-2 mb-2 px-4 py-3 rounded-xl"
+                      className="flex flex-col gap-2 mb-2 px-4 py-3 rounded-xl"
                       style={{ background: '#eef3fd', border: '1px solid #dce8fb' }}
                     >
                       <input
@@ -224,21 +244,35 @@ export default function BreakingPointsManager() {
                         onFocus={focusOn}
                         onBlur={focusOff}
                       />
-                      <button
-                        onClick={handleUpdate}
-                        disabled={saving}
-                        className="p-2 rounded-lg text-white transition-all"
-                        style={{ background: '#16A34A' }}
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={cancelEdit}
-                        className="p-2 rounded-lg transition-all text-slate-500 hover:text-slate-700"
-                        style={{ background: '#F1F5F9' }}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <label htmlFor="breaking-edit-expires" className="text-xs text-slate-500 shrink-0">Expires at</label>
+                        <DatePicker
+                          id="breaking-edit-expires"
+                          selected={editExpiresAt}
+                          onChange={setEditExpiresAt}
+                          showTimeSelect
+                          dateFormat="dd/MM/yyyy HH:mm"
+                          placeholderText="Optional expiry"
+                          isClearable
+                          className="flex-1 px-3 py-1.5 text-sm rounded-lg"
+                          style={inpStyle}
+                        />
+                        <button
+                          onClick={handleUpdate}
+                          disabled={saving}
+                          className="p-2 rounded-lg text-white transition-all shrink-0"
+                          style={{ background: '#16A34A' }}
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="p-2 rounded-lg transition-all text-slate-500 hover:text-slate-700 shrink-0"
+                          style={{ background: '#F1F5F9' }}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <SortablePoint key={item._id} item={item} onEdit={openEdit} onDelete={setDeleteId} />

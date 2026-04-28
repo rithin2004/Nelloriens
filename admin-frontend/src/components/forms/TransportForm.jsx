@@ -5,6 +5,7 @@
  */
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { Plus, X } from 'lucide-react'
 import ImageUpload from '../common/ImageUpload'
 
 const lbl   = 'block text-sm font-medium mb-1.5'
@@ -35,13 +36,53 @@ const TRAIN_TYPES = ['Express','Passenger','Superfast','Mail','Shatabdi','Rajdha
 const BUS_TYPES   = ['Ordinary','Express','Deluxe','AC Seater','AC Sleeper','Volvo','Non-AC Sleeper','Mini Bus']
 const LOCAL_TYPES = ['Auto','Bike Taxi','Rental Car','App-based Cab','City Bus','Other']
 
+function FareTable({ rows, onChange }) {
+  const add    = () => onChange([...rows, { class: '', fare: '' }])
+  const remove = (i) => onChange(rows.filter((_, idx) => idx !== i))
+  const update = (i, field, val) => { const r = [...rows]; r[i] = { ...r[i], [field]: val }; onChange(r) }
+  return (
+    <div>
+      <p className={lbl} style={lblSt}>Fare Details</p>
+      <div className="space-y-2 mt-1">
+        {rows.map((row, i) => (
+          <div key={i} className="flex gap-2 items-center">
+            <input
+              id={`fare-class-${i}`} name={`fareClass${i}`} autoComplete="off"
+              value={row.class} onChange={(e) => update(i, 'class', e.target.value)}
+              placeholder="Class / Type (e.g. Sleeper)" className={`${inp} flex-1`} style={inpSt} />
+            <input
+              id={`fare-amount-${i}`} name={`fareAmount${i}`} autoComplete="off"
+              value={row.fare} onChange={(e) => update(i, 'fare', e.target.value)}
+              placeholder="Fare (e.g. ₹450)" className={`${inp} flex-1`} style={inpSt} />
+            <button type="button" onClick={() => remove(i)}
+              className="p-2 rounded-lg text-red-400 hover:text-red-300 transition-colors shrink-0"
+              style={{ background: 'rgba(239,68,68,0.08)' }}>
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={add}
+        className="flex items-center gap-1.5 text-sm mt-2 transition-colors"
+        style={{ color: '#A78BFA' }}>
+        <Plus className="w-4 h-4" /> Add Fare Row
+      </button>
+    </div>
+  )
+}
+
 export default function TransportForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
   const { register, handleSubmit, watch, formState: { errors, isDirty } } = useForm({
     defaultValues: { type: 'train', is24x7: false, ...defaultValues },
   })
-  const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
-  const [is24x7, setIs24x7] = useState(defaultValues?.is24x7 || false)
-  // Days of operation for train (array stored as space-separated string)
+  const [thumbnail,   setThumbnail]   = useState(defaultValues?.thumbnail || '')
+  const [is24x7,      setIs24x7]      = useState(defaultValues?.is24x7 || false)
+  const [fareRows,    setFareRows]    = useState(
+    Array.isArray(defaultValues?.fareDetails) && defaultValues.fareDetails.length
+      ? defaultValues.fareDetails
+      : []
+  )
+  // Days of operation for train (array stored as comma-separated string)
   const [selectedDays, setSelectedDays] = useState(() => {
     const raw = defaultValues?.daysOfOperation || ''
     return typeof raw === 'string' ? raw.split(',').map(d => d.trim()).filter(Boolean) : (raw || [])
@@ -57,7 +98,8 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
 
   const submit = (data) => {
     const payload = { ...data, thumbnail }
-    if (type === 'train') payload.daysOfOperation = selectedDays.join(',')
+    if (type === 'train') { payload.daysOfOperation = selectedDays.join(','); payload.fareDetails = fareRows.filter(r => r.class || r.fare) }
+    if (type === 'bus')   { payload.fareDetails = fareRows.filter(r => r.class || r.fare) }
     if (type === 'local') payload.is24x7 = is24x7
     onSubmit(payload)
   }
@@ -151,6 +193,14 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
           </div>
 
           <div>
+            <label htmlFor="t-duration" className={lbl} style={lblSt}>Total Duration</label>
+            <input id="t-duration" name="totalDuration" autoComplete="off"
+              {...register('totalDuration')} className={inp} style={inpSt} placeholder="e.g. 4h 15m" />
+          </div>
+
+          <FareTable rows={fareRows} onChange={setFareRows} />
+
+          <div>
             <label htmlFor="t-booking" className={lbl} style={lblSt}>Booking URL</label>
             <input id="t-booking" name="bookingUrl" type="url" autoComplete="url"
               {...register('bookingUrl')} className={inp} style={inpSt} placeholder="https://…" />
@@ -230,6 +280,14 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
               </select>
             </div>
           </div>
+
+          <div>
+            <label htmlFor="b-duration" className={lbl} style={lblSt}>Total Duration</label>
+            <input id="b-duration" name="totalDuration" autoComplete="off"
+              {...register('totalDuration')} className={inp} style={inpSt} placeholder="e.g. 6h 30m" />
+          </div>
+
+          <FareTable rows={fareRows} onChange={setFareRows} />
 
           <div>
             <label htmlFor="b-booking" className={lbl} style={lblSt}>Booking URL</label>

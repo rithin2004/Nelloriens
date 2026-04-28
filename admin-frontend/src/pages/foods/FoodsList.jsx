@@ -41,23 +41,37 @@ function RestaurantFields({ register, prefix, label }) {
 
 // ── Variety form ──────────────────────────────────────────────────────────────
 function VarietyForm({ defaultValues, onSubmit, loading }) {
-  const { register, handleSubmit } = useForm({
+  const { register, handleSubmit, watch, setValue } = useForm({
     defaultValues: defaultValues || {
       name: '', popular: false, totalRestaurants: '',
       restaurants: [{ name: '', price: '', rating: '', orderLink: '' }, { name: '', price: '', rating: '', orderLink: '' }],
     },
   })
+  const isPopular = watch('popular')
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div><label className={lbl}>Variety Name *</label><input {...register('name', { required: true })} placeholder="e.g. Biryani" className={inp} /></div>
       <div><label className={lbl}>Total Restaurants serving this</label><input {...register('totalRestaurants')} type="number" min="0" placeholder="e.g. 24" className={inp} /></div>
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input type="checkbox" {...register('popular')} className="w-4 h-4 accent-purple-600" />
+      {/* RULE 13 — toggle switch, never checkbox */}
+      <div className="flex items-center gap-2">
         <span className="text-sm text-slate-700 flex items-center gap-1">
           <Star className="w-3.5 h-3.5 text-amber-400" /> Popular
           <span className="text-xs text-slate-400">(max {MAX_POPULAR} shown on user side)</span>
         </span>
-      </label>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isPopular}
+          onClick={() => setValue('popular', !isPopular, { shouldDirty: true })}
+          className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none"
+          style={{ background: isPopular ? '#F59E0B' : '#CBD5E1' }}
+        >
+          <span
+            className="inline-block h-4 w-4 mt-0.5 rounded-full bg-white shadow transition-transform duration-200"
+            style={{ marginLeft: isPopular ? '18px' : '2px' }}
+          />
+        </button>
+      </div>
       <RestaurantFields register={register} prefix="restaurants.0" label="Top Restaurant #1" />
       <RestaurantFields register={register} prefix="restaurants.1" label="Top Restaurant #2" />
       <button type="submit" disabled={loading} className="w-full py-2.5 text-white font-semibold rounded-lg disabled:opacity-50" style={{ background: 'linear-gradient(135deg,#8B5CF6,#6366F1)', boxShadow: '0 4px 16px rgba(139,92,246,0.3)' }}>
@@ -156,7 +170,8 @@ export default function FoodsList() {
   const [varietySaving, setVarietySaving]     = useState(false)
   const [deleteVarietyId, setDeleteVarietyId] = useState(null)
   const [deletingVariety, setDeletingVariety] = useState(false)
-  const [togglingId, setTogglingId]           = useState(null)
+  const [togglingId,         setTogglingId]         = useState(null)
+  const [togglingVerifiedId, setTogglingVerifiedId] = useState(null)
   // Replace prompt for isPopular max 6 (RULE 13)
   const [replaceOpen,        setReplaceOpen]        = useState(false)
   const [replaceCandidates,  setReplaceCandidates]  = useState([])
@@ -278,6 +293,17 @@ export default function FoodsList() {
         toast.error(e?.response?.data?.message || 'Update failed')
       }
     } finally { setTogglingId(null) }
+  }
+
+  const handleToggleVerifiedVariety = async (v) => {
+    setTogglingVerifiedId(v._id)
+    try {
+      await foodsApi.updateVariety(v._id, { isVerified: !v.isVerified })
+      toast.success(v.isVerified ? 'Verification removed' : 'Marked as Verified')
+      fetchVarieties()
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Update failed')
+    } finally { setTogglingVerifiedId(null) }
   }
 
   const handlePopularReplaceConfirm = async (replaceId) => {
@@ -418,6 +444,24 @@ export default function FoodsList() {
         </div>
 
         <div className="p-5">
+          {/* Popular Varieties pinned summary */}
+          {!varietiesLoading && varieties.filter(v => v.popular).length > 0 && (
+            <div className="mb-4 p-3 rounded-xl" style={{ background: '#FFFBEB', border: '1px solid #FDE68A' }}>
+              <p className="text-xs font-semibold text-amber-700 flex items-center gap-1 mb-2">
+                <Star className="w-3 h-3 text-amber-400 shrink-0" />
+                Popular Varieties &nbsp;({varieties.filter(v => v.popular).length}/{MAX_POPULAR})
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {varieties.filter(v => v.popular).map((v) => (
+                  <span key={v._id} className="px-2.5 py-1 rounded-full text-xs font-medium"
+                    style={{ background: '#FEF3C7', color: '#92400E' }}>
+                    {v.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {varietiesLoading ? <LoadingSpinner /> : varieties.length === 0 ? (
             <div className="text-center py-10 rounded-xl" style={{ border: '1px dashed #CBD5E1' }}>
               <p className="text-sm text-slate-400">No varieties yet.</p>
@@ -462,6 +506,16 @@ export default function FoodsList() {
                       style={{ background: v.popular ? '#F59E0B' : '#CBD5E1' }}
                     >
                       <span className="inline-block h-4 w-4 mt-0.5 transform rounded-full bg-white shadow transition-transform duration-200" style={{ marginLeft: v.popular ? '18px' : '2px' }} />
+                    </button>
+                    {/* Verified toggle */}
+                    <button
+                      onClick={() => handleToggleVerifiedVariety(v)}
+                      disabled={togglingVerifiedId === v._id}
+                      title={v.isVerified ? 'Remove Verification' : 'Mark as Verified'}
+                      className="relative inline-flex h-5 w-9 cursor-pointer rounded-full transition-colors duration-200 disabled:opacity-40"
+                      style={{ background: v.isVerified ? '#10B981' : '#CBD5E1' }}
+                    >
+                      <span className="inline-block h-4 w-4 mt-0.5 transform rounded-full bg-white shadow transition-transform duration-200" style={{ marginLeft: v.isVerified ? '18px' : '2px' }} />
                     </button>
                     <button onClick={() => openVarietyEdit(v)} className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 transition-colors" onMouseEnter={(e) => e.currentTarget.style.background = '#eef3fd'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}><Pencil className="w-4 h-4" /></button>
                     <button onClick={() => setDeleteVarietyId(v._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 transition-colors" onMouseEnter={(e) => e.currentTarget.style.background = '#FEE2E2'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}><Trash2 className="w-4 h-4" /></button>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Plus, X } from 'lucide-react'
 import ImageUpload from '../common/ImageUpload'
+import InlineCategoryAdd from '../common/InlineCategoryAdd'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { moviesApi } from '../../services/api'
@@ -14,17 +15,25 @@ const inp = 'w-full px-3 py-2.5 rounded-lg text-sm'
 
 export default function MovieForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues })
-  const [theatres, setTheatres] = useState([])
-  const [poster, setPoster] = useState(defaultValues?.poster || '')
-  const [timings, setTimings] = useState(defaultValues?.showTimings?.length ? defaultValues.showTimings : [''])
-  const [runningFrom, setRunningFrom] = useState(defaultValues?.runningFrom ? new Date(defaultValues.runningFrom) : null)
-  const [runningUntil, setRunningUntil] = useState(defaultValues?.runningUntil ? new Date(defaultValues.runningUntil) : null)
+  const [theatres,      setTheatres]      = useState([])
+  const [genres,        setGenres]        = useState([])
+  const [languages,     setLanguages]     = useState([])
+  const [poster,        setPoster]        = useState(defaultValues?.poster || '')
+  const [timings,       setTimings]       = useState(defaultValues?.showTimings?.length ? defaultValues.showTimings : [''])
+  const [runningFrom,   setRunningFrom]   = useState(defaultValues?.runningFrom   ? new Date(defaultValues.runningFrom)   : null)
+  const [runningUntil,  setRunningUntil]  = useState(defaultValues?.runningUntil  ? new Date(defaultValues.runningUntil)  : null)
+  const [expectedRelease, setExpectedRelease] = useState(defaultValues?.expectedReleaseDate ? new Date(defaultValues.expectedReleaseDate) : null)
+
+  const fetchGenres    = () => moviesApi.getGenres().then((r)    => setGenres(r.data?.data    || [])).catch(() => {})
+  const fetchLanguages = () => moviesApi.getLanguages().then((r) => setLanguages(r.data?.data || [])).catch(() => {})
 
   useEffect(() => {
     moviesApi.getTheatres().then((r) => setTheatres(r.data?.data || [])).catch(() => {})
+    fetchGenres()
+    fetchLanguages()
   }, [])
 
-  const addTiming = () => setTimings([...timings, ''])
+  const addTiming    = () => setTimings([...timings, ''])
   const updateTiming = (i, v) => { const t = [...timings]; t[i] = v; setTimings(t) }
   const removeTiming = (i) => setTimings(timings.filter((_, idx) => idx !== i))
 
@@ -32,9 +41,10 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
     onSubmit({
       ...data,
       poster,
-      showTimings: timings.filter(Boolean),
-      runningFrom: runningFrom?.toISOString(),
-      runningUntil: runningUntil?.toISOString(),
+      showTimings:         timings.filter(Boolean),
+      runningFrom:         runningFrom?.toISOString(),
+      runningUntil:        runningUntil?.toISOString(),
+      expectedReleaseDate: expectedRelease?.toISOString(),
     })
   }
 
@@ -51,21 +61,85 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
         </div>
 
         <div>
-          <label htmlFor="mov-theatre" className={lbl} style={lblStyle}>Theatre *</label>
-          <select id="mov-theatre" name="theatre" autoComplete="off"
-            {...register('theatre', { required: 'Required' })} className={inp}>
-            <option value="">Select theatre</option>
-            {theatres.map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}
+          <label htmlFor="mov-status" className={lbl} style={lblStyle}>Status *</label>
+          <select id="mov-status" name="status" autoComplete="off"
+            {...register('status', { required: 'Required' })} className={inp}>
+            <option value="running">Now Showing</option>
+            <option value="coming_soon">Coming Soon</option>
+            <option value="ended">Ended</option>
           </select>
-          {errors.theatre && <p className="text-xs mt-1" style={{ color: '#DC2626' }}>{errors.theatre.message}</p>}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <label htmlFor="mov-lang" className={lbl} style={{ ...lblStyle, marginBottom: 0 }}>Language *</label>
+              <InlineCategoryAdd label="Language" placeholder="e.g. Telugu"
+                onAdd={async (name) => { await moviesApi.createLanguage({ name }); await fetchLanguages() }} />
+            </div>
+            <select id="mov-lang" name="language" autoComplete="off"
+              {...register('language', { required: 'Required' })} className={inp}>
+              <option value="">Select language</option>
+              {languages.map((l) => <option key={l._id} value={l._id}>{l.name}</option>)}
+            </select>
+            {errors.language && <p className="text-xs mt-1" style={{ color: '#DC2626' }}>{errors.language.message}</p>}
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <label htmlFor="mov-genre" className={lbl} style={{ ...lblStyle, marginBottom: 0 }}>Genre</label>
+              <InlineCategoryAdd label="Genre" placeholder="e.g. Action"
+                onAdd={async (name) => { await moviesApi.createGenre({ name }); await fetchGenres() }} />
+            </div>
+            <select id="mov-genre" name="genre" autoComplete="off"
+              {...register('genre')} className={inp}>
+              <option value="">Select genre</option>
+              {genres.map((g) => <option key={g._id} value={g._id}>{g.name}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="mov-duration" className={lbl} style={lblStyle}>Duration (minutes)</label>
+            <input id="mov-duration" name="duration" type="number" min="0" autoComplete="off"
+              {...register('duration')} className={inp} placeholder="e.g. 148" />
+          </div>
+          <div>
+            <label htmlFor="mov-rating" className={lbl} style={lblStyle}>Certificate</label>
+            <select id="mov-rating" name="rating" autoComplete="off"
+              {...register('rating')} className={inp}>
+              <option value="">Select</option>
+              <option value="U">U</option>
+              <option value="UA">UA</option>
+              <option value="A">A</option>
+            </select>
+          </div>
         </div>
 
         <div>
-          <label htmlFor="mov-lang" className={lbl} style={lblStyle}>Language *</label>
-          <select id="mov-lang" name="language" autoComplete="off"
-            {...register('language', { required: 'Required' })} className={inp}>
-            <option value="">Select</option>
-            {['Telugu', 'Hindi', 'Tamil', 'English', 'Other'].map((l) => <option key={l} value={l}>{l}</option>)}
+          <label htmlFor="mov-director" className={lbl} style={lblStyle}>Director</label>
+          <input id="mov-director" name="director" autoComplete="off"
+            {...register('director')} className={inp} placeholder="e.g. S. S. Rajamouli" />
+        </div>
+
+        <div>
+          <label htmlFor="mov-cast" className={lbl} style={lblStyle}>Cast</label>
+          <input id="mov-cast" name="cast" autoComplete="off"
+            {...register('cast')} className={inp} placeholder="e.g. Prabhas, Deepika Padukone" />
+        </div>
+
+        <div>
+          <label htmlFor="mov-synopsis" className={lbl} style={lblStyle}>Synopsis</label>
+          <textarea id="mov-synopsis" name="synopsis" autoComplete="off"
+            {...register('synopsis')} rows={3} className={`${inp} resize-none`} placeholder="Brief plot summary…" />
+        </div>
+
+        <div>
+          <label htmlFor="mov-theatre" className={lbl} style={lblStyle}>Theatre</label>
+          <select id="mov-theatre" name="theatre" autoComplete="off"
+            {...register('theatre')} className={inp}>
+            <option value="">Select theatre</option>
+            {theatres.map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}
           </select>
         </div>
 
@@ -93,7 +167,7 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
 
         <ImageUpload module="movies" label="Movie Poster" value={poster} onChange={setPoster} contentId={contentId} section="posters" />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="mov-from" className={lbl} style={lblStyle}>Running From</label>
             <DatePicker id="mov-from" selected={runningFrom} onChange={setRunningFrom}
@@ -106,49 +180,27 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="mov-genre" className={lbl} style={lblStyle}>Genre</label>
-            <input id="mov-genre" name="genre" autoComplete="off"
-              {...register('genre')} className={inp} />
-          </div>
-          <div>
-            <label htmlFor="mov-rating" className={lbl} style={lblStyle}>Rating</label>
-            <select id="mov-rating" name="rating" autoComplete="off"
-              {...register('rating')} className={inp}>
-              <option value="">Select</option>
-              <option value="U">U</option>
-              <option value="UA">UA</option>
-              <option value="A">A</option>
-            </select>
-          </div>
+        <div>
+          <label htmlFor="mov-expected" className={lbl} style={lblStyle}>Expected Release Date</label>
+          <DatePicker id="mov-expected" selected={expectedRelease} onChange={setExpectedRelease}
+            dateFormat="dd/MM/yyyy" className="w-full" isClearable placeholderText="For coming soon" />
         </div>
 
         <div>
           <label htmlFor="mov-booking" className={lbl} style={lblStyle}>Booking URL</label>
           <input id="mov-booking" name="bookingUrl" type="url" autoComplete="url"
-            {...register('bookingUrl')} placeholder="BookMyShow / Paytm" className={inp} />
+            {...register('bookingUrl')} placeholder="Generic booking link" className={inp} />
         </div>
 
         <div>
           <label htmlFor="mov-trailer" className={lbl} style={lblStyle}>Trailer URL</label>
           <input id="mov-trailer" name="trailerUrl" type="url" autoComplete="url"
-            {...register('trailerUrl')} placeholder="YouTube" className={inp} />
-        </div>
-
-        <div>
-          <label htmlFor="mov-status" className={lbl} style={lblStyle}>Status *</label>
-          <select id="mov-status" name="status" autoComplete="off"
-            {...register('status', { required: 'Required' })} className={inp}>
-            <option value="now_showing">Now Showing</option>
-            <option value="coming_soon">Coming Soon</option>
-            <option value="ended">Ended</option>
-          </select>
+            {...register('trailerUrl')} placeholder="YouTube link" className={inp} />
         </div>
       </div>
 
       <div className={section} style={sectionStyle}>
-        <h3 className="font-semibold text-slate-800">Location & Scope</h3>
+        <h3 className="font-semibold text-slate-800">Location &amp; Scope</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="mov-scope" className={lbl} style={lblStyle}>Scope *</label>
@@ -159,20 +211,17 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
           </div>
           <div>
             <label htmlFor="mov-city" className={lbl} style={lblStyle}>City</label>
-            <input id="mov-city" name="city" autoComplete="address-level2"
-              {...register('city')} className={inp} />
+            <input id="mov-city" name="city" autoComplete="address-level2" {...register('city')} className={inp} />
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="mov-location" className={lbl} style={lblStyle}>Location</label>
-            <input id="mov-location" name="location" autoComplete="off"
-              {...register('location')} className={inp} />
+            <input id="mov-location" name="location" autoComplete="off" {...register('location')} className={inp} />
           </div>
           <div>
             <label htmlFor="mov-region" className={lbl} style={lblStyle}>Region</label>
-            <input id="mov-region" name="region" autoComplete="off"
-              {...register('region')} className={inp} />
+            <input id="mov-region" name="region" autoComplete="off" {...register('region')} className={inp} />
           </div>
         </div>
       </div>

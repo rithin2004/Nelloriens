@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import toast from 'react-hot-toast'
 import RichTextEditor from '../common/RichTextEditor'
 import ImageUpload from '../common/ImageUpload'
 import DatePicker from 'react-datepicker'
@@ -42,6 +43,7 @@ export default function NewsForm({ defaultValues, onSubmit, loading, contentId }
   useEffect(() => { fetchCategories() }, [])
 
   const submit = (data) => {
+    if (!thumbnail) { toast.error('Thumbnail is required'); return }
     onSubmit({ ...data, body, thumbnail, isImportant, publishedAt: publishedAt?.toISOString() })
   }
 

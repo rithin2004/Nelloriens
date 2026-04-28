@@ -104,6 +104,10 @@ export default function TourismList() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
+  // Popular Destinations section
+  const [popularPlaces,  setPopularPlaces]  = useState([])
+  const [popularLoading, setPopularLoading] = useState(false)
+
   // List state
   const [page,        setPage]        = useState(1)
   const [search,      setSearch]      = useState('')
@@ -111,7 +115,8 @@ export default function TourismList() {
   const [categories,  setCategories]  = useState([])
   const [deleteId,    setDeleteId]    = useState(null)
   const [deleting,    setDeleting]    = useState(false)
-  const [togglingId,  setTogglingId]  = useState(null)
+  const [togglingId,         setTogglingId]         = useState(null)
+  const [togglingVerifiedId, setTogglingVerifiedId] = useState(null)
   const debouncedSearch = useDebounce(search)
 
   // Replace prompt (RULE 13 — isPopular max 10 globally)
@@ -130,9 +135,19 @@ export default function TourismList() {
 
   const { items: data, totalPages, loading, fetch } = useTourismStore()
 
+  const loadPopularPlaces = async () => {
+    setPopularLoading(true)
+    try {
+      const r = await tourismApi.getAll({ isPopular: true, page: 1, limit: 50 })
+      setPopularPlaces((r.data.data || []).filter(p => p.isPopular))
+    } catch { /* supplementary section — silent failure */ }
+    finally { setPopularLoading(false) }
+  }
+
   // Load display photos
   useEffect(() => {
     loadDisplayPhotos()
+    loadPopularPlaces()
     tourismApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   }, [])  
 
@@ -222,6 +237,7 @@ export default function TourismList() {
       await tourismApi.update(item._id, { isPopular: !item.isPopular })
       toast.success(item.isPopular ? 'Removed from Popular' : 'Marked as Popular')
       fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, category: filterCat || undefined })
+      loadPopularPlaces()
     } catch (e) {
       if (e?.response?.data?.code === 'MAX_LIMIT_REACHED') {
         setReplaceCandidates(e.response.data.currentItems || [])
@@ -233,6 +249,17 @@ export default function TourismList() {
     } finally { setTogglingId(null) }
   }
 
+  const handleToggleVerified = async (item) => {
+    setTogglingVerifiedId(item._id)
+    try {
+      await tourismApi.update(item._id, { isVerified: !item.isVerified })
+      toast.success(item.isVerified ? 'Verification removed' : 'Marked as Verified')
+      fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, category: filterCat || undefined })
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to update')
+    } finally { setTogglingVerifiedId(null) }
+  }
+
   const handleReplaceConfirm = async (replaceId) => {
     if (!replacePendingItem) return
     setReplacingId(replaceId)
@@ -241,13 +268,20 @@ export default function TourismList() {
       toast.success('Marked as Popular — replaced previous item')
       setReplaceOpen(false); setReplaceCandidates([]); setReplacePendingItem(null)
       fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, category: filterCat || undefined })
+      loadPopularPlaces()
     } catch (e) { toast.error(e?.response?.data?.message || 'Failed to update') }
     finally { setReplacingId(null) }
   }
 
   const handleDelete = async () => {
     setDeleting(true)
-    try { await tourismApi.delete(deleteId); toast.success('Moved to Recycle Bin'); setDeleteId(null) }
+    try {
+      await tourismApi.delete(deleteId)
+      toast.success('Moved to Recycle Bin')
+      setDeleteId(null)
+      loadPopularPlaces()
+      fetch()
+    }
     catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
@@ -273,6 +307,7 @@ export default function TourismList() {
       else            { await tourismApi.create(reservedId ? { ...formData, _reservedId: reservedId } : formData); toast.success('Created!') }
       setFormOpen(false); setReservedId(null)
       fetch({ page, limit: PAGE_SIZE, search: debouncedSearch, category: filterCat || undefined })
+      loadPopularPlaces()
     } catch (e) { toast.error(e?.response?.data?.message || 'Save failed') }
     finally { setFormSubmitting(false) }
   }
@@ -329,6 +364,23 @@ export default function TourismList() {
           />
           {row.original.isPopular && <Star className="w-3.5 h-3.5 text-purple-400" />}
         </div>
+      ),
+    },
+    {
+      id: 'isVerified',
+      header: 'Verified',
+      cell: ({ row }) => (
+        <button
+          type="button"
+          onClick={() => handleToggleVerified(row.original)}
+          disabled={togglingVerifiedId === row.original._id}
+          className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-40"
+          style={{ background: row.original.isVerified ? '#10B981' : '#CBD5E1' }}
+          title={row.original.isVerified ? 'Remove Verification' : 'Mark as Verified'}
+        >
+          <span className="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 mt-0.5"
+            style={{ marginLeft: row.original.isVerified ? '18px' : '2px' }} />
+        </button>
       ),
     },
     {
@@ -414,7 +466,57 @@ export default function TourismList() {
         )}
       </div>
 
-      {/* Section 2 — Tourist Places */}
+      {/* Section 2 — Popular Destinations */}
+      <div className="rounded-xl p-4 mb-5" style={{ background: '#F5F3FF', border: '1px solid #DDD6FE' }}>
+        <div className="flex items-center gap-2 mb-3">
+          <Star className="w-4 h-4 text-purple-500 shrink-0" />
+          <h3 className="font-semibold text-purple-800 text-sm">Popular Destinations</h3>
+          <span className="text-xs text-purple-600 ml-1">
+            {popularLoading ? '…' : `${popularPlaces.length} pinned`} · max 10 globally shown on user side
+          </span>
+        </div>
+        {popularLoading ? (
+          <div className="flex gap-2 flex-wrap">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="w-36 h-14 rounded-lg animate-pulse" style={{ background: '#EDE9FE' }} />
+            ))}
+          </div>
+        ) : popularPlaces.length === 0 ? (
+          <p className="text-xs text-purple-400 italic">No Popular Destinations yet — toggle the switch on any place to pin it here.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {popularPlaces.map((p) => {
+              const cat = categories.find(c => c._id === p.category)
+              return (
+                <div
+                  key={p._id}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                  style={{ background: '#EDE9FE', border: '1px solid #DDD6FE' }}
+                >
+                  {p.thumbnail && (
+                    <img src={p.thumbnail} className="w-10 h-8 object-cover rounded shrink-0" alt="" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-purple-900 truncate max-w-30">{p.placeName || p.title}</p>
+                    {cat && <p className="text-xs text-purple-400 truncate">{cat.name}</p>}
+                  </div>
+                  <button
+                    onClick={() => openEdit(p._id)}
+                    title="Edit"
+                    className="p-1 rounded text-purple-600 transition-colors shrink-0"
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#DDD6FE'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Section 3 — Tourist Places */}
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-semibold text-slate-700">Tourist Places</h3>
         <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs text-purple-700"

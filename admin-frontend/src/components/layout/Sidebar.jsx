@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Newspaper, Briefcase, GraduationCap, Trophy,
   UtensilsCrossed, Landmark, Hotel, CalendarDays, Film,
   Bus, Tag, MapPin, Bell, Megaphone, Heart,
-  ChevronLeft, ChevronRight, Inbox, Zap, Building2, Users, Trash2, Home,
+  ChevronLeft, ChevronRight, Inbox, Zap, Building2, Users, Trash2, Home, Settings,
 } from 'lucide-react'
 import { InstagramIcon } from '../common/SocialIcon'
 import { companyApi } from '../../services/api'
@@ -56,8 +56,9 @@ const navGroups = [
   {
     label: 'Admin',
     items: [
-      { label: 'Users',        to: '/users/list',    icon: Users  },
-      { label: 'Recycle Bin',  to: '/recycle-bin',   icon: Trash2 },
+      { label: 'Users',        to: '/users/list',    icon: Users    },
+      { label: 'Recycle Bin',  to: '/recycle-bin',   icon: Trash2   },
+      { label: 'Settings',     to: '/settings',      icon: Settings },
     ],
   },
 ]

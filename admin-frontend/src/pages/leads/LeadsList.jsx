@@ -260,6 +260,7 @@ export default function LeadsList() {
       toast.success('Lead deleted')
       setDeleteId(null)
       setSelectedLead(null)
+      fetch()
     }
     catch { toast.error('Delete failed') }
     finally { setDeleting(false) }

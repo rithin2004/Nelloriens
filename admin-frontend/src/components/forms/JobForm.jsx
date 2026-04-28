@@ -54,8 +54,25 @@ const section = 'rounded-xl p-5 space-y-4'
 const sectionStyle = { background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }
 const inp = 'w-full px-3 py-2.5 rounded-lg text-sm'
 
+function ToggleSwitch({ id, checked, onChange, label }) {
+  return (
+    <div className="flex items-center gap-2">
+      {label && <span className="text-xs font-semibold text-slate-500">{label}</span>}
+      <button type="button" role="switch" aria-checked={checked} id={id}
+        onClick={() => onChange(!checked)}
+        className="relative inline-flex items-center rounded-full transition-colors w-10 h-6 shrink-0"
+        style={{ background: checked ? '#10B981' : '#D1D5DB' }}>
+        <span className="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform"
+          style={{ transform: checked ? 'translateX(22px)' : 'translateX(2px)' }} />
+      </button>
+    </div>
+  )
+}
+
 export default function JobForm({ defaultValues, onSubmit, loading, contentId }) {
-  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues })
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({ defaultValues })
+  const companyNameVal = watch('companyName', defaultValues?.companyName || '')
+  const [isVerified, setIsVerified] = useState(defaultValues?.isVerified || false)
   const [categories, setCategories] = useState([])
   const [locations, setLocations] = useState([])
   const [description, setDescription] = useState(defaultValues?.fullDescription || '')
@@ -64,19 +81,25 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId })
   const [lastDate, setLastDate] = useState(defaultValues?.lastDate ? new Date(defaultValues.lastDate) : null)
   const [publishedAt, setPublishedAt] = useState(defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date())
 
+  const [jobTypes,   setJobTypes]   = useState([])
+
   const fetchCategories = () => jobsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   const fetchLocations  = () => jobsApi.getLocations().then((r)  => setLocations(r.data.data  || [])).catch(() => {})
+  const fetchTypes      = () => jobsApi.getTypes().then((r)       => setJobTypes(r.data.data   || [])).catch(() => {})
 
-  useEffect(() => { fetchCategories(); fetchLocations() }, [])
+  useEffect(() => { fetchCategories(); fetchLocations(); fetchTypes() }, [])
 
   const submit = (data) => {
-    onSubmit({ ...data, fullDescription: description, thumbnail, companyLogo, lastDate: lastDate?.toISOString(), publishedAt: publishedAt?.toISOString() })
+    onSubmit({ ...data, fullDescription: description, thumbnail, companyLogo, isVerified, lastDate: lastDate?.toISOString(), publishedAt: publishedAt?.toISOString() })
   }
 
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-5">
       <div className={section} style={sectionStyle}>
-        <h3 className="font-semibold text-slate-800">Job Details</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-slate-800">Job Details</h3>
+          <ToggleSwitch id="job-verified" checked={isVerified} onChange={setIsVerified} label="Verified" />
+        </div>
 
         <div>
           <label htmlFor="job-title" className={lbl} style={lblStyle}>Title *</label>
@@ -90,8 +113,9 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId })
             <label htmlFor="job-company" className={lbl} style={lblStyle}>Company / Org Name *</label>
             <input id="job-company" name="companyName" autoComplete="organization"
               {...register('companyName', { required: 'Required' })} className={inp} />
+            {errors.companyName && <p className="text-xs mt-1" style={{ color: '#DC2626' }}>{errors.companyName.message}</p>}
           </div>
-          <CompanyLogoField logo={companyLogo} onChange={setCompanyLogo} companyName={defaultValues?.companyName} />
+          <CompanyLogoField logo={companyLogo} onChange={setCompanyLogo} companyName={companyNameVal} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -125,6 +149,26 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId })
               <option value="experienced">Experienced</option>
               <option value="both">Both</option>
             </select>
+            {errors.experienceType && <p className="text-xs mt-1" style={{ color: '#DC2626' }}>{errors.experienceType.message}</p>}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="job-type" className={lbl} style={lblStyle}>Job Type</label>
+            <select id="job-type" name="jobType" autoComplete="off" {...register('jobType')} className={inp}>
+              <option value="">Select type</option>
+              {jobTypes.map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="job-workmode" className={lbl} style={lblStyle}>Work Mode</label>
+            <select id="job-workmode" name="workMode" autoComplete="off" {...register('workMode')} className={inp}>
+              <option value="">Select</option>
+              <option value="remote">Remote</option>
+              <option value="onsite">Onsite</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
           </div>
         </div>
 
@@ -154,6 +198,7 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId })
           <textarea id="job-shortdesc" name="shortDescription" autoComplete="off"
             {...register('shortDescription', { required: 'Required', maxLength: 300 })} rows={3}
             className={`${inp} resize-none`} />
+          {errors.shortDescription && <p className="text-xs mt-1" style={{ color: '#DC2626' }}>{errors.shortDescription.message}</p>}
         </div>
       </div>
 

@@ -39,6 +39,11 @@ export const jobsApi = {
   createLocation: (data)       => api.post('/jobs/locations/create', data),
   updateLocation: (id, data)   => api.put(`/jobs/locations/update/${id}`, data),
   deleteLocation: (id)         => api.delete(`/jobs/locations/delete/${id}`),
+  // Job Types
+  getTypes:       ()           => api.get('/jobs/types/list'),
+  createType:     (data)       => api.post('/jobs/types/create', data),
+  updateType:     (id, data)   => api.put(`/jobs/types/update/${id}`, data),
+  deleteType:     (id)         => api.delete(`/jobs/types/delete/${id}`),
 }
 
 // ── Results ────────────────────────────────────────────────────────────────
@@ -67,11 +72,6 @@ export const sportsApi = {
   createCategory: (data)       => api.post('/sports/categories/create', data),
   updateCategory: (id, data)   => api.put(`/sports/categories/update/${id}`, data),
   deleteCategory: (id)         => api.delete(`/sports/categories/delete/${id}`),
-  // Live Scores
-  getLiveScores:      (params)     => api.get('/sports/live-scores/list', { params }),
-  createLiveScore:    (data)       => api.post('/sports/live-scores/create', data),
-  updateLiveScore:    (id, data)   => api.put(`/sports/live-scores/update/${id}`, data),
-  deleteLiveScore:    (id)         => api.delete(`/sports/live-scores/delete/${id}`),
 }
 
 // ── Foods ──────────────────────────────────────────────────────────────────
@@ -120,6 +120,16 @@ export const staysApi = {
   create:   (data)   => api.post('/stays/create', data),
   update:   (id, data) => api.put(`/stays/update/${id}`, data),
   delete:   (id)     => api.delete(`/stays/delete/${id}`),
+  // Categories
+  getCategories:  ()           => api.get('/stays/categories/list'),
+  createCategory: (data)       => api.post('/stays/categories/create', data),
+  updateCategory: (id, data)   => api.put(`/stays/categories/update/${id}`, data),
+  deleteCategory: (id)         => api.delete(`/stays/categories/delete/${id}`),
+  // Locations
+  getLocations:   ()           => api.get('/stays/locations/list'),
+  createLocation: (data)       => api.post('/stays/locations/create', data),
+  updateLocation: (id, data)   => api.put(`/stays/locations/update/${id}`, data),
+  deleteLocation: (id)         => api.delete(`/stays/locations/delete/${id}`),
 }
 
 // ── Events ─────────────────────────────────────────────────────────────────
@@ -134,6 +144,11 @@ export const eventsApi = {
   createCategory: (data)       => api.post('/events/categories/create', data),
   updateCategory: (id, data)   => api.put(`/events/categories/update/${id}`, data),
   deleteCategory: (id)         => api.delete(`/events/categories/delete/${id}`),
+  // Locations
+  getLocations:   ()           => api.get('/events/locations/list'),
+  createLocation: (data)       => api.post('/events/locations/create', data),
+  updateLocation: (id, data)   => api.put(`/events/locations/update/${id}`, data),
+  deleteLocation: (id)         => api.delete(`/events/locations/delete/${id}`),
   // Influencer Events (RULE 27 — separate section, no categories, max 5)
   getInfluencerEvents:      (params) => api.get('/events/influencer/list', { params }),
   getInfluencerEventById:   (id)     => api.get(`/events/influencer/get/${id}`),
@@ -154,6 +169,21 @@ export const moviesApi = {
   createTheatre: (data)       => api.post('/theatres/create', data),
   updateTheatre: (id, data)   => api.put(`/theatres/update/${id}`, data),
   deleteTheatre: (id)         => api.delete(`/theatres/delete/${id}`),
+  // Showtimes (per theatre)
+  getShowtimes:    (theatreId)       => api.get(`/theatres/${theatreId}/showtimes/list`),
+  createShowtime:  (theatreId, data) => api.post(`/theatres/${theatreId}/showtimes/create`, data),
+  updateShowtime:  (id, data)        => api.put(`/theatres/showtimes/update/${id}`, data),
+  deleteShowtime:  (id)              => api.delete(`/theatres/showtimes/delete/${id}`),
+  // Genres
+  getGenres:     ()           => api.get('/movies/genres/list'),
+  createGenre:   (data)       => api.post('/movies/genres/create', data),
+  updateGenre:   (id, data)   => api.put(`/movies/genres/update/${id}`, data),
+  deleteGenre:   (id)         => api.delete(`/movies/genres/delete/${id}`),
+  // Languages
+  getLanguages:   ()           => api.get('/movies/languages/list'),
+  createLanguage: (data)       => api.post('/movies/languages/create', data),
+  updateLanguage: (id, data)   => api.put(`/movies/languages/update/${id}`, data),
+  deleteLanguage: (id)         => api.delete(`/movies/languages/delete/${id}`),
 }
 
 // ── Transport ──────────────────────────────────────────────────────────────
@@ -173,6 +203,21 @@ export const offersApi = {
   create:   (data)   => api.post('/offers/create', data),
   update:   (id, data) => api.put(`/offers/update/${id}`, data),
   delete:   (id)     => api.delete(`/offers/delete/${id}`),
+  // Categories
+  getCategories:  ()           => api.get('/offers/categories/list'),
+  createCategory: (data)       => api.post('/offers/categories/create', data),
+  updateCategory: (id, data)   => api.put(`/offers/categories/update/${id}`, data),
+  deleteCategory: (id)         => api.delete(`/offers/categories/delete/${id}`),
+  // Locations
+  getLocations:   ()           => api.get('/offers/locations/list'),
+  createLocation: (data)       => api.post('/offers/locations/create', data),
+  updateLocation: (id, data)   => api.put(`/offers/locations/update/${id}`, data),
+  deleteLocation: (id)         => api.delete(`/offers/locations/delete/${id}`),
+  // Offer Types
+  getTypes:       ()           => api.get('/offers/types/list'),
+  createType:     (data)       => api.post('/offers/types/create', data),
+  updateType:     (id, data)   => api.put(`/offers/types/update/${id}`, data),
+  deleteType:     (id)         => api.delete(`/offers/types/delete/${id}`),
 }
 
 // ── Tourism ────────────────────────────────────────────────────────────────
@@ -217,6 +262,11 @@ export const realEstateApi = {
   createType:     (data)       => api.post('/realestate/types/create', data),
   updateType:     (id, data)   => api.put(`/realestate/types/update/${id}`, data),
   deleteType:     (id)         => api.delete(`/realestate/types/delete/${id}`),
+  // Amenities
+  getAmenities:   ()           => api.get('/realestate/amenities/list'),
+  createAmenity:  (data)       => api.post('/realestate/amenities/create', data),
+  updateAmenity:  (id, data)   => api.put(`/realestate/amenities/update/${id}`, data),
+  deleteAmenity:  (id)         => api.delete(`/realestate/amenities/delete/${id}`),
 }
 
 // ── Updates ────────────────────────────────────────────────────────────────
@@ -301,9 +351,8 @@ export const uploadApi = {
 
 // ── Settings ───────────────────────────────────────────────────────────────
 export const settingsApi = {
-  getSiteConfig:   ()      => api.get('/settings/site/get'),
-  updateSiteConfig:(data)  => api.put('/settings/site/update', data),
-  getAuditLogs:    (params)=> api.get('/settings/audit-logs/list', { params }),
+  getLimits:    ()      => api.get('/settings/limits/get'),
+  updateLimits: (data)  => api.put('/settings/limits/update', data),
 }
 
 // ── Users ──────────────────────────────────────────────────────────────────
@@ -343,6 +392,11 @@ export const leadsApi = {
   getById: (id)           => api.get(`/leads/get/${id}`),
   update:  (id, data)     => api.put(`/leads/update/${id}`, data),
   delete:  (id)           => api.delete(`/leads/delete/${id}`),
+  // Inquiry Types
+  getInquiryTypes:   ()           => api.get('/leads/inquiry-types/list'),
+  createInquiryType: (data)       => api.post('/leads/inquiry-types/create', data),
+  updateInquiryType: (id, data)   => api.put(`/leads/inquiry-types/update/${id}`, data),
+  deleteInquiryType: (id)         => api.delete(`/leads/inquiry-types/delete/${id}`),
 }
 
 // ── Recycle Bin ────────────────────────────────────────────────────────────

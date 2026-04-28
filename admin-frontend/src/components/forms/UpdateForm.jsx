@@ -12,16 +12,16 @@ const section = 'bg-white rounded-xl border border-slate-200 p-5 space-y-4'
 
 export default function UpdateForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit } = useForm({ defaultValues })
-  const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
-  // Store as local Date; we convert to IST ISO on submit
-  const [dateTime, setDateTime] = useState(defaultValues?.validUntil ? new Date(defaultValues.validUntil) : null)
-  const [categories, setCategories] = useState([])
+  const [thumbnail,   setThumbnail]  = useState(defaultValues?.thumbnail   || '')
+  const [targetDate,  setTargetDate] = useState(defaultValues?.targetDate  ? new Date(defaultValues.targetDate)  : null)
+  const [dateTime,    setDateTime]   = useState(defaultValues?.validUntil  ? new Date(defaultValues.validUntil)  : null)
+  const [categories,  setCategories] = useState([])
 
   const fetchCategories = () => updatesApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   useEffect(() => { fetchCategories() }, [])
 
   const submit = (data) => {
-    onSubmit({ ...data, thumbnail, validUntil: dateTime?.toISOString() })
+    onSubmit({ ...data, thumbnail, targetDate: targetDate?.toISOString(), validUntil: dateTime?.toISOString() })
   }
 
   return (
@@ -64,8 +64,25 @@ export default function UpdateForm({ defaultValues, onSubmit, loading, contentId
         </div>
         <ImageUpload module="updates" label="Thumbnail" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
         <div>
+          <label htmlFor="upd-targetdate" className={field}>Target Date</label>
+          <DatePicker
+            id="upd-targetdate"
+            name="targetDate"
+            selected={targetDate}
+            onChange={setTargetDate}
+            showTimeSelect
+            timeFormat="HH:mm"
+            timeIntervals={15}
+            timeCaption="Time (IST)"
+            dateFormat="dd/MM/yyyy HH:mm"
+            placeholderText="When is this update relevant?"
+            className={input}
+            isClearable
+          />
+        </div>
+        <div>
           <label htmlFor="upd-datetime" className={field}>
-            Date &amp; Time
+            Expires At
             <span className="ml-1.5 text-xs font-normal text-slate-400">(IST — India Standard Time)</span>
           </label>
           <DatePicker
@@ -78,7 +95,7 @@ export default function UpdateForm({ defaultValues, onSubmit, loading, contentId
             timeIntervals={15}
             timeCaption="Time (IST)"
             dateFormat="dd/MM/yyyy HH:mm"
-            placeholderText="Select date &amp; time (IST)"
+            placeholderText="Select expiry date &amp; time"
             className={input}
             isClearable
           />

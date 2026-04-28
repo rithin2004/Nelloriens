@@ -97,6 +97,7 @@ export default function NewsList() {
     try {
       await newsApi.update(item._id, { isImportant: !item.isImportant })
       toast.success(item.isImportant ? 'Moved to Articles' : 'Marked as Important')
+      fetch()
     } catch (e) {
       // RULE 13 — max 3 important per category: show replace prompt
       if (e?.response?.data?.code === 'MAX_LIMIT_REACHED') {
@@ -117,6 +118,7 @@ export default function NewsList() {
       await newsApi.update(replacePendingItem._id, { isImportant: true, replaceId })
       toast.success('Marked as Important — replaced previous item')
       setReplaceOpen(false); setReplaceCandidates([]); setReplacePendingItem(null)
+      fetch()
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to update')
     } finally { setReplacingId(null) }
@@ -124,7 +126,7 @@ export default function NewsList() {
 
   const handleDelete = async () => {
     setDeleting(true)
-    try { await newsApi.delete(deleteId); toast.success('Moved to Recycle Bin'); setDeleteId(null) }
+    try { await newsApi.delete(deleteId); toast.success('Moved to Recycle Bin'); setDeleteId(null); fetch() }
     catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
@@ -149,6 +151,7 @@ export default function NewsList() {
       if (formEditId) { await newsApi.update(formEditId, formData); toast.success('News updated!') }
       else            { await newsApi.create(reservedId ? { ...formData, _reservedId: reservedId } : formData); toast.success('News created!') }
       setFormOpen(false); setFormDirty(false); setReservedId(null)
+      fetch()
     } catch (e) { toast.error(e?.response?.data?.message || 'Save failed') }
     finally { setFormSubmitting(false) }
   }
@@ -176,7 +179,10 @@ export default function NewsList() {
     {
       accessorKey: 'category',
       header: 'Category',
-      cell: ({ row }) => <span className="text-slate-500 text-xs">{row.original.category?.name || '—'}</span>,
+      cell: ({ row }) => {
+        const cat = categories.find((c) => c._id === row.original.category)
+        return <span className="text-slate-500 text-xs">{cat?.name || '—'}</span>
+      },
     },
     {
       accessorKey: 'pageViews',
@@ -249,7 +255,7 @@ export default function NewsList() {
         action={
           <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => navigate('/news/categories')}
+              onClick={() => navigate('/news/manage')}
               className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
               style={{ background: PL, color: P, border: `1px solid ${PL}` }}
               onMouseEnter={(e) => e.currentTarget.style.background = '#c8dafd'}

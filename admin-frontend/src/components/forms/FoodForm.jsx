@@ -15,15 +15,19 @@ const MAX_PHOTOS   = 5
 const MAX_SWEETS   = 8
 const MAX_POPULAR  = 6  // user-side display limit
 
-function ToggleSwitch({ id, checked, onChange }) {
+function ToggleSwitch({ id, checked, onChange, label, hint }) {
   return (
-    <button type="button" role="switch" aria-checked={checked} id={id}
-      onClick={() => onChange(!checked)}
-      className="relative inline-flex items-center rounded-full transition-colors w-10 h-6 shrink-0"
-      style={{ background: checked ? '#10B981' : '#D1D5DB' }}>
-      <span className="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform"
-        style={{ transform: checked ? 'translateX(22px)' : 'translateX(2px)' }} />
-    </button>
+    <div className="flex items-center gap-2">
+      {label && <span className="text-xs font-semibold text-slate-500">{label}</span>}
+      <button type="button" role="switch" aria-checked={checked} id={id}
+        onClick={() => onChange(!checked)}
+        className="relative inline-flex items-center rounded-full transition-colors w-10 h-6 shrink-0"
+        style={{ background: checked ? '#10B981' : '#D1D5DB' }}>
+        <span className="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform"
+          style={{ transform: checked ? 'translateX(22px)' : 'translateX(2px)' }} />
+      </button>
+      {hint && <span className="text-xs text-slate-400">{hint}</span>}
+    </div>
   )
 }
 
@@ -64,6 +68,7 @@ export default function FoodForm({ defaultValues, onSubmit, loading, contentId }
     },
   })
 
+  const [isVerified,   setIsVerified]   = useState(defaultValues?.isVerified || false)
   const [description, setDescription] = useState(defaultValues?.description || '')
   const [location, setLocation]       = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
   const [photos, setPhotos]           = useState(defaultValues?.photos || [])
@@ -108,14 +113,17 @@ export default function FoodForm({ defaultValues, onSubmit, loading, contentId }
   }
 
   const submit = (data) => {
-    onSubmit({ ...data, description, photos, latitude: location.lat, longitude: location.lng })
+    onSubmit({ ...data, description, photos, isVerified, latitude: location.lat, longitude: location.lng })
   }
 
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-5">
       {/* ── Basic Info ── */}
       <div className={section}>
-        <h3 className="font-semibold text-slate-800">Food Details</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-slate-800">Food Details</h3>
+          <ToggleSwitch id="fod-verified" checked={isVerified} onChange={setIsVerified} label="Verified" />
+        </div>
         <div>
           <label htmlFor="fod-name" className={lbl}>Food Name *</label>
           <input id="fod-name" name="foodName" autoComplete="off" {...register('foodName', { required: 'Required' })} className={inp} />

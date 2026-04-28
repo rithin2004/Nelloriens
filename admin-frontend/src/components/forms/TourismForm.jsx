@@ -29,7 +29,8 @@ export default function TourismForm({ defaultValues, onSubmit, loading, contentI
   const { register, handleSubmit, setValue } = useForm({ defaultValues })
   const [locations, setLocations] = useState([])
   const [categories, setCategories] = useState([])
-  const [isPopular, setIsPopular] = useState(defaultValues?.isPopular || false)
+  const [isPopular,  setIsPopular]  = useState(defaultValues?.isPopular  || false)
+  const [isVerified, setIsVerified] = useState(defaultValues?.isVerified || false)
   const [description, setDescription] = useState(defaultValues?.description || '')
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
   const [location, setLocation] = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
@@ -46,7 +47,7 @@ export default function TourismForm({ defaultValues, onSubmit, loading, contentI
   }
 
   const submit = (data) => {
-    onSubmit({ ...data, description, thumbnail, isPopular, latitude: location.lat, longitude: location.lng })
+    onSubmit({ ...data, description, thumbnail, isPopular, isVerified, latitude: location.lat, longitude: location.lng })
   }
 
   return (
@@ -55,8 +56,11 @@ export default function TourismForm({ defaultValues, onSubmit, loading, contentI
         {/* RULE 13 — isPopular toggle at top right, visual switch */}
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-slate-800">Place Details</h3>
-          <ToggleSwitch id="tur-popular" checked={isPopular} onChange={setIsPopular}
-            label="Popular" hint="(max 10 globally)" />
+          <div className="flex items-center gap-3">
+            <ToggleSwitch id="tur-popular" checked={isPopular} onChange={setIsPopular}
+              label="Popular" hint="(max 10 globally)" />
+            <ToggleSwitch id="tur-verified" checked={isVerified} onChange={setIsVerified} label="Verified" />
+          </div>
         </div>
         <div>
           <label htmlFor="tur-name" className={field}>Place Name *</label>

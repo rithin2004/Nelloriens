@@ -47,6 +47,20 @@ const MODULE_COLORS = {
   realestate:        { bg: '#F0FDF4', color: '#065F46' },
 }
 
+function getItemTitle(item) {
+  return (
+    item.title ||
+    item.movieName ||
+    item.sponsorName ||
+    item.serviceName ||
+    item.name ||
+    item.text ||
+    item.eventName ||
+    item.sportName ||
+    '(Untitled)'
+  )
+}
+
 function timeUntilExpiry(expiresAt) {
   if (!expiresAt) return '—'
   const diff = new Date(expiresAt) - new Date()
@@ -90,8 +104,10 @@ export default function RecycleBin() {
     setRestoring(true)
     try {
       await recycleBinApi.restore(restoreItem._id)
-      toast.success(`"${restoreItem.title}" restored successfully`)
+      toast.success(`"${getItemTitle(restoreItem)}" restored successfully`)
       setRestoreItem(null)
+      fetch({ page, limit: PAGE_SIZE, module: moduleFilter })
+      fetchStats()
     } catch { toast.error('Restore failed') }
     finally { setRestoring(false) }
   }
@@ -102,6 +118,8 @@ export default function RecycleBin() {
       await recycleBinApi.purge(purgeItem._id)
       toast.success('Item permanently deleted')
       setPurgeItem(null)
+      fetch({ page, limit: PAGE_SIZE, module: moduleFilter })
+      fetchStats()
     } catch { toast.error('Delete failed') }
     finally { setPurging(false) }
   }
@@ -112,6 +130,8 @@ export default function RecycleBin() {
       await recycleBinApi.purgeAll(moduleFilter || undefined)
       toast.success('Recycle bin emptied')
       setPurgeAllOpen(false)
+      fetch({ page: 1, limit: PAGE_SIZE, module: moduleFilter })
+      fetchStats()
     } catch { toast.error('Failed to empty recycle bin') }
     finally { setPurgingAll(false) }
   }
@@ -240,7 +260,7 @@ export default function RecycleBin() {
 
                       {/* Title */}
                       <td className="px-4 py-3 max-w-xs">
-                        <span className="font-medium text-slate-800 line-clamp-2">{item.title}</span>
+                        <span className="font-medium text-slate-800 line-clamp-2">{getItemTitle(item)}</span>
                         <span className="block text-xs text-slate-400 mt-0.5">{item._id}</span>
                       </td>
 

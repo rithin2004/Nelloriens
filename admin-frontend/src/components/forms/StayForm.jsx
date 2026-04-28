@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import ImageUpload from '../common/ImageUpload'
 import MapPicker from '../common/MapPicker'
+import InlineCategoryAdd from '../common/InlineCategoryAdd'
+import { staysApi } from '../../services/api'
 
 const field = 'block text-sm font-medium text-slate-700 mb-1'
 
@@ -27,11 +29,18 @@ const AMENITIES = ['WiFi', 'AC', 'Parking', 'Pool', 'Restaurant', 'Gym']
 
 export default function StayForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
   const { register, handleSubmit, setValue, formState: { isDirty } } = useForm({ defaultValues })
-  const [isTop, setIsTop] = useState(defaultValues?.isTop || false)
-  const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
-  const [location, setLocation] = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
+  const [isTop,      setIsTop]      = useState(defaultValues?.isTop      || false)
+  const [isVerified, setIsVerified] = useState(defaultValues?.isVerified || false)
+  const [thumbnail,  setThumbnail]  = useState(defaultValues?.thumbnail || '')
+  const [categories, setCategories] = useState([])
+  const [locations,  setLocations]  = useState([])
+  const [location,   setLocation]   = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
+
+  const fetchCategories = () => staysApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
+  const fetchLocations  = () => staysApi.getLocations().then((r)  => setLocations(r.data.data  || [])).catch(() => {})
 
   useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
+  useEffect(() => { fetchCategories(); fetchLocations() }, [])
 
   const handleMapChange = ({ lat, lng }) => {
     setLocation({ lat, lng })
@@ -40,7 +49,7 @@ export default function StayForm({ defaultValues, onSubmit, loading, contentId, 
   }
 
   const submit = (data) => {
-    onSubmit({ ...data, thumbnail, isTop, latitude: location.lat, longitude: location.lng })
+    onSubmit({ ...data, thumbnail, isTop, isVerified, latitude: location.lat, longitude: location.lng })
   }
 
   return (
@@ -49,12 +58,40 @@ export default function StayForm({ defaultValues, onSubmit, loading, contentId, 
         {/* RULE 13/30 — isTop toggle at top right, visual switch */}
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-slate-800">Hotel Details</h3>
-          <ToggleSwitch id="sty-top" checked={isTop} onChange={setIsTop}
-            label="Top Stay" hint="(max 3/category)" />
+          <div className="flex items-center gap-3">
+            <ToggleSwitch id="sty-top" checked={isTop} onChange={setIsTop}
+              label="Top Stay" hint="(max 3/category)" />
+            <ToggleSwitch id="sty-verified" checked={isVerified} onChange={setIsVerified} label="Verified" />
+          </div>
         </div>
         <div>
-          <label htmlFor="sty-name" className={field}>Hotel Name *</label>
-          <input id="sty-name" name="hotelName" autoComplete="organization" {...register('hotelName', { required: 'Required' })} className={input} />
+          <label htmlFor="sty-name" className={field}>Hotel / Stay Name *</label>
+          <input id="sty-name" name="title" autoComplete="organization" {...register('title', { required: 'Required' })} className={input} />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <label htmlFor="sty-category" className={field} style={{ marginBottom: 0 }}>Category</label>
+              <InlineCategoryAdd label="Category" placeholder="e.g. Budget"
+                onAdd={async (name) => { await staysApi.createCategory({ name }); await fetchCategories() }} />
+            </div>
+            <select id="sty-category" name="category" autoComplete="off" {...register('category')} className={input}>
+              <option value="">Select category</option>
+              {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <label htmlFor="sty-location" className={field} style={{ marginBottom: 0 }}>Location</label>
+              <InlineCategoryAdd label="Location" placeholder="e.g. City Centre"
+                onAdd={async (name) => { await staysApi.createLocation({ name }); await fetchLocations() }} />
+            </div>
+            <select id="sty-location" name="stayLocation" autoComplete="off" {...register('stayLocation')} className={input}>
+              <option value="">Select location</option>
+              {locations.map((l) => <option key={l._id} value={l._id}>{l.name}</option>)}
+            </select>
+          </div>
         </div>
         <ImageUpload module="stays" label="Thumbnail *" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
         <div>
@@ -97,13 +134,23 @@ export default function StayForm({ defaultValues, onSubmit, loading, contentId, 
             </select>
           </div>
           <div>
-            <label htmlFor="sty-price" className={field}>Price Per Night</label>
-            <input id="sty-price" name="pricePerNight" autoComplete="off" {...register('pricePerNight')} className={input} placeholder="₹1,200 onwards" />
+            <label htmlFor="sty-price" className={field}>Price Per Night *</label>
+            <input id="sty-price" name="pricePerNight" autoComplete="off" {...register('pricePerNight', { required: 'Required' })} className={input} placeholder="₹1,200 onwards" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="sty-checkin" className={field}>Check-in Time</label>
+            <input id="sty-checkin" name="checkInTime" autoComplete="off" {...register('checkInTime')} className={input} placeholder="e.g. 12:00 PM" />
+          </div>
+          <div>
+            <label htmlFor="sty-checkout" className={field}>Check-out Time</label>
+            <input id="sty-checkout" name="checkOutTime" autoComplete="off" {...register('checkOutTime')} className={input} placeholder="e.g. 11:00 AM" />
           </div>
         </div>
         <div>
-          <label htmlFor="sty-phone" className={field}>Phone</label>
-          <input id="sty-phone" name="phone" type="tel" autoComplete="tel" {...register('phone')} className={input} />
+          <label htmlFor="sty-phone" className={field}>Phone *</label>
+          <input id="sty-phone" name="phone" type="tel" autoComplete="tel" {...register('phone', { required: 'Required' })} className={input} />
         </div>
         <div>
           <label htmlFor="sty-website" className={field}>Website URL</label>

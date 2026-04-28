@@ -94,6 +94,10 @@ export default function InstagramManager() {
 
   const handleSavePost = async (e) => {
     e.preventDefault()
+    if (!postForm.thumbnailUrl && !postForm.mediaUrl) {
+      toast.error('An image is required')
+      return
+    }
     setPostSaving(true)
     try {
       if (postEditId) {

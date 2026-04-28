@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import toast from 'react-hot-toast'
 import ImageUpload from '../common/ImageUpload'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -11,12 +12,13 @@ const section = 'bg-white rounded-xl border border-slate-200 p-5 space-y-4'
 const PAGES = ['home', 'news', 'jobs', 'results', 'sports', 'foods', 'events', 'movies', 'tourism']
 
 export default function SponsorForm({ defaultValues, onSubmit, loading, contentId }) {
-  const { register, handleSubmit } = useForm({ defaultValues })
+  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues })
   const [logo, setLogo] = useState(defaultValues?.logo || '')
   const [validFrom, setValidFrom] = useState(defaultValues?.validFrom ? new Date(defaultValues.validFrom) : null)
   const [validUntil, setValidUntil] = useState(defaultValues?.validUntil ? new Date(defaultValues.validUntil) : null)
 
   const submit = (data) => {
+    if (!logo) { toast.error('Logo is required'); return }
     onSubmit({ ...data, logo, validFrom: validFrom?.toISOString(), validUntil: validUntil?.toISOString() })
   }
 
@@ -25,7 +27,8 @@ export default function SponsorForm({ defaultValues, onSubmit, loading, contentI
       <div className={section}>
         <div>
           <label htmlFor="spn-name" className={field}>Sponsor Name *</label>
-          <input id="spn-name" name="sponsorName" autoComplete="organization" {...register('sponsorName', { required: true })} className={input} />
+          <input id="spn-name" name="sponsorName" autoComplete="organization" {...register('sponsorName', { required: 'Required' })} className={input} />
+          {errors.sponsorName && <p className="text-xs mt-1 text-red-600">{errors.sponsorName.message}</p>}
         </div>
         <ImageUpload module="sponsorships" label="Logo *" value={logo} onChange={setLogo} contentId={contentId} section="logos" />
         <div>

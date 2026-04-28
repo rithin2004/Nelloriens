@@ -56,7 +56,8 @@ export default function EventsList() {
   const [catFilter,  setCatFilter]  = useState('')
   const [deleteId,   setDeleteId]   = useState(null)
   const [deleting,   setDeleting]   = useState(false)
-  const [togglingId, setTogglingId] = useState(null)
+  const [togglingId,         setTogglingId]         = useState(null)
+  const [togglingVerifiedId, setTogglingVerifiedId] = useState(null)
   const debouncedSearch = useDebounce(search)
 
   // Replace prompt state (RULE 13 — popular max 3 per category)
@@ -118,6 +119,7 @@ export default function EventsList() {
     try {
       await eventsApi.update(item._id, { isPopular: !item.isPopular })
       toast.success(item.isPopular ? 'Removed from Popular' : 'Marked as Popular')
+      fetch()
     } catch (e) {
       if (e?.response?.data?.code === 'MAX_LIMIT_REACHED') {
         setReplaceCandidates(e.response.data.currentItems || [])
@@ -127,6 +129,16 @@ export default function EventsList() {
         toast.error(e?.response?.data?.message || 'Failed to update')
       }
     } finally { setTogglingId(null) }
+  }
+
+  const handleToggleVerified = async (item) => {
+    setTogglingVerifiedId(item._id)
+    try {
+      await eventsApi.update(item._id, { isVerified: !item.isVerified })
+      toast.success(item.isVerified ? 'Verification removed' : 'Marked as Verified')
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to update')
+    } finally { setTogglingVerifiedId(null) }
   }
 
   const handleReplaceConfirm = async (replaceId) => {
@@ -148,6 +160,7 @@ export default function EventsList() {
       else                      { await eventsApi.delete(deleteId) }
       toast.success('Moved to Recycle Bin')
       setDeleteId(null)
+      if (tab !== 'influencer') fetch()
     } catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
@@ -184,11 +197,12 @@ export default function EventsList() {
         toast.success('Created!')
       }
       setFormOpen(false); setFormDirty(false); setReservedId(null)
-      // Re-fetch influencer list since it's not Zustand-driven
       if (tab === 'influencer') {
         eventsApi.getInfluencerEvents({ page: infPage, limit: PAGE_SIZE })
           .then(r => { setInfItems(r.data.data || []); setInfTotal(r.data.pagination?.total || 0); setInfTotalPages(r.data.pagination?.totalPages || 1) })
           .catch(() => {})
+      } else {
+        fetch()
       }
     } catch (e) { toast.error(e?.response?.data?.message || 'Save failed') }
     finally { setFormSubmitting(false) }
@@ -264,6 +278,23 @@ export default function EventsList() {
         </div>
       ),
     },
+    {
+      id: 'isVerified',
+      header: 'Verified',
+      cell: ({ row }) => (
+        <button
+          type="button"
+          onClick={() => handleToggleVerified(row.original)}
+          disabled={togglingVerifiedId === row.original._id}
+          className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-40"
+          style={{ background: row.original.isVerified ? '#10B981' : '#CBD5E1' }}
+          title={row.original.isVerified ? 'Remove Verification' : 'Mark as Verified'}
+        >
+          <span className="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 mt-0.5"
+            style={{ marginLeft: row.original.isVerified ? '18px' : '2px' }} />
+        </button>
+      ),
+    },
     { id: 'actions', header: '', cell: ({ row }) => actionBtns(row.original._id) },
   ]
 
@@ -311,7 +342,7 @@ export default function EventsList() {
         action={
           <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => navigate('/events/categories')}
+              onClick={() => navigate('/events/manage')}
               className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
               style={{ background: PL, color: P, border: `1px solid ${PL}` }}
               onMouseEnter={(e) => e.currentTarget.style.background = '#c8dafd'}

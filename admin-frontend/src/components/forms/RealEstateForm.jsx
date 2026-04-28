@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
-import { Plus, Trash2, Upload, Loader } from 'lucide-react'
+import { Upload, Loader } from 'lucide-react'
 import ImageUpload from '../common/ImageUpload'
 import MapPicker from '../common/MapPicker'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import { realEstateApi, uploadApi } from '../../services/api'
 import toast from 'react-hot-toast'
 
@@ -10,25 +12,44 @@ const field   = 'block text-sm font-medium text-slate-700 mb-1'
 const input   = 'w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'
 const section = 'bg-white rounded-xl border border-slate-200 p-5 space-y-4'
 
+function ToggleSwitch({ id, checked, onChange, label }) {
+  return (
+    <div className="flex items-center gap-2">
+      {label && <span className="text-xs font-semibold text-slate-500">{label}</span>}
+      <button type="button" role="switch" aria-checked={checked} id={id}
+        onClick={() => onChange(!checked)}
+        className="relative inline-flex items-center rounded-full transition-colors w-10 h-6 shrink-0"
+        style={{ background: checked ? '#10B981' : '#D1D5DB' }}>
+        <span className="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform"
+          style={{ transform: checked ? 'translateX(22px)' : 'translateX(2px)' }} />
+      </button>
+    </div>
+  )
+}
+
 const MAX_PHOTOS = 6
 
 const FALLBACK_TYPES = ['Plot', 'Flat', 'House', 'Villa']
 
 export default function RealEstateForm({ defaultValues, onSubmit, loading, contentId }) {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm({ defaultValues })
-  const [locations, setLocations] = useState([])
+  const [isVerified,    setIsVerified]    = useState(defaultValues?.isVerified || false)
+  const [locations,     setLocations]     = useState([])
   const [propertyTypes, setPropertyTypes] = useState([])
-  const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
-  const [photos,    setPhotos]    = useState(defaultValues?.photos    || [])
+  const [amenities,     setAmenities]     = useState([])
+  const [thumbnail,     setThumbnail]     = useState(defaultValues?.thumbnail || '')
+  const [photos,        setPhotos]        = useState(defaultValues?.photos    || [])
   const [photoUploading, setPhotoUploading] = useState(false)
-  const [location, setLocation] = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
+  const [location,      setLocation]      = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
+  const [possessionDate, setPossessionDate] = useState(defaultValues?.possessionDate ? new Date(defaultValues.possessionDate) : null)
   const photoInputRef = useRef(null)
 
   const isSale = (defaultValues?.section || 'sale') === 'sale'
 
   useEffect(() => {
-    realEstateApi.getLocations().then((r) => setLocations(r.data.data || [])).catch(() => {})
-    realEstateApi.getTypes().then((r) => setPropertyTypes(r.data.data || [])).catch(() => {})
+    realEstateApi.getLocations().then((r)  => setLocations(r.data.data     || [])).catch(() => {})
+    realEstateApi.getTypes().then((r)      => setPropertyTypes(r.data.data || [])).catch(() => {})
+    realEstateApi.getAmenities().then((r)  => setAmenities(r.data.data     || [])).catch(() => {})
   }, [])
 
   const handleMapChange = ({ lat, lng }) => {
@@ -62,13 +83,16 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
 
 
   const submit = (data) => {
-    onSubmit({ ...data, thumbnail, photos, latitude: location.lat, longitude: location.lng })
+    onSubmit({ ...data, thumbnail, photos, isVerified, latitude: location.lat, longitude: location.lng, possessionDate: possessionDate?.toISOString() })
   }
 
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-5">
       <div className={section}>
-        <h3 className="font-semibold text-slate-800">Listing Details</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-slate-800">Listing Details</h3>
+          <ToggleSwitch id="res-verified" checked={isVerified} onChange={setIsVerified} label="Verified" />
+        </div>
         <div>
           <label htmlFor="res-title" className={field}>Title *</label>
           <input id="res-title" name="title" autoComplete="off"
@@ -125,6 +149,60 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
             {...register('description', { required: 'Required' })} rows={3} className={input} />
           {errors.description && <p className="text-xs text-red-600 mt-1">{errors.description.message}</p>}
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="res-facing" className={field}>Facing</label>
+            <select id="res-facing" name="facing" autoComplete="off" {...register('facing')} className={input}>
+              <option value="">Select</option>
+              {['North','South','East','West','Northeast','Northwest','Southeast','Southwest'].map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="res-furnishing" className={field}>Furnishing</label>
+            <select id="res-furnishing" name="furnishing" autoComplete="off" {...register('furnishing')} className={input}>
+              <option value="">Select</option>
+              <option value="unfurnished">Unfurnished</option>
+              <option value="semi_furnished">Semi-Furnished</option>
+              <option value="fully_furnished">Fully Furnished</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label htmlFor="res-floor" className={field}>Floor</label>
+            <input id="res-floor" name="floor" type="number" min="0" autoComplete="off" {...register('floor')} className={input} placeholder="e.g. 3" />
+          </div>
+          <div>
+            <label htmlFor="res-totalfloors" className={field}>Total Floors</label>
+            <input id="res-totalfloors" name="totalFloors" type="number" min="0" autoComplete="off" {...register('totalFloors')} className={input} placeholder="e.g. 10" />
+          </div>
+          <div>
+            <label htmlFor="res-age" className={field}>Age of Property</label>
+            <input id="res-age" name="ageOfProperty" autoComplete="off" {...register('ageOfProperty')} className={input} placeholder="e.g. 5 years" />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="res-possession" className={field}>Possession Date</label>
+          <DatePicker id="res-possession" selected={possessionDate} onChange={setPossessionDate}
+            dateFormat="dd/MM/yyyy" className="w-full" isClearable placeholderText="Select date" />
+        </div>
+
+        {amenities.length > 0 && (
+          <div>
+            <p className={field}>Amenities</p>
+            <div className="flex flex-wrap gap-3 mt-1">
+              {amenities.map((a) => (
+                <label key={a._id} className="flex items-center gap-1.5 cursor-pointer text-sm text-slate-700">
+                  <input type="checkbox" id={`res-amenity-${a._id}`} value={a._id} {...register('amenities')} className="w-4 h-4 accent-purple-600" />
+                  {a.name}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className={section}>

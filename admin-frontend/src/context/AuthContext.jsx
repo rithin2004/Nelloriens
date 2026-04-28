@@ -13,6 +13,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setLoading(true)
       if (firebaseUser) {
         setUser(firebaseUser)
         // Fetch the Firestore user doc to get roleId, roleName, and permissions.

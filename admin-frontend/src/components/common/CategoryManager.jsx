@@ -16,6 +16,12 @@ import toast from 'react-hot-toast'
 import PageHeader from './PageHeader'
 import ConfirmModal from './ConfirmModal'
 
+const pluralize = (word) => {
+  if (word.endsWith('y') && !/[aeiou]y$/.test(word)) return word.slice(0, -1) + 'ies'
+  if (/[^s]s$/.test(word) || word.endsWith('x') || word.endsWith('z') || word.endsWith('ch') || word.endsWith('sh')) return word + 'es'
+  return word + 's'
+}
+
 const P  = '#0a3d95'
 const PL = '#dce8fb'
 const PB = '#eef3fd'
@@ -34,6 +40,7 @@ export default function CategoryManager({
   update,
   remove,
   nameKey = 'name',
+  hideHeader = false,
 }) {
   const [items,    setItems]    = useState([])
   const [loading,  setLoading]  = useState(true)
@@ -64,7 +71,7 @@ export default function CategoryManager({
   useEffect(() => { fetchData() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCreate = async () => {
-    if (!addName.trim()) return
+    if (!addName.trim()) { toast.error(`${entityLabel} name cannot be empty`); return }
     setAdding(true)
     try {
       await create({ [nameKey]: addName.trim() })
@@ -77,7 +84,7 @@ export default function CategoryManager({
   }
 
   const handleUpdate = async (id) => {
-    if (!editName.trim()) return
+    if (!editName.trim()) { toast.error(`${entityLabel} name cannot be empty`); return }
     setSaving(true)
     try {
       await update(id, { [nameKey]: editName.trim() })
@@ -105,28 +112,47 @@ export default function CategoryManager({
   )
 
   return (
-    <div className="animate-fade-in">
-      <PageHeader
-        title={title}
-        backTo={backTo}
-        subtitle={`${items.length} ${items.length === 1 ? entityLabel.toLowerCase() : entityLabel.toLowerCase() + 's'}`}
-        action={
+    <div className={hideHeader ? '' : 'animate-fade-in'}>
+      {!hideHeader && (
+        <PageHeader
+          title={title}
+          backTo={backTo}
+          subtitle={`${items.length} ${items.length === 1 ? entityLabel.toLowerCase() : pluralize(entityLabel.toLowerCase())}`}
+          action={
+            <button
+              onClick={() => { setShowAdd(true); setAddName('') }}
+              className="flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all hover:opacity-90"
+              style={{ background: `linear-gradient(135deg,${P},#072d6e)`, boxShadow: `0 4px 12px rgba(10,61,149,0.25)` }}
+            >
+              <Plus className="w-4 h-4" />
+              Add {entityLabel}
+            </button>
+          }
+        />
+      )}
+
+      {/* When embedded in a tab, show add button + count inline above search */}
+      {hideHeader && (
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm text-slate-500">
+            {items.length} {items.length === 1 ? entityLabel.toLowerCase() : pluralize(entityLabel.toLowerCase())}
+          </span>
           <button
             onClick={() => { setShowAdd(true); setAddName('') }}
-            className="flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all hover:opacity-90"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-white text-sm font-semibold rounded-lg transition-all hover:opacity-90"
             style={{ background: `linear-gradient(135deg,${P},#072d6e)`, boxShadow: `0 4px 12px rgba(10,61,149,0.25)` }}
           >
             <Plus className="w-4 h-4" />
             Add {entityLabel}
           </button>
-        }
-      />
+        </div>
+      )}
 
       {/* Search bar */}
       <div className="mb-4">
         <div className="relative w-full sm:w-72">
           <label htmlFor={`search-${entityLabel.toLowerCase().replace(/\s+/g,'-')}s`} className="sr-only">
-            Search {entityLabel.toLowerCase()}s
+            Search {pluralize(entityLabel.toLowerCase())}
           </label>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           <input
@@ -134,7 +160,7 @@ export default function CategoryManager({
             name="search" autoComplete="off"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={`Search ${entityLabel.toLowerCase()}s…`}
+            placeholder={`Search ${pluralize(entityLabel.toLowerCase())}…`}
             className="w-full pl-9 pr-3 py-2 text-sm rounded-lg focus:outline-none transition-all"
             style={inpStyle}
             onFocus={inpFocus}
@@ -209,7 +235,7 @@ export default function CategoryManager({
           <div className="py-16 text-center">
             <Tag className="w-8 h-8 mx-auto mb-2 text-slate-200" />
             <p className="text-sm text-slate-400">
-              {search ? `No results for "${search}"` : `No ${entityLabel.toLowerCase()}s yet — add one above`}
+              {search ? `No results for "${search}"` : `No ${pluralize(entityLabel.toLowerCase())} yet — add one above`}
             </p>
           </div>
         ) : (

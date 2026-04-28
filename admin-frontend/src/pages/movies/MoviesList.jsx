@@ -55,7 +55,7 @@ export default function MoviesList() {
 
   const handleDelete = async () => {
     setDeleting(true)
-    try { await moviesApi.delete(deleteId); toast.success('Moved to Recycle Bin'); setDeleteId(null) }
+    try { await moviesApi.delete(deleteId); toast.success('Moved to Recycle Bin'); setDeleteId(null); moviesFetch() }
     catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
@@ -80,6 +80,7 @@ export default function MoviesList() {
       if (formEditId) { await moviesApi.update(formEditId, data); toast.success('Updated!') }
       else            { await moviesApi.create(reservedId ? { ...data, _reservedId: reservedId } : data); toast.success('Created!') }
       setFormOpen(false); setFormDirty(false); setReservedId(null)
+      moviesFetch()
     } catch (e) {
       if (e?.response?.data?.code === 'MAX_LIMIT_REACHED') {
         toast.error('Maximum 8 upcoming movies reached. Remove one first.')
@@ -185,7 +186,7 @@ export default function MoviesList() {
         action={
           <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => navigate('/movies/theatres')}
+              onClick={() => navigate('/movies/manage')}
               className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
               style={{ background: PL, border: `1px solid ${PL}`, color: P }}
               onMouseEnter={(e) => e.currentTarget.style.background = '#c8dafd'}

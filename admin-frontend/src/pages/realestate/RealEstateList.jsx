@@ -40,7 +40,8 @@ export default function RealEstateList() {
   const [propertyTypes, setPropertyTypes] = useState([])
   const [filterLoc,    setFilterLoc]   = useState('')
   const [deleteId,     setDeleteId]    = useState(null)
-  const [deleting,     setDeleting]    = useState(false)
+  const [deleting,           setDeleting]           = useState(false)
+  const [togglingVerifiedId, setTogglingVerifiedId] = useState(null)
   const debouncedSearch = useDebounce(search)
 
   const [formOpen,       setFormOpen]       = useState(false)
@@ -76,7 +77,7 @@ export default function RealEstateList() {
 
   const handleDelete = async () => {
     setDeleting(true)
-    try { await realEstateApi.delete(deleteId); toast.success('Moved to Recycle Bin'); setDeleteId(null) }
+    try { await realEstateApi.delete(deleteId); toast.success('Moved to Recycle Bin'); setDeleteId(null); fetch() }
     catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
@@ -107,6 +108,7 @@ export default function RealEstateList() {
         toast.success('Created!')
       }
       setFormOpen(false); setFormDirty(false); setReservedId(null)
+      fetch()
     } catch (e) { toast.error(e?.response?.data?.message || 'Save failed') }
     finally { setFormSubmitting(false) }
   }
@@ -114,6 +116,16 @@ export default function RealEstateList() {
   const handleCloseForm = () => {
     if (formDirty && !window.confirm('You have unsaved changes. Are you sure you want to close?')) return
     setFormOpen(false); setFormDirty(false); setReservedId(null)
+  }
+
+  const handleToggleVerified = async (item) => {
+    setTogglingVerifiedId(item._id)
+    try {
+      await realEstateApi.update(item._id, { isVerified: !item.isVerified })
+      toast.success(item.isVerified ? 'Verification removed' : 'Marked as Verified')
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'Failed to update')
+    } finally { setTogglingVerifiedId(null) }
   }
 
   const isSale = activeTab === 'sale'
@@ -166,6 +178,23 @@ export default function RealEstateList() {
       cell: ({ getValue }) => <span className="text-slate-500 text-xs">{formatDate(getValue())}</span>,
     },
     {
+      id: 'isVerified',
+      header: 'Verified',
+      cell: ({ row }) => (
+        <button
+          type="button"
+          onClick={() => handleToggleVerified(row.original)}
+          disabled={togglingVerifiedId === row.original._id}
+          className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-40"
+          style={{ background: row.original.isVerified ? '#10B981' : '#CBD5E1' }}
+          title={row.original.isVerified ? 'Remove Verification' : 'Mark as Verified'}
+        >
+          <span className="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 mt-0.5"
+            style={{ marginLeft: row.original.isVerified ? '18px' : '2px' }} />
+        </button>
+      ),
+    },
+    {
       id: 'actions',
       header: '',
       cell: ({ row }) => (
@@ -193,12 +222,12 @@ export default function RealEstateList() {
         title="Real Estate"
         action={
           <div className="flex items-center gap-2">
-            <button onClick={() => navigate('/realestate/property-types')}
+            <button onClick={() => navigate('/realestate/manage')}
               className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
               style={{ background: PB, color: P, border: `1px solid ${PL}` }}>
               <Settings2 className="w-4 h-4" /> Types
             </button>
-            <button onClick={() => navigate('/realestate/locations')}
+            <button onClick={() => navigate('/realestate/manage')}
               className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
               style={{ background: PB, color: P, border: `1px solid ${PL}` }}>
               <Settings2 className="w-4 h-4" /> Locations
