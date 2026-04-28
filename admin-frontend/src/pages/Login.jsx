@@ -26,7 +26,7 @@ export default function Login() {
       await login(email, password)
       try {
         const r = await companyApi.get()
-        if (!r.data?._exists) {
+        if (!r.data.data?._exists) {
           navigate('/onboarding/company', { replace: true })
           return
         }

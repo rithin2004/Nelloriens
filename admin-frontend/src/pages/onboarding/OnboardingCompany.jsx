@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { companyApi } from '../../services/api'
 import toast from 'react-hot-toast'
@@ -11,7 +11,19 @@ const PB = '#eef3fd'
 export default function OnboardingCompany() {
   const navigate = useNavigate()
   const [saving, setSaving] = useState(false)
+  const [exists, setExists] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', phone: '', tagline: '', address: '', city: '', website: '' })
+
+  useEffect(() => {
+    companyApi.get().then((r) => {
+      const data = r.data.data
+      if (data?._exists) {
+        setExists(true)
+        const { _exists, createdAt, updatedAt, ...fields } = data
+        setForm((prev) => ({ ...prev, ...fields }))
+      }
+    }).catch(() => {})
+  }, [])
 
   const set = (field) => (e) => setForm((p) => ({ ...p, [field]: e.target.value }))
 
@@ -19,11 +31,15 @@ export default function OnboardingCompany() {
     e.preventDefault()
     setSaving(true)
     try {
-      await companyApi.create(form)
+      if (exists) {
+        await companyApi.update(form)
+      } else {
+        await companyApi.create(form)
+      }
       toast.success('Company details saved!')
       navigate('/onboarding/instagram')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Save failed')
+      toast.error(err.message || 'Save failed')
     } finally { setSaving(false) }
   }
 
