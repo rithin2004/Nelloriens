@@ -35,10 +35,7 @@ export const fetchMoviesByTheatre = createAsyncThunk(
   "movies/fetchMoviesByTheatre",
   async (theatreId, { rejectWithValue, signal }) => {
     try {
-      const response = await apiClient.get("/movies/list", {
-        params: { theatre: theatreId, status: "now_showing", limit: 100 },
-        signal
-      });
+      const response = await apiClient.get(`/theatres/${theatreId}/showtimes/active`, { signal });
       return { theatreId, data: response.data || [] };
     } catch (error) {
       return rejectWithValue(error.message);
@@ -131,12 +128,12 @@ const moviesSlice = createSlice({
         }));
       })
       .addCase(fetchMoviesByTheatre.fulfilled, (state, action) => {
-        const normalize = (item) => ({
+        state.moviesByTheatre[action.payload.theatreId] = (action.payload.data || []).map(item => ({
           ...item,
-          title: item.movieName || item.title,
-          poster: item.thumbnail || item.poster,
-        });
-        state.moviesByTheatre[action.payload.theatreId] = (action.payload.data || []).map(normalize);
+          title:       item.movieName || item.title,
+          poster:      item.movieThumbnail || item.poster,
+          showTimings: item.timings || item.showTimings || [],
+        }));
       });
   }
 });

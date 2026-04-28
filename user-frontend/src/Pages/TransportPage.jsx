@@ -299,8 +299,17 @@ const TransportationPage = () => {
                           <div className="flex flex-wrap gap-4 text-sm text-slate-500 font-medium">
                             {(train.from || train.to) && <span>{train.from} → {train.to}</span>}
                             {train.departureTime && <span>{train.departureTime}{train.arrivalTime ? ` – ${train.arrivalTime}` : ""}</span>}
-                            {train.duration && <span className="font-bold text-blue-600">{train.duration}</span>}
+                            {(train.totalDuration || train.duration) && <span className="font-bold text-blue-600">{train.totalDuration || train.duration}</span>}
                           </div>
+                          {Array.isArray(train.fareDetails) && train.fareDetails.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {train.fareDetails.map((f, i) => (
+                                <span key={i} className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: "#F1F5F9", color: "#475569" }}>
+                                  {f.class || f.type}: ₹{f.fare || f.price}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <button
                           className="shrink-0 bg-slate-900 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-slate-700 transition-colors"
@@ -348,8 +357,17 @@ const TransportationPage = () => {
                         <div className="space-y-1.5 mb-4 flex-1">
                           {bus.name && <div className="flex justify-between text-xs text-slate-500"><span>Operator</span><span className="font-bold text-slate-700 capitalize">{bus.name}</span></div>}
                           {bus.departureTime && <div className="flex justify-between text-xs text-slate-500"><span>Departs</span><span className="font-bold text-slate-700">{bus.departureTime}</span></div>}
-                          {bus.duration && <div className="flex justify-between text-xs text-slate-500"><span>Duration</span><span className="font-bold text-slate-700">{bus.duration}</span></div>}
+                          {(bus.totalDuration || bus.duration) && <div className="flex justify-between text-xs text-slate-500"><span>Duration</span><span className="font-bold text-slate-700">{bus.totalDuration || bus.duration}</span></div>}
                           {bus.frequency && <div className="flex justify-between text-xs text-slate-500"><span>Frequency</span><span className="font-bold text-slate-700">{bus.frequency}</span></div>}
+                          {Array.isArray(bus.fareDetails) && bus.fareDetails.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-1">
+                              {bus.fareDetails.map((f, i) => (
+                                <span key={i} className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: "#F1F5F9", color: "#475569" }}>
+                                  {f.class || f.type}: ₹{f.fare || f.price}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div className="flex justify-between items-center pt-3 border-t border-slate-100">
                           <span className="text-base font-black text-emerald-600">{bus.price ? `₹${bus.price}` : ""}</span>
@@ -414,6 +432,12 @@ const TransportationPage = () => {
                               <div>
                                 <div className="text-[10px] text-slate-400 font-bold uppercase">By Road</div>
                                 <div className="font-black text-slate-800">{airport.time || airport.travelTime}</div>
+                              </div>
+                            )}
+                            {airport.baseFare && (
+                              <div>
+                                <div className="text-[10px] text-slate-400 font-bold uppercase">From</div>
+                                <div className="font-black text-emerald-600">₹{airport.baseFare}</div>
                               </div>
                             )}
                           </div>

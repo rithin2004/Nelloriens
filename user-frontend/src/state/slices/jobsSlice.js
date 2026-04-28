@@ -46,17 +46,18 @@ export const fetchJobDetail = createAsyncThunk(
 );
 
 /**
- * Fetch Job Categories & Locations
+ * Fetch Job Categories, Locations & Types
  */
 export const fetchJobMetadata = createAsyncThunk(
   "jobs/fetchJobMetadata",
   async (_, { rejectWithValue, signal }) => {
     try {
-      const [cats, locs] = await Promise.all([
+      const [cats, locs, types] = await Promise.all([
         apiClient.get("/jobs/categories/list", { signal }),
-        apiClient.get("/jobs/locations/list", { signal })
+        apiClient.get("/jobs/locations/list", { signal }),
+        apiClient.get("/jobs/types/list", { signal }),
       ]);
-      return { categories: cats.data, locations: locs.data };
+      return { categories: cats.data, locations: locs.data, jobTypes: types.data };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -67,11 +68,14 @@ const initialState = {
   jobsList: [],
   categories: [],
   locations: [],
+  jobTypes: [],
   currJobDetail: null,
-  
+
   storedParams: {
     category: "All",
     location: "All",
+    jobType: "All",
+    workMode: "All",
     search: "",
     page: 1
   },
@@ -143,6 +147,10 @@ const jobsSlice = createSlice({
         state.locations = (action.payload.locations || []).map(l => ({
           ...l,
           label: l.label || l.name || l.id,
+        }));
+        state.jobTypes = (action.payload.jobTypes || []).map(t => ({
+          ...t,
+          label: t.label || t.name || t.id,
         }));
       });
   }

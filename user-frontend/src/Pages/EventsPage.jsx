@@ -88,6 +88,11 @@ const EventCard = ({ event, onClick }) => (
           <span className="text-4xl text-slate-300">🎪</span>
         </div>
       )}
+      {event.isVerified && (
+        <span className="absolute top-2.5 right-2.5 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+          ✓ Verified
+        </span>
+      )}
     </div>
     <div className="p-5 flex flex-col flex-1">
       <h3 className="text-[17px] font-extrabold text-slate-900 mb-2 leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">
@@ -123,6 +128,9 @@ const EventCard = ({ event, onClick }) => (
                     day: "2-digit", month: "short", year: "numeric",
                   })
                 : ""}
+              {(event.eventStartTime || event.startTime) && (
+                <span className="ml-1">· {event.eventStartTime || event.startTime}{event.eventEndTime || event.endTime ? ` – ${event.eventEndTime || event.endTime}` : ""}</span>
+              )}
             </span>
           </div>
         </div>
@@ -234,6 +242,7 @@ const EventsPage = () => {
       item: event,
       actionButtons: [
         ...(event.bookingUrl ? [{ label: "Book Now", url: event.bookingUrl }] : []),
+        ...(event.registrationRequired && event.registrationUrl ? [{ label: "Register Now", url: event.registrationUrl }] : []),
       ],
     });
   };

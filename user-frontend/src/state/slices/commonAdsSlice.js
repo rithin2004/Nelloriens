@@ -91,14 +91,23 @@ const commonAdsSlice = createSlice({
       })
       .addCase(fetchSponsorships.fulfilled, (state, action) => {
         state.sponsorshipsLoading = false;
-        state.sponsorships = (action.payload.data || []).map(item => ({
-          ...item,
-          id: item._id,
-          image: item.poster || item.logo || item.image || null,
-          title: item.name || item.title || '',
-          tagline: item.description || '',
-          link: item.link || item.websiteUrl || '#',
-        }));
+        const now = new Date();
+        state.sponsorships = (action.payload.data || [])
+          .filter(item => {
+            const from  = item.validFrom  ? new Date(item.validFrom)  : null;
+            const until = item.validUntil ? new Date(item.validUntil) : null;
+            if (from  && now < from)  return false;
+            if (until && now > until) return false;
+            return true;
+          })
+          .map(item => ({
+            ...item,
+            id: item._id,
+            image: item.poster || item.logo || item.image || null,
+            title: item.name || item.title || '',
+            tagline: item.description || '',
+            link: item.link || item.websiteUrl || '#',
+          }));
       })
       .addCase(fetchSponsorships.rejected, (state) => {
         state.sponsorshipsLoading = false;

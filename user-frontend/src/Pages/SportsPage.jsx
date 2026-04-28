@@ -10,13 +10,18 @@ import SidebarContent from "../components/ContentSections/SidebarContent";
 import Pagination from "../components/Pagination";
 import DetailModal from "../components/DetailModal";
 import {
-  fetchSportLiveScores,
-  fetchUpcomingEvents,
+  fetchSportsEvents,
   fetchSportsArticles,
   fetchSportCategories,
   setSportParams,
 } from "../state/slices/sportsSlice";
 import useAnalytics from "../hooks/useAnalytics";
+
+const STATUS_BADGE = {
+  upcoming:  { label: "Upcoming",  bg: "#EFF6FF", color: "#1D4ED8" },
+  live:      { label: "Live",      bg: "#DCFCE7", color: "#15803D" },
+  completed: { label: "Completed", bg: "#F1F5F9", color: "#64748B" },
+};
 
 const timeAgo = (dateStr) => {
   if (!dateStr) return "";
@@ -46,16 +51,6 @@ const SectionHeading = ({ title }) => (
   </div>
 );
 
-const SkeletonLiveCard = () => (
-  <div className="bg-white rounded-xl border border-slate-100 p-5 animate-pulse flex items-center justify-between gap-4">
-    <div className="flex items-center gap-3">
-      <div className="w-2.5 h-2.5 rounded-full bg-slate-200 shrink-0" />
-      <div className="h-4 bg-slate-200 rounded w-32" />
-    </div>
-    <div className="h-3 bg-slate-200 rounded w-10" />
-  </div>
-);
-
 const SkeletonEventCard = () => (
   <div className="bg-white rounded-xl border border-slate-100 overflow-hidden animate-pulse">
     <div className="w-full h-40 bg-slate-200" />
@@ -82,8 +77,7 @@ const SportsPage = () => {
   const { trackCardView } = useAnalytics();
 
   const {
-    liveScores     = [],
-    upcomingEvents = [],
+    sportsEvents   = [],
     sportsArticles = [],
     categories     = [],
     storedParams   = {},
@@ -99,15 +93,13 @@ const SportsPage = () => {
 
   useEffect(() => {
     dispatch(fetchSportCategories());
-    dispatch(fetchSportLiveScores({ scope: "nellore" }));
-    dispatch(fetchUpcomingEvents({ scope: "nellore" }));
+    dispatch(fetchSportsEvents({ scope: "nellore" }));
     dispatch(fetchSportsArticles({ ...storedParams, scope: "nellore" }));
   }, [dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleScopeChange = (newScope) => {
     setScope(newScope);
-    dispatch(fetchSportLiveScores({ scope: newScope }));
-    dispatch(fetchUpcomingEvents({ scope: newScope }));
+    dispatch(fetchSportsEvents({ scope: newScope }));
     const newParams = { page: 1 };
     dispatch(setSportParams(newParams));
     dispatch(fetchSportsArticles({ ...storedParams, ...newParams, scope: newScope }));
@@ -208,95 +200,70 @@ const SportsPage = () => {
                 </div>
               </div>
 
-              {/* Section 1 — Live Scores */}
+              {/* Section 1 — Sports Events */}
               <section className="mb-10">
-                <SectionHeading title="Live Scores" />
-                {isLoading && liveScores.length === 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {[1, 2].map((i) => <SkeletonLiveCard key={i} />)}
-                  </div>
-                ) : liveScores.length === 0 ? (
-                  <EmptyState message="No live scores available right now." />
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {liveScores.map((score) => (
-                      <div
-                        key={score.id || score._id}
-                        className="bg-white rounded-xl border border-slate-100 p-5 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 flex items-center justify-between gap-4"
-                        onClick={() =>
-                          openModal(
-                            score,
-                            score.liveUrl ? [{ label: "View Live Score", url: score.liveUrl }] : []
-                          )
-                        }
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shrink-0" />
-                          <span className="font-bold text-slate-800 text-sm">
-                            {score.sportName || score.title}
-                          </span>
-                        </div>
-                        <span className="text-xs font-bold text-green-600 uppercase tracking-wide">Live</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              {/* Section 2 — Upcoming Sports */}
-              <section className="mb-10">
-                <SectionHeading title="Upcoming Sports" />
-                {isLoading && upcomingEvents.length === 0 ? (
+                <SectionHeading title="Sports Events" />
+                {isLoading && sportsEvents.length === 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {[1, 2, 3, 4].map((i) => <SkeletonEventCard key={i} />)}
                   </div>
-                ) : upcomingEvents.length === 0 ? (
-                  <EmptyState message="No upcoming sports events at the moment." />
+                ) : sportsEvents.length === 0 ? (
+                  <EmptyState message="No sports events at the moment." />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {upcomingEvents.map((event) => (
-                      <div
-                        key={event.id || event._id}
-                        className="bg-white rounded-xl border border-slate-100 overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-                        onClick={() => openModal(event)}
-                      >
-                        {(event.image || event.thumbnail) && (
-                          <img
-                            src={event.image || event.thumbnail}
-                            alt={event.title}
-                            className="w-full h-40 object-cover"
-                          />
-                        )}
-                        <div className="p-4">
-                          <h4 className="font-bold text-sm text-slate-900 mb-1 leading-snug">
-                            {event.title}
-                          </h4>
-                          {event.teamA && event.teamB && (
-                            <p className="text-xs font-bold text-blue-600 mb-2">
-                              {event.teamA} vs {event.teamB}
-                            </p>
+                    {sportsEvents.map((event) => {
+                      const badge = STATUS_BADGE[event.status] || STATUS_BADGE.upcoming;
+                      const actionBtns = event.status === "live" && event.liveUrl
+                        ? [{ label: "View Live Score", url: event.liveUrl }]
+                        : [];
+                      return (
+                        <div
+                          key={event.id || event._id}
+                          className="bg-white rounded-xl border border-slate-100 overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                          onClick={() => openModal(event, actionBtns)}
+                        >
+                          {(event.image || event.thumbnail) && (
+                            <img
+                              src={event.image || event.thumbnail}
+                              alt={event.title}
+                              className="w-full h-40 object-cover"
+                            />
                           )}
-                          <div className="flex justify-between items-center text-[11px] text-slate-500 mt-2">
-                            {event.venue && <span>{event.venue}</span>}
-                            {(event.validUpto || event.date) && (
-                              <span>
-                                {new Date(event.validUpto || event.date).toLocaleDateString()}
+                          <div className="p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-bold text-sm text-slate-900 leading-snug flex-1 mr-2">
+                                {event.title}
+                              </h4>
+                              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full shrink-0"
+                                style={{ background: badge.bg, color: badge.color }}>
+                                {badge.label}
+                              </span>
+                            </div>
+                            {event.teamA && event.teamB && (
+                              <p className="text-xs font-bold text-blue-600 mb-2">
+                                {event.teamA} vs {event.teamB}
+                              </p>
+                            )}
+                            <div className="flex justify-between items-center text-[11px] text-slate-500 mt-2">
+                              {event.venue && <span>{event.venue}</span>}
+                              {event.eventDate && (
+                                <span>{new Date(event.eventDate).toLocaleDateString()}</span>
+                              )}
+                            </div>
+                            {event.category && (
+                              <span className="inline-block mt-2 text-[10px] font-bold uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                                {event.category}
                               </span>
                             )}
                           </div>
-                          {event.category && (
-                            <span className="inline-block mt-2 text-[10px] font-bold uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                              {event.category}
-                            </span>
-                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </section>
 
-              {/* Section 3 — Sports News & Articles */}
+              {/* Section 2 — Sports News & Articles */}
               <section>
                 <SectionHeading title="Sports News & Articles" />
 
@@ -341,7 +308,7 @@ const SportsPage = () => {
                               : { background: "#fff", color: "#475569", borderColor: "#e2e8f0" }
                           }
                         >
-                          {cat.label}
+                          {cat.label || cat.name}
                         </button>
                       );
                     })}

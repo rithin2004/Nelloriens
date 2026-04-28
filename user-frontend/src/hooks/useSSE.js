@@ -9,7 +9,7 @@ import { fetchTourism } from "../state/slices/tourismSlice";
 import { fetchFamousFoods, fetchSweets } from "../state/slices/famousFoodsSlice";
 import { fetchFamousStays } from "../state/slices/famousStaysSlice";
 import { fetchMovies, fetchTheaters } from "../state/slices/moviesSlice";
-import { fetchSportLiveScores, fetchUpcomingEvents, fetchSportsArticles } from "../state/slices/sportsSlice";
+import { fetchSportsEvents, fetchSportsArticles } from "../state/slices/sportsSlice";
 import { fetchResults } from "../state/slices/resultsSlice";
 import { fetchHistory } from "../state/slices/historySlice";
 import { fetchOffers } from "../state/slices/offersSlice";
@@ -78,8 +78,7 @@ const useSSE = () => {
       case "theatres":       dispatch(fetchTheaters({}));                    break;
       case "sports":
       case "sport_live_scores":
-                             dispatch(fetchSportLiveScores());
-                             dispatch(fetchUpcomingEvents());
+                             dispatch(fetchSportsEvents(p.sports));
                              dispatch(fetchSportsArticles(p.sports));        break;
       case "results":        dispatch(fetchResults(p.results));              break;
       case "history":        dispatch(fetchHistory(p.history));              break;

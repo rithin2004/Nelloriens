@@ -47,8 +47,27 @@ const JobCard = ({ job, onClick }) => (
     onClick={onClick}
   >
     <div className="flex-1 min-w-0">
-      <h3 className="text-[0.95rem] font-bold text-slate-900 m-0 mb-0.5 leading-snug">{job.title}</h3>
+      <h3 className="text-[0.95rem] font-bold text-slate-900 m-0 mb-0.5 leading-snug">
+        {job.title}
+        {job.isVerified && (
+          <span className="inline-flex items-center gap-0.5 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full ml-1.5 align-middle">
+            ✓ Verified
+          </span>
+        )}
+      </h3>
       <p className="text-[0.82rem] text-slate-500 font-medium m-0 mb-2 capitalize">{job.company || job.organization}</p>
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {job.jobType && (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#EFF6FF", color: "#2563EB" }}>
+            {job.jobType}
+          </span>
+        )}
+        {job.workMode && (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#F0FDF4", color: "#16A34A" }}>
+            {job.workMode}
+          </span>
+        )}
+      </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500">
         {(job.locationLabel || job.location) && (
           <span className="flex items-center gap-1">
@@ -91,12 +110,13 @@ const JobsPage = () => {
     jobsList    = [],
     categories  = [],
     locations   = [],
+    jobTypes    = [],
     storedParams = {},
     status      = "idle",
     jobsPage    = {},
   } = useSelector((state) => state.jobs || {});
 
-  const isLoading     = status === "loading";
+  const isLoading      = status === "loading";
   const activeCategory = storedParams.category || "All";
 
   const [search, setSearch] = useState(storedParams.search || "");
@@ -132,6 +152,18 @@ const JobsPage = () => {
 
   const handleLocationFilter = (locationId) => {
     const newParams = { location: locationId, page: 1 };
+    dispatch(setJobParams(newParams));
+    dispatch(fetchJobs({ ...storedParams, ...newParams, scope }));
+  };
+
+  const handleJobTypeFilter = (jobType) => {
+    const newParams = { jobType, page: 1 };
+    dispatch(setJobParams(newParams));
+    dispatch(fetchJobs({ ...storedParams, ...newParams, scope }));
+  };
+
+  const handleWorkModeFilter = (workMode) => {
+    const newParams = { workMode, page: 1 };
     dispatch(setJobParams(newParams));
     dispatch(fetchJobs({ ...storedParams, ...newParams, scope }));
   };
@@ -278,6 +310,44 @@ const JobsPage = () => {
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-xs">▾</span>
                   </div>
                 )}
+
+                {jobTypes.length > 0 && (
+                  <div className="relative shrink-0">
+                    <label htmlFor="jobs-type" className="sr-only">Filter by job type</label>
+                    <select
+                      id="jobs-type"
+                      name="jobType"
+                      autoComplete="off"
+                      value={storedParams.jobType || "All"}
+                      onChange={(e) => handleJobTypeFilter(e.target.value)}
+                      className="appearance-none bg-white border border-slate-200 rounded-full px-4 py-1.5 pr-8 text-sm font-bold text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                    >
+                      <option value="All">Job Type</option>
+                      {jobTypes.map((t) => (
+                        <option key={t.id || t._id} value={t.label}>{t.label}</option>
+                      ))}
+                    </select>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-xs">▾</span>
+                  </div>
+                )}
+
+                <div className="relative shrink-0">
+                  <label htmlFor="jobs-workmode" className="sr-only">Filter by work mode</label>
+                  <select
+                    id="jobs-workmode"
+                    name="workMode"
+                    autoComplete="off"
+                    value={storedParams.workMode || "All"}
+                    onChange={(e) => handleWorkModeFilter(e.target.value)}
+                    className="appearance-none bg-white border border-slate-200 rounded-full px-4 py-1.5 pr-8 text-sm font-bold text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                  >
+                    <option value="All">Work Mode</option>
+                    {["Remote", "On-site", "Hybrid", "Part-time", "Contract"].map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-xs">▾</span>
+                </div>
               </div>
 
               {/* Content */}

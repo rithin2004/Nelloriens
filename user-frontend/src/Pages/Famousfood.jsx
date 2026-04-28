@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Search, MapPin } from "lucide-react";
 import TopHeader from "../components/TopHeader";
@@ -10,6 +10,8 @@ import Pagination from "../components/Pagination";
 import DetailModal from "../components/DetailModal";
 import {
   fetchFamousFoods,
+  fetchPopularVarieties,
+  fetchDisplayPhotos,
   fetchHealthTips,
   fetchSweets,
   fetchFoodCategories,
@@ -70,7 +72,7 @@ const Famousfood = () => {
   const dispatch = useDispatch();
   const { trackCardView } = useAnalytics();
 
-  const { signatureDishes, sweets, healthTips, categories, storedParams, status, foodsPage } =
+  const { signatureDishes, popularVarieties, displayPhotos, sweets, healthTips, categories, storedParams, status, foodsPage } =
     useSelector((state) => state.famousFoods);
 
   const isLoading = status === "loading";
@@ -78,39 +80,23 @@ const Famousfood = () => {
 
   const [search, setSearch] = useState(storedParams.search || "");
   const [scope, setScope] = useState("nellore");
-  const [activeHeroIdx, setActiveHeroIdx] = useState(0);
   const [modal, setModal] = useState(null);
 
   useEffect(() => {
     dispatch(fetchFoodCategories());
     dispatch(fetchHealthTips());
+    dispatch(fetchDisplayPhotos());
     dispatch(fetchSweets({ scope }));
+    dispatch(fetchPopularVarieties({ scope }));
     dispatch(fetchFamousFoods({ ...storedParams, scope }));
   }, [dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Auto-advance hero carousel
-  const heroItems = useMemo(() => signatureDishes.slice(0, 5), [signatureDishes]);
-  useEffect(() => {
-    if (heroItems.length <= 1) return;
-    const timer = setInterval(() => setActiveHeroIdx((p) => (p + 1) % heroItems.length), 4000);
-    return () => clearInterval(timer);
-  }, [heroItems.length]);
-
-  // One dish per category for "Popular items" section
-  const categoryHighlights = useMemo(() => {
-    const map = new Map();
-    for (const dish of signatureDishes) {
-      const cat = dish.category || dish.categoryLabel || "";
-      if (cat && !map.has(cat)) map.set(cat, dish);
-    }
-    return Array.from(map.entries()).map(([cat, dish]) => ({ cat, dish }));
-  }, [signatureDishes]);
 
   const handleScopeChange = (newScope) => {
     setScope(newScope);
     const newParams = { page: 1 };
     dispatch(setFoodParams(newParams));
     dispatch(fetchFamousFoods({ ...storedParams, ...newParams, scope: newScope }));
+    dispatch(fetchPopularVarieties({ scope: newScope }));
     dispatch(fetchSweets({ scope: newScope }));
   };
 
@@ -181,74 +167,85 @@ const Famousfood = () => {
                 </div>
               </div>
 
-              {/* ── HERO CAROUSEL ────────────────────────────────────── */}
-              {isLoading && heroItems.length === 0 ? (
-                <SkeletonHero />
-              ) : heroItems.length > 0 ? (
-                <div className="bg-white rounded-[28px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
-                  {/* Main image */}
-                  <div className="relative overflow-hidden bg-slate-200"
-                    style={{ height: "clamp(220px, 40vw, 420px)" }}>
-                    <img
-                      src={heroItems[activeHeroIdx].image}
-                      alt={heroItems[activeHeroIdx].name}
-                      className="w-full h-full object-cover transition-opacity duration-500"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center"
-                      style={{ background: "linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.45))" }}>
-                      <h2 className="text-white font-extrabold drop-shadow-lg text-center px-4"
-                        style={{ fontSize: "clamp(1.5rem, 4vw, 3rem)" }}>
-                        {scope === "nellore" ? "Nellore Food's" : "World's Finest Food"}
-                      </h2>
+              {/* ── HERO PHOTOS (admin-set display photos) ───────────── */}
+              {displayPhotos.length > 0 && (
+                <div
+                  className="w-full grid gap-4 mb-2"
+                  style={{
+                    gridTemplateColumns: displayPhotos.length === 1 ? "1fr" : displayPhotos.length === 2 ? "1fr 1fr" : "1fr 1fr 1fr",
+                    height: "clamp(180px, 30vw, 320px)",
+                  }}
+                >
+                  {displayPhotos.slice(0, 3).map((photo, idx) => (
+                    <div key={photo._id || idx} className="rounded-[20px] overflow-hidden">
+                      <img
+                        src={photo.url || photo.image}
+                        alt={`Food ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                  </div>
-                  {/* Thumbnail strip */}
-                  <div className="flex gap-3 p-4 justify-center border-t border-slate-100 overflow-x-auto">
-                    {heroItems.map((item, idx) => (
-                      <button
-                        key={item.id || idx}
-                        onClick={() => setActiveHeroIdx(idx)}
-                        className={`w-16 h-12 sm:w-20 sm:h-14 rounded-xl overflow-hidden border-4 shrink-0 transition-all ${
-                          activeHeroIdx === idx
-                            ? "border-[#ff9800] -translate-y-1 shadow-[0_6px_16px_rgba(255,152,0,0.25)]"
-                            : "border-transparent"
-                        }`}
-                      >
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
+                  ))}
                 </div>
-              ) : null}
+              )}
+              {isLoading && displayPhotos.length === 0 && <SkeletonHero />}
 
-              {/* ── POPULAR ITEMS (one dish per category) ────────────── */}
-              {categoryHighlights.length > 0 && (
+              {/* ── POPULAR VARIETIES ─────────────────────────────────── */}
+              {(isLoading || popularVarieties.length > 0) && (
                 <section>
-                  <SectionHeading title="Popular Items" />
-                  <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
-                    {categoryHighlights.map(({ cat, dish }) => (
-                      <button
-                        key={cat}
-                        onClick={() => handleCategoryFilter(cat)}
-                        className="shrink-0 bg-white rounded-2xl overflow-hidden w-36 sm:w-44 border-2 transition-all hover:-translate-y-1 hover:shadow-md"
-                        style={{ borderColor: activeCategory === cat ? "#ff9800" : "#f1f5f9" }}
-                      >
-                        <div className="h-28 sm:h-36 overflow-hidden">
-                          <img src={dish.image} alt={cat} className="w-full h-full object-cover" />
+                  <SectionHeading title="Popular Varieties" />
+                  {isLoading && popularVarieties.length === 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                      {[1, 2, 3].map((i) => <SkeletonDishCard key={i} />)}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                      {popularVarieties.map((dish) => (
+                        <div
+                          key={dish.id || dish._id}
+                          className="bg-white rounded-2xl overflow-hidden border border-slate-100 cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)]"
+                          onClick={() => openModal(dish)}
+                        >
+                          <div className="relative h-44 overflow-hidden bg-slate-100">
+                            {dish.image ? (
+                              <img src={dish.image} alt={dish.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
+                            ) : (
+                              <div className="w-full h-full bg-slate-200" />
+                            )}
+                            <span className="absolute top-2.5 left-2.5 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                              ★ Popular
+                            </span>
+                            {dish.isVerified && (
+                              <span className="absolute top-2.5 right-2.5 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                ✓ Verified
+                              </span>
+                            )}
+                          </div>
+                          <div className="p-4">
+                            <h3 className="text-base font-bold text-slate-900 mb-1">{dish.name}</h3>
+                            {(dish.hotelName || dish.location) && (
+                              <p className="text-xs text-slate-400 flex items-center gap-1 mb-2">
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                {dish.hotelName || dish.location}
+                              </p>
+                            )}
+                            {dish.description && (
+                              <p className="text-xs text-slate-500 line-clamp-2">{dish.description}</p>
+                            )}
+                            {dish.price && (
+                              <p className="text-sm font-bold mt-1" style={{ color: "#ff9800" }}>₹{dish.price}</p>
+                            )}
+                          </div>
                         </div>
-                        <div className="p-2 pb-3 text-center">
-                          <p className="font-bold text-[0.8rem] text-slate-800 capitalize leading-snug">{cat}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </section>
               )}
 
               {/* ── VARIETIES GRID ───────────────────────────────────── */}
               <section>
                 <SectionHeading
-                  title={`Varieties of ${scope === "nellore" ? "Nellore" : "World"} Food`}
+                  title={`${scope === "nellore" ? "Nellore" : "World"} Food Varieties`}
                 />
 
                 {/* Search */}
@@ -308,11 +305,16 @@ const Famousfood = () => {
                         className="bg-white rounded-2xl overflow-hidden border border-slate-100 cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)]"
                         onClick={() => openModal(dish)}
                       >
-                        <div className="h-44 overflow-hidden bg-slate-100">
+                        <div className="relative h-44 overflow-hidden bg-slate-100">
                           {dish.image ? (
                             <img src={dish.image} alt={dish.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
                           ) : (
                             <div className="w-full h-full bg-slate-200" />
+                          )}
+                          {dish.isVerified && (
+                            <span className="absolute top-2.5 right-2.5 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                              ✓ Verified
+                            </span>
                           )}
                         </div>
                         <div className="p-4">

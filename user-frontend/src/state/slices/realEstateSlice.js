@@ -74,6 +74,8 @@ const initialState = {
     category: "All",
     location: "All",
     bhk: "All",
+    furnishing: "All",
+    facing: "All",
     maxPrice: 20000000,
     search: "",
     page: 1

@@ -289,6 +289,46 @@ const RealEstate = () => {
                   </div>
                 </div>
 
+                {/* Furnishing */}
+                <div className="mb-5">
+                  <FilterLabel>Furnishing</FilterLabel>
+                  <div className="relative">
+                    <select
+                      id="re-furnishing"
+                      name="furnishing"
+                      value={storedParams.furnishing || "All"}
+                      onChange={(e) => handleFilterChange({ furnishing: e.target.value })}
+                      className="w-full py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none"
+                    >
+                      <option value="All">All</option>
+                      {["Furnished", "Semi-Furnished", "Unfurnished"].map((f) => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Facing */}
+                <div className="mb-5">
+                  <FilterLabel>Facing</FilterLabel>
+                  <div className="relative">
+                    <select
+                      id="re-facing"
+                      name="facing"
+                      value={storedParams.facing || "All"}
+                      onChange={(e) => handleFilterChange({ facing: e.target.value })}
+                      className="w-full py-2.5 pl-3 pr-8 rounded-xl border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none"
+                    >
+                      <option value="All">All</option>
+                      {["East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"].map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
                 {/* Price range */}
                 <div className="mb-5">
                   <FilterLabel>Max Price ({isRent ? "Rent" : "Sale"})</FilterLabel>
@@ -320,6 +360,8 @@ const RealEstate = () => {
                     category: "All",
                     location: "All",
                     bhk: "All",
+                    furnishing: "All",
+                    facing: "All",
                     search: "",
                     maxPrice: isRent ? rentMax : 20000000,
                   })}
@@ -384,6 +426,11 @@ const RealEstate = () => {
                               {prop.status === "rent" ? "For Rent" : "For Sale"}
                             </span>
                           </div>
+                          {prop.isVerified && (
+                            <span className="absolute bottom-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                              ✓ Verified
+                            </span>
+                          )}
                         </div>
 
                         {/* Body */}
@@ -406,6 +453,21 @@ const RealEstate = () => {
                             {prop.bhk && prop.bhk !== "N/A" && (
                               <span className="flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg">
                                 <Bed className="w-3 h-3" /> {prop.bhk}
+                              </span>
+                            )}
+                            {prop.furnishing && (
+                              <span className="text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg">
+                                {prop.furnishing}
+                              </span>
+                            )}
+                            {prop.facing && (
+                              <span className="text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg">
+                                {prop.facing} Facing
+                              </span>
+                            )}
+                            {prop.floor && (
+                              <span className="text-xs font-bold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg">
+                                Floor {prop.floor}{prop.totalFloors ? `/${prop.totalFloors}` : ""}
                               </span>
                             )}
                             {(prop.possessionStatus || prop.readyStatus) && (

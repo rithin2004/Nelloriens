@@ -3,7 +3,7 @@ import apiClient from "../../services/apiClient";
 import { requestManager } from "../../utils/requestManager";
 
 /**
- * Fetch Famous Foods List
+ * Fetch Famous Foods List (non-popular, paginated)
  */
 export const fetchFamousFoods = createAsyncThunk(
   "famousFoods/fetchFamousFoods",
@@ -11,11 +11,7 @@ export const fetchFamousFoods = createAsyncThunk(
     const requestId = requestManager.getNextId("foods");
     try {
       const response = await apiClient.get("/foods/varieties/list", {
-        params: {
-          page: 1,
-          limit: 20,
-          ...params
-        },
+        params: { page: 1, limit: 20, popular: "false", ...params },
         signal
       });
 
@@ -23,6 +19,39 @@ export const fetchFamousFoods = createAsyncThunk(
         return rejectWithValue("stale_request");
       }
 
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+/**
+ * Fetch Popular Varieties (up to 6, popular=true)
+ */
+export const fetchPopularVarieties = createAsyncThunk(
+  "famousFoods/fetchPopularVarieties",
+  async (params = {}, { rejectWithValue, signal }) => {
+    try {
+      const response = await apiClient.get("/foods/varieties/list", {
+        params: { popular: "true", limit: 6, ...params },
+        signal
+      });
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+/**
+ * Fetch Display Photos (admin-set hero photos)
+ */
+export const fetchDisplayPhotos = createAsyncThunk(
+  "famousFoods/fetchDisplayPhotos",
+  async (_, { rejectWithValue, signal }) => {
+    try {
+      const response = await apiClient.get("/foods/photos/list", { signal });
       return response;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -95,11 +124,13 @@ export const fetchHealthTips = createAsyncThunk(
 
 const initialState = {
   signatureDishes: [],
+  popularVarieties: [],
+  displayPhotos: [],
   sweets: [],
   categories: [],
   healthTips: [],
   currentFoodDetail: null,
-  
+
   storedParams: {
     category: "All",
     search: "",
@@ -173,9 +204,17 @@ const famousFoodsSlice = createSlice({
           ...c,
           label: c.label || c.name || c.id,
         }));
+      })
+      .addCase(fetchPopularVarieties.fulfilled, (state, action) => {
+        const normalize = (item) => ({ ...item, image: item.thumbnail || item.image });
+        state.popularVarieties = (action.payload.data || []).map(normalize);
+      })
+      .addCase(fetchDisplayPhotos.fulfilled, (state, action) => {
+        state.displayPhotos = action.payload.data || [];
       });
   }
 });
 
 export const { setFoodParams, clearFoodDetail } = famousFoodsSlice.actions;
 export default famousFoodsSlice.reducer;
+

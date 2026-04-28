@@ -2,28 +2,16 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import apiClient from "../../services/apiClient";
 import { requestManager } from "../../utils/requestManager";
 
-export const fetchSportLiveScores = createAsyncThunk(
-  "sports/fetchSportLiveScores",
+export const fetchSportsEvents = createAsyncThunk(
+  "sports/fetchSportsEvents",
   async (params = {}, { rejectWithValue, signal }) => {
-    try {
-      const response = await apiClient.get("/sports/live-scores/list", { params, signal });
-      return response;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchUpcomingEvents = createAsyncThunk(
-  "sports/fetchUpcomingEvents",
-  async (params = {}, { rejectWithValue, signal }) => {
-    const requestId = requestManager.getNextId("sports_upcoming");
+    const requestId = requestManager.getNextId("sports_events");
     try {
       const response = await apiClient.get("/sports/list", {
-        params: { type: "upcoming", page: 1, limit: 12, ...params },
+        params: { type: "event", page: 1, limit: 50, ...params },
         signal
       });
-      if (!requestManager.isValid("sports_upcoming", requestId)) return rejectWithValue("stale_request");
+      if (!requestManager.isValid("sports_events", requestId)) return rejectWithValue("stale_request");
       return response;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -61,10 +49,9 @@ export const fetchSportCategories = createAsyncThunk(
 );
 
 const initialState = {
-  liveScores:      [],
-  upcomingEvents:  [],
-  sportsArticles:  [],
-  categories:      [],
+  sportsEvents:   [],
+  sportsArticles: [],
+  categories:     [],
 
   storedParams: {
     category: "All",
@@ -94,11 +81,9 @@ const sportsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchSportLiveScores.fulfilled, (state, action) => {
-        state.liveScores = action.payload.data || [];
-      })
-      .addCase(fetchUpcomingEvents.fulfilled, (state, action) => {
-        state.upcomingEvents = (action.payload.data || []).map(item => ({
+      .addCase(fetchSportsEvents.fulfilled, (state, action) => {
+        if (action.payload === undefined) return;
+        state.sportsEvents = (action.payload.data || []).map(item => ({
           ...item,
           image: item.thumbnail || item.image,
         }));

@@ -148,9 +148,13 @@ const newsSlice = createSlice({
         state.currNewsDetail = action.payload.data;
       })
 
-      // Fetch Breaking Points
+      // Fetch Breaking Points — filter out expired items
       .addCase(fetchBreakingPoints.fulfilled, (state, action) => {
-        state.breakingPoints = action.payload.data || [];
+        const now = new Date();
+        state.breakingPoints = (action.payload.data || []).filter((item) => {
+          if (!item.expiresAt) return true;
+          return now < new Date(item.expiresAt);
+        });
       })
 
       // Fetch Categories

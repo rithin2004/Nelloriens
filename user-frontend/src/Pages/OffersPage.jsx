@@ -71,13 +71,23 @@ const OfferCard = ({ offer, onClick }) => (
           {offer.discount}
         </span>
       )}
+      {offer.isVerified && (
+        <span className="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+          ✓ Verified
+        </span>
+      )}
     </div>
 
     {/* Body */}
     <div className="p-4 flex flex-col flex-1">
       <h3 className="text-[0.9rem] font-bold text-slate-800 leading-snug mb-0.5 line-clamp-1">{offer.title}</h3>
       {offer.businessName && (
-        <p className="text-blue-600 text-xs font-black mb-2 capitalize">{offer.businessName}</p>
+        <p className="text-blue-600 text-xs font-black mb-1 capitalize">{offer.businessName}</p>
+      )}
+      {offer.offerType && (
+        <span className="self-start text-[9px] font-black uppercase px-2 py-0.5 rounded-full mb-2" style={{ background: "#FFF7ED", color: "#EA580C" }}>
+          {offer.offerType}
+        </span>
       )}
       {offer.description && (
         <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 mb-3">{offer.description}</p>

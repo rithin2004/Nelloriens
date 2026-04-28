@@ -121,6 +121,11 @@ const StayCard = ({ stay, onClick }) => (
           ★ {stay.rating}
         </span>
       )}
+      {stay.isVerified && (
+        <span className="absolute top-2.5 right-2.5 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+          ✓ Verified
+        </span>
+      )}
       <div className="absolute bottom-0 left-0 right-0 p-3">
         <h3 className="text-white font-bold text-[0.85rem] leading-snug">{stay.name}</h3>
         {stay.location && (
@@ -129,14 +134,23 @@ const StayCard = ({ stay, onClick }) => (
       </div>
     </div>
     <div className="px-3 py-2.5 flex items-center justify-between">
-      {stay.price ? (
-        <span className="text-slate-900 font-bold text-sm">
-          ₹{stay.price}
-          <span className="text-slate-400 font-normal text-xs">/night</span>
-        </span>
-      ) : <span />}
+      <div className="flex flex-col min-w-0">
+        {stay.price ? (
+          <span className="text-slate-900 font-bold text-sm">
+            ₹{stay.price}
+            <span className="text-slate-400 font-normal text-xs">/night</span>
+          </span>
+        ) : <span />}
+        {(stay.checkInTime || stay.checkOutTime) && (
+          <span className="text-[10px] text-slate-400 mt-0.5">
+            {stay.checkInTime && `In: ${stay.checkInTime}`}
+            {stay.checkInTime && stay.checkOutTime && " · "}
+            {stay.checkOutTime && `Out: ${stay.checkOutTime}`}
+          </span>
+        )}
+      </div>
       <button
-        className="px-3.5 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors"
+        className="px-3.5 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors shrink-0"
         onClick={(e) => { e.stopPropagation(); onClick(); }}
       >
         Book

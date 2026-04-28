@@ -101,6 +101,7 @@ const DetailModal = ({ item, onClose, title, actionButtons }) => {
     if (val === null || val === undefined || val === "") return false;
     if (key === "image" || key === "poster" || key === "thumbnail" || key === "imageUrl") return false;
     if (Array.isArray(val) && val.length === 0) return false;
+    // Allow arrays of objects (e.g. fareDetails) — handled in render below
     if (typeof val === "object" && !Array.isArray(val)) return false;
     return true;
   });
@@ -188,6 +189,26 @@ const DetailModal = ({ item, onClose, title, actionButtons }) => {
               }
 
               if (Array.isArray(val)) {
+                // Array of objects (e.g. fareDetails [{class, fare}])
+                if (val.length > 0 && typeof val[0] === "object" && val[0] !== null) {
+                  return (
+                    <div key={key}>
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">{formatLabel(key)}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {val.map((entry, idx) => {
+                          const parts = Object.entries(entry)
+                            .map(([k, v]) => `${formatLabel(k)}: ${v}`)
+                            .join(" · ");
+                          return (
+                            <span key={idx} className="text-xs font-bold px-2.5 py-1 rounded-lg" style={{ background: "#F1F5F9", color: "#475569" }}>
+                              {parts}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <div key={key} className="flex gap-3">
                     <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide min-w-24 pt-0.5 shrink-0">{formatLabel(key)}</span>

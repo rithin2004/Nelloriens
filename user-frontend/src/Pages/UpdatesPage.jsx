@@ -19,29 +19,33 @@ const getISTMidnight = (offsetDays = 0) => {
   return now;
 };
 
-const getISTWeekStart = () => {
-  const today = getISTMidnight();
-  const dow = today.getDay();
-  today.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
-  return today;
-};
 
 const classifyUpdate = (item) => {
-  const todayStart = getISTMidnight();
-  const weekStart  = getISTWeekStart();
-  const published  = new Date(item.publishedAt || item.timestamp);
-  if (published >= todayStart) return "today";
-  if (published >= weekStart)  return "week";
-  return "earlier";
+  const todayStart    = getISTMidnight();
+  const tomorrowStart = getISTMidnight(1);
+  // Prefer targetDate (scheduled date) over publishedAt
+  const raw  = item.targetDate || item.publishedAt || item.timestamp;
+  const date = new Date(raw);
+  if (date >= tomorrowStart) return "week";    // upcoming (any future date)
+  if (date >= todayStart)    return "today";   // today
+  return "earlier";                             // past
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-const timeAgo = (dateStr) => {
+const timeLabel = (dateStr) => {
   if (!dateStr) return "";
-  const diff  = Date.now() - new Date(dateStr).getTime();
-  const days  = Math.floor(diff / 86400000);
-  const hours = Math.floor(diff / 3600000);
-  const mins  = Math.floor(diff / 60000);
+  const diff  = new Date(dateStr).getTime() - Date.now();
+  const adiff = Math.abs(diff);
+  const days  = Math.floor(adiff / 86400000);
+  const hours = Math.floor(adiff / 3600000);
+  const mins  = Math.floor(adiff / 60000);
+  if (diff >= 0) {
+    // future
+    if (days === 0) return "Today";
+    if (days === 1) return "Tomorrow";
+    return `In ${days} days`;
+  }
+  // past
   if (days  > 0) return `${days}d ago`;
   if (hours > 0) return `${hours}h ago`;
   if (mins  > 0) return `${mins}m ago`;
@@ -105,7 +109,7 @@ const SkeletonUpdateCard = () => (
 // ── Update card ────────────────────────────────────────────────────────────
 const UpdateCard = ({ item, onClick }) => {
   const cat  = item.categoryName || item.category || "";
-  const time = item.publishedAt  || item.timestamp;
+  const time = item.targetDate || item.publishedAt || item.timestamp;
   return (
     <div
       className="bg-white rounded-xl border border-slate-100 p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 flex gap-3"
@@ -118,7 +122,7 @@ const UpdateCard = ({ item, onClick }) => {
           <CategoryBadge label={cat} />
           {time && (
             <span className="flex items-center gap-1 text-[10px] text-slate-400 ml-auto shrink-0">
-              <Clock className="w-3 h-3" /> {timeAgo(time)}
+              <Clock className="w-3 h-3" /> {timeLabel(time)}
             </span>
           )}
         </div>
@@ -134,9 +138,9 @@ const UpdateCard = ({ item, onClick }) => {
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const SECTION_META = {
-  today:   { label: "Today",     empty: "No updates today."         },
-  week:    { label: "This Week", empty: "No updates this week."      },
-  earlier: { label: "Earlier",   empty: "No earlier updates."        },
+  today:   { label: "Today",          empty: "No updates scheduled for today."      },
+  week:    { label: "Upcoming",        empty: "No upcoming updates."                  },
+  earlier: { label: "Earlier",         empty: "No earlier updates."                   },
 };
 const PER_PAGE = 20;
 

@@ -56,6 +56,11 @@ const PlaceCard = ({ item, onClick }) => (
           {item.category}
         </span>
       )}
+      {item.isVerified && (
+        <span className="absolute top-2.5 right-2.5 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+          ✓ Verified
+        </span>
+      )}
       <div className="absolute bottom-0 left-0 right-0 p-3">
         <h3 className="text-white font-bold text-[0.88rem] leading-snug">{item.name}</h3>
         {item.location && (
@@ -331,6 +336,11 @@ const TourismPage = () => {
                                 <img src={dest.image} alt={dest.name} className="w-full h-full object-cover" />
                               ) : (
                                 <div className="w-full h-full bg-slate-200" />
+                              )}
+                              {dest.isVerified && (
+                                <span className="absolute top-2.5 right-2.5 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                  ✓ Verified
+                                </span>
                               )}
                             </div>
                             <h3 className="text-xl font-bold mb-1" style={{ color: "#111" }}>{dest.name}</h3>
