@@ -34,6 +34,7 @@ export default function App() {
     <BrowserRouter>
       <Toaster
         position="top-right"
+        containerStyle={{ zIndex: 99999 }}
         toastOptions={{
           duration: 3000,
           style: { background: '#FFFFFF', color: '#0F172A', border: '1px solid #dce8fb', borderRadius: '10px', fontSize: '14px', boxShadow: '0 8px 24px rgba(10,61,149,0.12)' },
