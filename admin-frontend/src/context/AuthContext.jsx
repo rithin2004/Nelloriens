@@ -39,7 +39,15 @@ export function AuthProvider({ children }) {
     return unsubscribe
   }, [])
 
-  const login = (email, password) => signInWithEmailAndPassword(auth, email, password)
+  const login = async (email, password) => {
+    setLoading(true)
+    try {
+      return await signInWithEmailAndPassword(auth, email, password)
+    } catch (err) {
+      setLoading(false)
+      throw err
+    }
+  }
 
   const logout = async () => {
     await signOut(auth)

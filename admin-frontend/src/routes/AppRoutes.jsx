@@ -105,10 +105,10 @@ export default function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-        {/* Onboarding */}
-        <Route path="/onboarding/company"   element={<PL><OnboardingCompany /></PL>} />
-        <Route path="/onboarding/instagram" element={<PL><OnboardingInstagram /></PL>} />
-        <Route path="/onboarding/ads"       element={<PL><OnboardingAds /></PL>} />
+        {/* Onboarding — protected but no layout (no sidebar/navbar during setup) */}
+        <Route path="/onboarding/company"   element={<ProtectedRoute><OnboardingCompany /></ProtectedRoute>} />
+        <Route path="/onboarding/instagram" element={<ProtectedRoute><OnboardingInstagram /></ProtectedRoute>} />
+        <Route path="/onboarding/ads"       element={<ProtectedRoute><OnboardingAds /></ProtectedRoute>} />
 
         <Route path="/dashboard" element={<PL><Dashboard /></PL>} />
 
