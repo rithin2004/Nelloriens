@@ -14,6 +14,18 @@ router.post  ('/categories/create',       authenticate, permit(M,'create'), a(c.
 router.put   ('/categories/update/:id',   authenticate, permit(M,'update'), a(c.updateCategory))
 router.delete('/categories/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteCategory))
 
+// Locations
+router.get   ('/locations/list',                          a(c.listLocations))
+router.post  ('/locations/create',       authenticate, permit(M,'create'), a(c.createLocation))
+router.put   ('/locations/update/:id',   authenticate, permit(M,'update'), a(c.updateLocation))
+router.delete('/locations/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteLocation))
+
+// Offer Types
+router.get   ('/types/list',                          a(c.listOfferTypes))
+router.post  ('/types/create',       authenticate, permit(M,'create'), a(c.createOfferType))
+router.put   ('/types/update/:id',   authenticate, permit(M,'update'), a(c.updateOfferType))
+router.delete('/types/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteOfferType))
+
 router.get   ('/list',                   a(c.list))
 router.get   ('/get/:id',                a(c.getById))
 router.post  ('/create',     authenticate, permit(M,'create'), a(c.create))

@@ -1,6 +1,7 @@
 import { foodsRepo, photosRepo, varietiesRepo, sweetsRepo, healthTipsRepo } from './foods.repository.js'
 import { CrudService, badReq, notFound }                    from '../../utils/serviceBase.js'
 import { db }                                               from '../../config/firebase.js'
+import { getLimits }                                        from '../../utils/limits.js'
 
 export const foodsService = new CrudService(foodsRepo, { entityName: 'Food' })
 
@@ -56,10 +57,12 @@ export const varietiesService = {
     await varietiesRepo.incrementField(id, field)
   },
   async list(query = {}) {
-    const { page = 1, limit = 20, search = '', category = '' } = query
+    const { page = 1, limit = 20, search = '', category = '', popular } = query
     const lim = Math.min(parseInt(limit) || 20, 100)
     const pg  = Math.max(parseInt(page)  || 1,  1)
     let items = await varietiesRepo.findAll({ orderBy: 'name', order: 'asc' })
+    if (popular === 'true')  items = items.filter(v => v.popular === true)
+    if (popular === 'false') items = items.filter(v => !v.popular)
     if (category && category !== 'All') items = items.filter(v => v.category === category)
     if (search) {
       const q = search.toLowerCase()
@@ -81,13 +84,14 @@ export const varietiesService = {
     const item = await varietiesRepo.findById(id)
     if (!item) notFound('Variety not found')
 
-    // RULE 33 / RULE 13 — popular max 6 globally (field name: 'popular')
+    // RULE 33 / RULE 13 — popular max globally (configurable via Settings, field name: 'popular')
     if (data.popular === true && !item.popular) {
+      const { maxPopularFoodVarieties } = await getLimits()
       const all     = await varietiesRepo.findAll({})
       const popular = all.filter(v => v.popular === true && v._id !== id)
-      if (popular.length >= 6) {
+      if (popular.length >= maxPopularFoodVarieties) {
         if (!data.replaceId) {
-          const err      = new Error('Maximum 6 Popular food varieties reached. Choose one to replace.')
+          const err      = new Error(`Maximum ${maxPopularFoodVarieties} Popular food varieties reached. Choose one to replace.`)
           err.status       = 409
           err.code         = 'MAX_LIMIT_REACHED'
           err.currentItems = popular
@@ -168,9 +172,10 @@ export const sweetsService = {
     }
   },
   async create(data) {
+    const { maxSweetsGlobally } = await getLimits()
     const all = await sweetsRepo.findAll({})
-    if (all.length >= 8) {
-      const err = new Error('Maximum 8 sweets allowed. Choose one to replace.')
+    if (all.length >= maxSweetsGlobally) {
+      const err = new Error(`Maximum ${maxSweetsGlobally} sweets allowed. Choose one to replace.`)
       err.status       = 409
       err.code         = 'MAX_LIMIT_REACHED'
       err.currentItems = all

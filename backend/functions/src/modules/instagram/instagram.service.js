@@ -1,6 +1,7 @@
 import { instagramRepo }     from './instagram.repository.js'
 import { badReq, notFound } from '../../utils/serviceBase.js'
 import { db }               from '../../config/firebase.js'
+import { getLimits }        from '../../utils/limits.js'
 
 const IG_CONFIG_DOC = 'config/instagram'
 
@@ -105,10 +106,11 @@ export const instagramService = {
   async createPost(data) {
     const cfg = await getConfig()
     if (cfg.accessToken) badReq('Instagram is connected — use sync to import posts')
-    // RULE 40 — max 6 manual posts
+    // RULE 40 — max manual posts (configurable via Settings)
+    const { maxInstagramPosts } = await getLimits()
     const existing = await instagramRepo.findAll({})
-    if (existing.length >= 6) {
-      const err = new Error('Maximum 6 Instagram posts allowed. Remove one before adding a new one.')
+    if (existing.length >= maxInstagramPosts) {
+      const err = new Error(`Maximum ${maxInstagramPosts} Instagram posts allowed. Remove one before adding a new one.`)
       err.status       = 409
       err.code         = 'MAX_LIMIT_REACHED'
       err.currentItems = existing

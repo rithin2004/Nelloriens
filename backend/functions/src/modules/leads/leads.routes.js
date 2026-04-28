@@ -2,7 +2,7 @@ import { Router }       from 'express'
 import { authenticate } from '../../middlewares/auth.js'
 import { permit }       from '../../middlewares/permissions.js'
 import { asyncHandler } from '../../utils/asyncHandler.js'
-import { leadsCtrl }    from './leads.controller.js'
+import { leadsCtrl, inquiryTypeCtrl } from './leads.controller.js'
 import rateLimit        from 'express-rate-limit'
 
 const router = Router()
@@ -14,6 +14,12 @@ const submitLimit = rateLimit({
   max:      10,
   message:  { success: false, message: 'Too many submissions. Please wait before trying again.' },
 })
+
+// Inquiry Types (public list, auth required for write)
+router.get   ('/inquiry-types/list',                          a(inquiryTypeCtrl.list))
+router.post  ('/inquiry-types/create',       authenticate, permit('leads','create'), a(inquiryTypeCtrl.create))
+router.put   ('/inquiry-types/update/:id',   authenticate, permit('leads','update'), a(inquiryTypeCtrl.update))
+router.delete('/inquiry-types/delete/:id',   authenticate, permit('leads','delete'), a(inquiryTypeCtrl.remove))
 
 // Public — user-side contact form
 router.post('/submit', submitLimit, a(leadsCtrl.submit))

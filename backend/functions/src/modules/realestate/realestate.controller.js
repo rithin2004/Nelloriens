@@ -1,4 +1,4 @@
-import { realEstateService, realEstateLocService, realEstateTypeService } from './realestate.service.js'
+import { realEstateService, realEstateLocService, realEstateTypeService, realEstateAmenityService } from './realestate.service.js'
 import { log }             from '../../utils/auditLog.js'
 import { createTracking, updateTracking } from '../../utils/userTracking.js'
 
@@ -73,6 +73,25 @@ export async function updateType(req, res) {
 
 export async function deleteType(req, res) {
   await realEstateTypeService.remove(req.params.id)
+  res.json({ success: true, message: 'Deleted', data: null })
+}
+
+// ── Amenities ─────────────────────────────────────────────────────────────────
+
+export async function listAmenities(req, res) {
+  const data = await realEstateAmenityService.list()
+  res.json({ success: true, message: 'OK', data })
+}
+export async function createAmenity(req, res) {
+  const data = await realEstateAmenityService.create(req.body.name)
+  res.status(201).json({ success: true, message: 'Created', data })
+}
+export async function updateAmenity(req, res) {
+  const data = await realEstateAmenityService.update(req.params.id, req.body.name)
+  res.json({ success: true, message: 'Updated', data })
+}
+export async function deleteAmenity(req, res) {
+  await realEstateAmenityService.remove(req.params.id)
   res.json({ success: true, message: 'Deleted', data: null })
 }
 

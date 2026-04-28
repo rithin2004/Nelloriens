@@ -20,6 +20,12 @@ router.post  ('/types/create',       authenticate, permit(M,'create'), a(c.creat
 router.put   ('/types/update/:id',   authenticate, permit(M,'update'), a(c.updateType))
 router.delete('/types/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteType))
 
+// Amenities
+router.get   ('/amenities/list',                          a(c.listAmenities))
+router.post  ('/amenities/create',       authenticate, permit(M,'create'), a(c.createAmenity))
+router.put   ('/amenities/update/:id',   authenticate, permit(M,'update'), a(c.updateAmenity))
+router.delete('/amenities/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteAmenity))
+
 // Listings CRUD
 router.get   ('/list',                   a(c.list))
 router.get   ('/get/:id',                a(c.getById))

@@ -1,24 +1,38 @@
-import { sportsRepo, sportCatRepo, sportLiveScoresRepo } from './sports.repository.js'
+import { sportsRepo, sportCatRepo } from './sports.repository.js'
 import { CrudService, CategoryService } from '../../utils/serviceBase.js'
+import { getLimits } from '../../utils/limits.js'
 
-class UpcomingSportsService extends CrudService {
+function computeStatus(item) {
+  if (!item.eventDate) return 'upcoming'
+  const eventTime  = new Date(item.eventDate).getTime()
+  const now        = Date.now()
+  const durationMs = (parseInt(item.duration) || 120) * 60 * 1000
+  if (now < eventTime)              return 'upcoming'
+  if (now < eventTime + durationMs) return 'live'
+  return 'completed'
+}
+
+class SportsEventService extends CrudService {
   async list(query = {}) {
-    const now = new Date().toISOString()
     const result = await super.list(query)
-    // filter out expired events server-side
-    result.items = result.items.filter(item => !item.validUpto || item.validUpto >= now)
-    result.total = result.items.length
+    result.items = result.items.map(item => ({ ...item, status: computeStatus(item) }))
     return result
   }
 
+  async getById(id) {
+    const item = await super.getById(id)
+    return { ...item, status: computeStatus(item) }
+  }
+
   async create(data) {
-    const all      = await this.repo.findAll({ orderBy: 'createdAt', order: 'desc' })
-    const upcoming = all.filter(m => m.type === 'upcoming')
-    if (upcoming.length >= 12) {
-      const err     = new Error('Maximum 12 Upcoming Events reached. Remove one before adding a new one.')
+    const { maxUpcomingSports } = await getLimits()
+    const all    = await this.repo.findAll({ orderBy: 'createdAt', order: 'desc' })
+    const events = all.filter(m => m.type === 'event')
+    if (events.length >= maxUpcomingSports) {
+      const err        = new Error(`Maximum ${maxUpcomingSports} Sport Events reached. Remove one before adding a new one.`)
       err.status       = 409
       err.code         = 'MAX_LIMIT_REACHED'
-      err.currentItems = upcoming
+      err.currentItems = events
       throw err
     }
     return super.create(data)
@@ -38,23 +52,16 @@ export const sportsService = new CrudService(sportsRepo, {
   },
 })
 
-export const upcomingSportsService = new UpcomingSportsService(sportsRepo, {
-  entityName:   'Upcoming Sport',
+export const sportsEventService = new SportsEventService(sportsRepo, {
+  entityName:   'Sport Event',
   searchField:  'title',
-  orderBy:      'createdAt',
-  order:        'desc',
+  orderBy:      'eventDate',
+  order:        'asc',
   extraFilters: ({ category }) => {
-    const f = [['type', '==', 'upcoming']]
+    const f = [['type', '==', 'event']]
     if (category) f.push(['category', '==', category])
     return f
   },
 })
 
 export const sportCatService = new CategoryService(sportCatRepo, 'Sport category')
-
-export const sportLiveScoresService = new CrudService(sportLiveScoresRepo, {
-  entityName:  'Sport Live Score',
-  searchField: 'sportName',
-  orderBy:     'createdAt',
-  order:       'desc',
-})

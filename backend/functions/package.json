@@ -14,7 +14,7 @@
     "logs": "firebase functions:log"
   },
   "dependencies": {
-    "firebase-admin": "^13.6.0",
+    "firebase-admin": "^13.8.0",
     "firebase-functions": "^7.0.0",
 
     "express": "^4.19.2",
@@ -26,8 +26,11 @@
     "swagger-ui-express": "^5.0.1",
     "swagger-jsdoc": "^6.2.8",
     "multer": "^1.4.5-lts.1",
-    "file-type": "^22.0.1",
-    "uuid": "^10.0.0"
+    "file-type": "^22.0.1"
+  },
+  "overrides": {
+    "uuid": "^14.0.0",
+    "http-proxy-agent": "^6.0.0"
   },
   "devDependencies": {
     "eslint": "^8.15.0",

@@ -1,4 +1,4 @@
-import { jobsService, jobCatService, jobLocService } from './jobs.service.js'
+import { jobsService, jobCatService, jobLocService, jobTypeService } from './jobs.service.js'
 import { log } from '../../utils/auditLog.js'
 import { createTracking, updateTracking } from '../../utils/userTracking.js'
 
@@ -73,6 +73,25 @@ export async function updateLocation(req, res) {
 
 export async function deleteLocation(req, res) {
   await jobLocService.remove(req.params.id)
+  res.json({ success: true, message: 'Deleted', data: null })
+}
+
+// ── Job Types ──────────────────────────────────────────────────────────────
+
+export async function listJobTypes(req, res) {
+  const data = await jobTypeService.list()
+  res.json({ success: true, message: 'OK', data })
+}
+export async function createJobType(req, res) {
+  const data = await jobTypeService.create(req.body.name)
+  res.status(201).json({ success: true, message: 'Created', data })
+}
+export async function updateJobType(req, res) {
+  const data = await jobTypeService.update(req.params.id, req.body.name)
+  res.json({ success: true, message: 'Updated', data })
+}
+export async function deleteJobType(req, res) {
+  await jobTypeService.remove(req.params.id)
   res.json({ success: true, message: 'Deleted', data: null })
 }
 

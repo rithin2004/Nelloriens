@@ -84,13 +84,13 @@ export async function listBreakingPoints(req, res) {
 }
 
 export async function createBreakingPoint(req, res) {
-  const data = await svc.createBreakingPoint(req.body.text)
+  const data = await svc.createBreakingPoint(req.body)
   await log(req, 'create', 'breaking_news', data._id, { text: data.text })
   res.status(201).json({ success: true, message: 'Created', data })
 }
 
 export async function updateBreakingPoint(req, res) {
-  const data = await svc.updateBreakingPoint(req.params.id, req.body.text)
+  const data = await svc.updateBreakingPoint(req.params.id, req.body)
   await log(req, 'update', 'breaking_news', req.params.id)
   res.json({ success: true, message: 'Updated', data })
 }

@@ -1,4 +1,4 @@
-import { eventsService, eventCatService, influencerEventsService } from './events.service.js'
+import { eventsService, eventCatService, eventLocService, influencerEventsService } from './events.service.js'
 import { log } from '../../utils/auditLog.js'
 import { createTracking, updateTracking } from '../../utils/userTracking.js'
 
@@ -47,6 +47,26 @@ export async function updateCategory(req, res) {
 
 export async function deleteCategory(req, res) {
   await eventCatService.remove(req.params.id)
+  res.json({ success: true, message: 'Deleted', data: null })
+}
+
+export async function listLocations(req, res) {
+  const data = await eventLocService.list()
+  res.json({ success: true, message: 'OK', data })
+}
+
+export async function createLocation(req, res) {
+  const data = await eventLocService.create(req.body.name)
+  res.status(201).json({ success: true, message: 'Created', data })
+}
+
+export async function updateLocation(req, res) {
+  const data = await eventLocService.update(req.params.id, req.body.name)
+  res.json({ success: true, message: 'Updated', data })
+}
+
+export async function deleteLocation(req, res) {
+  await eventLocService.remove(req.params.id)
   res.json({ success: true, message: 'Deleted', data: null })
 }
 

@@ -1,5 +1,6 @@
 import { tourismRepo, tourismCatRepo, tourismLocRepo, tourismPhotosRepo } from './tourism.repository.js'
 import { CrudService, CategoryService, notFound } from '../../utils/serviceBase.js'
+import { getLimits } from '../../utils/limits.js'
 
 // ── Tourist Places — with Popular toggle max 10 globally (RULE 13) ───────────
 
@@ -8,13 +9,14 @@ class TourismService extends CrudService {
     const existing = await tourismRepo.findById(id)
     if (!existing) notFound('Tourism place not found')
 
-    // RULE 13 — isPopular max 10 globally, backend enforced
+    // RULE 13 — isPopular max globally (configurable via Settings), backend enforced
     if (data.isPopular === true && !existing.isPopular) {
+      const { maxPopularTourism } = await getLimits()
       const all          = await tourismRepo.findAll({})
       const popularItems = all.filter(t => t.isPopular === true && t._id !== id)
-      if (popularItems.length >= 10) {
+      if (popularItems.length >= maxPopularTourism) {
         if (!data.replaceId) {
-          const err        = new Error('Maximum 10 Popular destinations reached. Choose one to replace.')
+          const err        = new Error(`Maximum ${maxPopularTourism} Popular destinations reached. Choose one to replace.`)
           err.status       = 409
           err.code         = 'MAX_LIMIT_REACHED'
           err.currentItems = popularItems

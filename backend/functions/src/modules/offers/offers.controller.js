@@ -1,4 +1,4 @@
-import { offersService, offerCatService } from './offers.service.js'
+import { offersService, offerCatService, offerTypeService, offerLocService } from './offers.service.js'
 import { log }           from '../../utils/auditLog.js'
 import { createTracking, updateTracking } from '../../utils/userTracking.js'
 
@@ -49,6 +49,44 @@ export async function updateCategory(req, res) {
 
 export async function deleteCategory(req, res) {
   await offerCatService.remove(req.params.id)
+  res.json({ success: true, message: 'Deleted', data: null })
+}
+
+// ── Offer Types ────────────────────────────────────────────────────────────
+
+export async function listOfferTypes(req, res) {
+  const data = await offerTypeService.list()
+  res.json({ success: true, message: 'OK', data })
+}
+export async function createOfferType(req, res) {
+  const data = await offerTypeService.create(req.body.name)
+  res.status(201).json({ success: true, message: 'Created', data })
+}
+export async function updateOfferType(req, res) {
+  const data = await offerTypeService.update(req.params.id, req.body.name)
+  res.json({ success: true, message: 'Updated', data })
+}
+export async function deleteOfferType(req, res) {
+  await offerTypeService.remove(req.params.id)
+  res.json({ success: true, message: 'Deleted', data: null })
+}
+
+// ── Locations ──────────────────────────────────────────────────────────────
+
+export async function listLocations(req, res) {
+  const data = await offerLocService.list()
+  res.json({ success: true, message: 'OK', data })
+}
+export async function createLocation(req, res) {
+  const data = await offerLocService.create(req.body.name)
+  res.status(201).json({ success: true, message: 'Created', data })
+}
+export async function updateLocation(req, res) {
+  const data = await offerLocService.update(req.params.id, req.body.name)
+  res.json({ success: true, message: 'Updated', data })
+}
+export async function deleteLocation(req, res) {
+  await offerLocService.remove(req.params.id)
   res.json({ success: true, message: 'Deleted', data: null })
 }
 

@@ -1,14 +1,18 @@
 /**
  * Input sanitization middleware — strips XSS vectors and MongoDB/NoSQL injection operators.
  * Applied globally in app.js before routes.
+ *
+ * Only strips actual dangerous HTML (script/iframe/event-handler tags) — NOT arbitrary
+ * angle-bracket text like "<CEO>" or "< 1000" which React renders safely in text nodes.
  */
 
 const MONGO_OP_RE = /\$[a-zA-Z]/g
-const HTML_TAG_RE = /<[^>]*>/g
+// Matches dangerous HTML constructs: <script>, <iframe>, on* handlers, javascript: URLs
+const DANGEROUS_HTML_RE = /<(?:script|style|iframe|object|embed|link|meta|svg|math|base|applet|form)\b[^>]*>|<\/(?:script|style|iframe|object|embed|form)\s*>|javascript\s*:|on[a-z]{2,}\s*=/gi
 
 function stripString(val) {
   if (typeof val !== 'string') return val
-  return val.replace(MONGO_OP_RE, '').replace(HTML_TAG_RE, '')
+  return val.replace(MONGO_OP_RE, '').replace(DANGEROUS_HTML_RE, '')
 }
 
 function sanitizeValue(val) {

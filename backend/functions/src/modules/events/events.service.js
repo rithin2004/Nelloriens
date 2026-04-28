@@ -1,20 +1,22 @@
-import { eventsRepo, eventCatRepo, influencerEventsRepo } from './events.repository.js'
+import { eventsRepo, eventCatRepo, eventLocationRepo, influencerEventsRepo } from './events.repository.js'
 import { CrudService, CategoryService, notFound, badReq } from '../../utils/serviceBase.js'
+import { getLimits } from '../../utils/limits.js'
 
 class EventsService extends CrudService {
   async update(id, data) {
     const existing = await eventsRepo.findById(id)
     if (!existing) notFound('Event not found')
 
-    // RULE 27 / RULE 13 — isPopular max 3 per category
+    // RULE 27 / RULE 13 — isPopular max per category (configurable via Settings)
     if (data.isPopular === true && !existing.isPopular) {
       const category = data.category || existing.category
       if (category) {
+        const { maxPopularEventsPerCategory } = await getLimits()
         const all          = await eventsRepo.findAll({})
         const popularInCat = all.filter(e => e.isPopular === true && e.category === category && e._id !== id)
-        if (popularInCat.length >= 3) {
+        if (popularInCat.length >= maxPopularEventsPerCategory) {
           if (!data.replaceId) {
-            const err      = new Error('Maximum 3 Popular events per category reached. Choose one to replace.')
+            const err      = new Error(`Maximum ${maxPopularEventsPerCategory} Popular events per category reached. Choose one to replace.`)
             err.status       = 409
             err.code         = 'MAX_LIMIT_REACHED'
             err.currentItems = popularInCat
@@ -35,14 +37,21 @@ export const eventsService = new EventsService(eventsRepo, {
   searchField:  'title',
   orderBy:      'startDate',
   order:        'asc',
-  extraFilters: ({ category }) => {
+  validate: (data) => {
+    if (!data.title?.trim())     badReq('title is required')
+    if (!data.venueName?.trim()) badReq('venueName is required')
+    if (!data.description?.trim()) badReq('description is required')
+  },
+  extraFilters: ({ category, location }) => {
     const f = []
     if (category) f.push(['category', '==', category])
+    if (location) f.push(['location', '==', location])
     return f
   },
 })
 
 export const eventCatService = new CategoryService(eventCatRepo, 'Event category')
+export const eventLocService = new CategoryService(eventLocationRepo, 'Event location')
 
 // ── Influencer Events (RULE 27 — separate section, no categories, max 5 globally) ──
 
@@ -72,10 +81,11 @@ export const influencerEventsService = {
   },
 
   async create(data) {
-    // RULE 27 / RULE 13 — max 5 globally
+    // RULE 27 / RULE 13 — max influencer events globally (configurable via Settings)
+    const { maxInfluencerEvents } = await getLimits()
     const all = await influencerEventsRepo.findAll({})
-    if (all.length >= 5) {
-      const err      = new Error('Maximum 5 Influencer Events reached. Remove one before adding a new one.')
+    if (all.length >= maxInfluencerEvents) {
+      const err      = new Error(`Maximum ${maxInfluencerEvents} Influencer Events reached. Remove one before adding a new one.`)
       err.status       = 409
       err.code         = 'MAX_LIMIT_REACHED'
       err.currentItems = all

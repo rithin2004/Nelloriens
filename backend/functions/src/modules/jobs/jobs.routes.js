@@ -20,6 +20,12 @@ router.post  ('/locations/create',        authenticate, permit(M,'create'), a(c.
 router.put   ('/locations/update/:id',    authenticate, permit(M,'update'), a(c.updateLocation))
 router.delete('/locations/delete/:id',    authenticate, permit(M,'delete'), a(c.deleteLocation))
 
+// Job Types
+router.get   ('/types/list',                          a(c.listJobTypes))
+router.post  ('/types/create',       authenticate, permit(M,'create'), a(c.createJobType))
+router.put   ('/types/update/:id',   authenticate, permit(M,'update'), a(c.updateJobType))
+router.delete('/types/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteJobType))
+
 // Jobs CRUD
 router.get   ('/list',                   a(c.list))
 router.get   ('/get/:id',                a(c.getById))

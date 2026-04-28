@@ -416,6 +416,11 @@ export const paths = {
   '/leads/{id}/views':      { post: { tags: ['Leads'], summary: 'Increment page views on a lead (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
   '/leads/{id}/card-views': { post: { tags: ['Leads'], summary: 'Increment card views on a lead (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
 
+  '/leads/inquiry-types/list':        { get:    { tags: ['Leads'], summary: 'List inquiry types (public)', description: 'Dynamic inquiry type list (e.g. General, Support, Advertising). Used to populate the subject/type dropdown on the contact form.', responses: { ...ok('Array of inquiry type objects.') } } },
+  '/leads/inquiry-types/create':      { post:   { tags: ['Leads'], summary: 'Create an inquiry type', security: auth, requestBody: inlineBody(['name'], { name: { type: 'string', example: 'Advertising' } }), responses: { ...created('Created.'), ...fail } } },
+  '/leads/inquiry-types/update/{id}': { put:    { tags: ['Leads'], summary: 'Update an inquiry type', security: auth, parameters: id, requestBody: inlineBody([], { name: { type: 'string', example: 'Partnership' } }), responses: { ...ok('Updated.'), ...fail } } },
+  '/leads/inquiry-types/delete/{id}': { delete: { tags: ['Leads'], summary: 'Delete an inquiry type', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
+
   // ─────────────────────────────────────────────────────────────────────────
   // NEWS
   // ─────────────────────────────────────────────────────────────────────────
@@ -607,6 +612,8 @@ export const paths = {
         { name: 'search',         in: 'query', schema: { type: 'string' }, description: 'Search by job title or company name.' },
         { name: 'category',       in: 'query', schema: { type: 'string' }, description: 'Filter by category ID.' },
         { name: 'location',       in: 'query', schema: { type: 'string' }, description: 'Filter by location ID.' },
+        { name: 'jobType',        in: 'query', schema: { type: 'string' }, description: 'Filter by job type ID (e.g. Full-time, Internship).' },
+        { name: 'workMode',       in: 'query', schema: { type: 'string', enum: ['Remote', 'On-site', 'Hybrid', 'Part-time', 'Contract'] }, description: 'Filter by work mode.' },
         { name: 'experienceType', in: 'query', schema: { type: 'string', enum: ['fresher', 'experienced', 'both'] }, description: 'Filter by experience requirement.' },
       ],
       responses: { ...paginatedOk },
@@ -627,6 +634,11 @@ export const paths = {
   '/jobs/locations/create':       { post:   { tags: ['Jobs'], summary: 'Create a job location', security: auth, requestBody: inlineBody(['name'], { name: { type: 'string', example: 'Nellore' } }), responses: { ...created('Created.'), ...fail } } },
   '/jobs/locations/update/{id}':  { put:    { tags: ['Jobs'], summary: 'Update a job location', security: auth, parameters: id, requestBody: inlineBody([], { name: { type: 'string', example: 'Kavali' } }), responses: { ...ok('Updated.'), ...fail } } },
   '/jobs/locations/delete/{id}':  { delete: { tags: ['Jobs'], summary: 'Delete a job location', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
+
+  '/jobs/types/list':        { get:    { tags: ['Jobs'], summary: 'List job types (public)', description: 'Returns all job types (e.g. Full-time, Internship, Contract). Used to populate the job type dropdown.', responses: { ...ok('Array of job type objects.') } } },
+  '/jobs/types/create':      { post:   { tags: ['Jobs'], summary: 'Create a job type', security: auth, requestBody: inlineBody(['name'], { name: { type: 'string', example: 'Full-time' } }), responses: { ...created('Created.'), ...fail } } },
+  '/jobs/types/update/{id}': { put:    { tags: ['Jobs'], summary: 'Update a job type', security: auth, parameters: id, requestBody: inlineBody([], { name: { type: 'string', example: 'Part-time' } }), responses: { ...ok('Updated.'), ...fail } } },
+  '/jobs/types/delete/{id}': { delete: { tags: ['Jobs'], summary: 'Delete a job type', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
 
   // ─────────────────────────────────────────────────────────────────────────
   // RESULTS
@@ -886,7 +898,8 @@ export const paths = {
         { name: 'search',   in: 'query', schema: { type: 'string' }, description: 'Search by movie name.' },
         { name: 'status',   in: 'query', schema: { type: 'string', enum: ['now_showing', 'coming_soon', 'ended'] }, description: 'Filter by screening status.' },
         { name: 'theatre',  in: 'query', schema: { type: 'string' }, description: 'Filter by theatre ID (e.g. THT00001).' },
-        { name: 'language', in: 'query', schema: { type: 'string', enum: ['Telugu', 'Hindi', 'Tamil', 'English', 'Other'] }, description: 'Filter by language.' },
+        { name: 'language', in: 'query', schema: { type: 'string' }, description: 'Filter by language ID (from /movies/languages/list).' },
+        { name: 'genre',    in: 'query', schema: { type: 'string' }, description: 'Filter by genre ID (from /movies/genres/list).' },
       ],
       responses: { ...paginatedOk },
     },
@@ -897,10 +910,61 @@ export const paths = {
   '/movies/update/{id}': { put:    { tags: ['Movies'], summary: 'Update a movie', security: auth, parameters: id, requestBody: body('#/components/schemas/CreateMovieRequest'), responses: { ...ok('Updated.'), ...fail } } },
   '/movies/delete/{id}': { delete: { tags: ['Movies'], summary: 'Delete a movie', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
 
+  '/movies/genres/list':        { get:    { tags: ['Movies'], summary: 'List movie genres (public)', description: 'Dynamic genre list (e.g. Action, Drama, Comedy). Used to populate genre dropdown in movie form.', responses: { ...ok('Array of genre objects.') } } },
+  '/movies/genres/create':      { post:   { tags: ['Movies'], summary: 'Create a movie genre', security: auth, requestBody: inlineBody(['name'], { name: { type: 'string', example: 'Action' } }), responses: { ...created('Created.'), ...fail } } },
+  '/movies/genres/update/{id}': { put:    { tags: ['Movies'], summary: 'Update a movie genre', security: auth, parameters: id, requestBody: inlineBody([], { name: { type: 'string', example: 'Thriller' } }), responses: { ...ok('Updated.'), ...fail } } },
+  '/movies/genres/delete/{id}': { delete: { tags: ['Movies'], summary: 'Delete a movie genre', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
+
+  '/movies/languages/list':        { get:    { tags: ['Movies'], summary: 'List movie languages (public)', description: 'Dynamic language list (e.g. Telugu, Hindi, Tamil). Used to populate language dropdown in movie form.', responses: { ...ok('Array of language objects.') } } },
+  '/movies/languages/create':      { post:   { tags: ['Movies'], summary: 'Create a movie language', security: auth, requestBody: inlineBody(['name'], { name: { type: 'string', example: 'Telugu' } }), responses: { ...created('Created.'), ...fail } } },
+  '/movies/languages/update/{id}': { put:    { tags: ['Movies'], summary: 'Update a movie language', security: auth, parameters: id, requestBody: inlineBody([], { name: { type: 'string', example: 'Hindi' } }), responses: { ...ok('Updated.'), ...fail } } },
+  '/movies/languages/delete/{id}': { delete: { tags: ['Movies'], summary: 'Delete a movie language', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
+
   '/theatres/list':        { get:    { tags: ['Theatres'], summary: 'List all theatres (public)', description: 'Full list, no pagination. Used to populate the theatre dropdown in the movies form.', responses: { ...ok('Array of theatre documents.') } } },
   '/theatres/create':      { post:   { tags: ['Theatres'], summary: 'Create a theatre', security: auth, requestBody: body('#/components/schemas/TheatreRequest'), responses: { ...created('Created.'), ...fail } } },
   '/theatres/update/{id}': { put:    { tags: ['Theatres'], summary: 'Update a theatre', security: auth, parameters: id, requestBody: body('#/components/schemas/TheatreRequest'), responses: { ...ok('Updated.'), ...fail } } },
   '/theatres/delete/{id}': { delete: { tags: ['Theatres'], summary: 'Delete a theatre', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
+
+  '/theatres/{theatreId}/showtimes/list': {
+    get: {
+      tags: ['Theatres'],
+      summary: 'List all showtimes for a theatre (admin)',
+      security: auth,
+      parameters: [
+        { name: 'theatreId', in: 'path', required: true, schema: { type: 'string' }, description: 'Theatre ID (e.g. THT00001).' },
+        ...pagQ,
+      ],
+      responses: { ...paginatedOk, ...fail },
+    },
+  },
+
+  '/theatres/{theatreId}/showtimes/active': {
+    get: {
+      tags: ['Theatres'],
+      summary: 'List active showtimes for a theatre (public)',
+      description: 'Returns showtimes where today falls within startDate–endDate. Used on the user-facing movie/theatre detail view.',
+      parameters: [
+        { name: 'theatreId', in: 'path', required: true, schema: { type: 'string' }, description: 'Theatre ID (e.g. THT00001).' },
+      ],
+      responses: { ...ok('Array of active showtime documents.') },
+    },
+  },
+
+  '/theatres/{theatreId}/showtimes/create': {
+    post: {
+      tags: ['Theatres'],
+      summary: 'Create a showtime for a theatre',
+      security: auth,
+      parameters: [
+        { name: 'theatreId', in: 'path', required: true, schema: { type: 'string' }, description: 'Theatre ID (e.g. THT00001).' },
+      ],
+      requestBody: body('#/components/schemas/CreateShowtimeRequest'),
+      responses: { ...created('Showtime created.'), ...fail },
+    },
+  },
+
+  '/theatres/showtimes/update/{id}': { put:    { tags: ['Theatres'], summary: 'Update a showtime', security: auth, parameters: id, requestBody: body('#/components/schemas/CreateShowtimeRequest'), responses: { ...ok('Updated.'), ...fail } } },
+  '/theatres/showtimes/delete/{id}': { delete: { tags: ['Theatres'], summary: 'Delete a showtime', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
 
   // ─────────────────────────────────────────────────────────────────────────
   // TRANSPORT
@@ -937,6 +1001,16 @@ export const paths = {
   '/offers/categories/create':      { post:   { tags: ['Offers'], summary: 'Create an offer category', security: auth, requestBody: inlineBody(['name'], { name: { type: 'string', example: 'Food' } }), responses: { ...created('Created.'), ...fail } } },
   '/offers/categories/update/{id}': { put:    { tags: ['Offers'], summary: 'Update an offer category', security: auth, parameters: id, requestBody: inlineBody([], { name: { type: 'string', example: 'Shopping' } }), responses: { ...ok('Updated.'), ...fail } } },
   '/offers/categories/delete/{id}': { delete: { tags: ['Offers'], summary: 'Delete an offer category', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
+
+  '/offers/locations/list':        { get:    { tags: ['Offers'], summary: 'List offer locations (public)', responses: { ...ok('Array of locations.') } } },
+  '/offers/locations/create':      { post:   { tags: ['Offers'], summary: 'Create an offer location', security: auth, requestBody: inlineBody(['name'], { name: { type: 'string', example: 'Nellore' } }), responses: { ...created('Created.'), ...fail } } },
+  '/offers/locations/update/{id}': { put:    { tags: ['Offers'], summary: 'Update an offer location', security: auth, parameters: id, requestBody: inlineBody([], { name: { type: 'string', example: 'Kavali' } }), responses: { ...ok('Updated.'), ...fail } } },
+  '/offers/locations/delete/{id}': { delete: { tags: ['Offers'], summary: 'Delete an offer location', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
+
+  '/offers/types/list':        { get:    { tags: ['Offers'], summary: 'List offer types (public)', description: 'Dynamic offer type list (e.g. Dine-in, Online, In-store). Used to populate the offer type dropdown.', responses: { ...ok('Array of offer type objects.') } } },
+  '/offers/types/create':      { post:   { tags: ['Offers'], summary: 'Create an offer type', security: auth, requestBody: inlineBody(['name'], { name: { type: 'string', example: 'Dine-in' } }), responses: { ...created('Created.'), ...fail } } },
+  '/offers/types/update/{id}': { put:    { tags: ['Offers'], summary: 'Update an offer type', security: auth, parameters: id, requestBody: inlineBody([], { name: { type: 'string', example: 'Online' } }), responses: { ...ok('Updated.'), ...fail } } },
+  '/offers/types/delete/{id}': { delete: { tags: ['Offers'], summary: 'Delete an offer type', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
 
   '/offers/list': {
     get: {
@@ -1482,11 +1556,15 @@ export const paths = {
       summary: 'List property listings (public)',
       parameters: [
         ...pagQ,
-        { name: 'search',   in: 'query', schema: { type: 'string' }, description: 'Search by title or description.' },
-        { name: 'section',  in: 'query', schema: { type: 'string', enum: ['sale', 'rent'] }, description: 'Filter by sale or rent.' },
-        { name: 'type',     in: 'query', schema: { type: 'string' }, description: 'Filter by property type (e.g. Plot, Flat, House, Villa).' },
-        { name: 'location', in: 'query', schema: { type: 'string' }, description: 'Filter by location name.' },
-        { name: 'scope',    in: 'query', schema: { type: 'string', enum: ['nellore', 'worldwide'] }, description: 'Filter by scope.' },
+        { name: 'search',     in: 'query', schema: { type: 'string' }, description: 'Search by title or description.' },
+        { name: 'section',    in: 'query', schema: { type: 'string', enum: ['sale', 'rent'] }, description: 'Filter by sale or rent.' },
+        { name: 'type',       in: 'query', schema: { type: 'string' }, description: 'Filter by property type (e.g. Plot, Flat, House, Villa).' },
+        { name: 'location',   in: 'query', schema: { type: 'string' }, description: 'Filter by location name.' },
+        { name: 'bhk',        in: 'query', schema: { type: 'string' }, description: 'Filter by BHK configuration (e.g. 1BHK, 2BHK, 3BHK).' },
+        { name: 'furnishing', in: 'query', schema: { type: 'string', enum: ['Furnished', 'Semi-Furnished', 'Unfurnished'] }, description: 'Filter by furnishing status.' },
+        { name: 'facing',     in: 'query', schema: { type: 'string', enum: ['East', 'West', 'North', 'South', 'North-East', 'North-West', 'South-East', 'South-West'] }, description: 'Filter by property facing direction.' },
+        { name: 'maxPrice',   in: 'query', schema: { type: 'number' }, description: 'Filter listings at or below this price.' },
+        { name: 'scope',      in: 'query', schema: { type: 'string', enum: ['nellore', 'worldwide'] }, description: 'Filter by scope.' },
       ],
       responses: { ...paginatedOk },
     },
@@ -1499,6 +1577,11 @@ export const paths = {
 
   '/realestate/{id}/views':      { post: { tags: ['RealEstate'], summary: 'Increment page views on a listing (public)', parameters: id, responses: { ...ok('Views incremented.') } } },
   '/realestate/{id}/card-views': { post: { tags: ['RealEstate'], summary: 'Increment card views on a listing (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
+
+  '/realestate/amenities/list':        { get:    { tags: ['RealEstate'], summary: 'List property amenities (public)', description: 'Dynamic amenities list (e.g. Swimming Pool, Gym, Parking). Used for the amenities multi-select in the property form.', responses: { ...ok('Array of amenity objects.') } } },
+  '/realestate/amenities/create':      { post:   { tags: ['RealEstate'], summary: 'Create a property amenity', security: auth, requestBody: inlineBody(['name'], { name: { type: 'string', example: 'Swimming Pool' } }), responses: { ...created('Created.'), ...fail } } },
+  '/realestate/amenities/update/{id}': { put:    { tags: ['RealEstate'], summary: 'Update a property amenity', security: auth, parameters: id, requestBody: inlineBody([], { name: { type: 'string', example: 'Gym' } }), responses: { ...ok('Updated.'), ...fail } } },
+  '/realestate/amenities/delete/{id}': { delete: { tags: ['RealEstate'], summary: 'Delete a property amenity', security: auth, parameters: id, responses: { ...ok('Deleted.'), ...fail } } },
 
   // ─────────────────────────────────────────────────────────────────────────
   // EVENTS — INFLUENCER

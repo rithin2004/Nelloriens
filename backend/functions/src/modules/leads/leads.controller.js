@@ -1,5 +1,24 @@
-import { leadsService, submitLead, updateLeadStatus } from './leads.service.js'
+import { leadsService, submitLead, updateLeadStatus, leadInquiryTypeService } from './leads.service.js'
 import { updateTracking } from '../../utils/userTracking.js'
+
+export const inquiryTypeCtrl = {
+  async list(req, res) {
+    const data = await leadInquiryTypeService.list()
+    res.json({ success: true, message: 'OK', data })
+  },
+  async create(req, res) {
+    const data = await leadInquiryTypeService.create(req.body.name)
+    res.status(201).json({ success: true, message: 'Created', data })
+  },
+  async update(req, res) {
+    const data = await leadInquiryTypeService.update(req.params.id, req.body.name)
+    res.json({ success: true, message: 'Updated', data })
+  },
+  async remove(req, res) {
+    await leadInquiryTypeService.remove(req.params.id)
+    res.json({ success: true, message: 'Deleted', data: null })
+  },
+}
 
 export const leadsCtrl = {
   // Public — no auth

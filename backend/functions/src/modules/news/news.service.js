@@ -1,4 +1,5 @@
 import { newsRepo, newsCatRepo, bpRepo } from './news.repository.js'
+import { getLimits } from '../../utils/limits.js'
 
 // ── Articles ───────────────────────────────────────────────────────────────
 
@@ -11,7 +12,7 @@ export async function listNews({ page, limit, search, category, isImportant, sco
 
   if (search) {
     const q = search.toLowerCase()
-    items = items.filter(n => n.title?.toLowerCase().includes(q) || n.slug?.toLowerCase().includes(q))
+    items = items.filter(n => n.title?.toLowerCase().includes(q))
   }
   if (category)                items = items.filter(n => n.category === category)
   if (isImportant === 'true')  items = items.filter(n => n.isImportant === true)
@@ -50,11 +51,12 @@ export async function updateNewsArticle(id, data) {
   if (data.isImportant === true && !existing.isImportant) {
     const category = data.category || existing.category
     if (category) {
+      const { maxImportantNewsPerCategory } = await getLimits()
       const allArticles       = await newsRepo.findAll({ orderBy: 'publishedAt', order: 'desc' })
       const importantInCat    = allArticles.filter(n => n.isImportant === true && n.category === category && n._id !== id)
-      if (importantInCat.length >= 3) {
+      if (importantInCat.length >= maxImportantNewsPerCategory) {
         if (!data.replaceId) {
-          const err = new Error('Maximum 3 Important articles per category reached. Choose one to replace.')
+          const err = new Error(`Maximum ${maxImportantNewsPerCategory} Important articles per category reached. Choose one to replace.`)
           err.status       = 409
           err.code         = 'MAX_LIMIT_REACHED'
           err.currentItems = importantInCat
@@ -123,25 +125,28 @@ export async function listBreakingPoints() {
   return bpRepo.findAllOrdered()
 }
 
-export async function createBreakingPoint(text) {
+export async function createBreakingPoint({ text, expiresAt } = {}) {
   if (!text?.trim()) throw { status: 400, message: 'text is required' }
-  // RULE 42 — max 25 breaking news points
+  // RULE 42 — max breaking news points (configurable via Settings)
+  const { maxBreakingNews } = await getLimits()
   const all = await bpRepo.findAllOrdered()
-  if (all.length >= 25) {
-    const err = new Error('Maximum 25 breaking news points reached. Remove one before adding a new one.')
+  if (all.length >= maxBreakingNews) {
+    const err = new Error(`Maximum ${maxBreakingNews} breaking news points reached. Remove one before adding a new one.`)
     err.status = 409
     err.code   = 'MAX_LIMIT_REACHED'
     err.currentItems = all
     throw err
   }
   const order = await bpRepo.getNextOrder()
-  return bpRepo.create({ text: text.trim(), order })
+  return bpRepo.create({ text: text.trim(), expiresAt: expiresAt || null, order })
 }
 
-export async function updateBreakingPoint(id, text) {
+export async function updateBreakingPoint(id, { text, expiresAt } = {}) {
   const existing = await bpRepo.findById(id)
   if (!existing) throw { status: 404, message: 'Breaking point not found' }
-  return bpRepo.update(id, { text: text?.trim() || existing.text })
+  const update = { text: text?.trim() || existing.text }
+  if (expiresAt !== undefined) update.expiresAt = expiresAt || null
+  return bpRepo.update(id, update)
 }
 
 export async function deleteBreakingPoint(id) {

@@ -8,6 +8,18 @@ const router = Router()
 const M = 'movies'
 const a = asyncHandler
 
+// Genres
+router.get   ('/genres/list',                          a(c.listGenres))
+router.post  ('/genres/create',       authenticate, permit(M,'create'), a(c.createGenre))
+router.put   ('/genres/update/:id',   authenticate, permit(M,'update'), a(c.updateGenre))
+router.delete('/genres/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteGenre))
+
+// Languages
+router.get   ('/languages/list',                          a(c.listLanguages))
+router.post  ('/languages/create',       authenticate, permit(M,'create'), a(c.createLanguage))
+router.put   ('/languages/update/:id',   authenticate, permit(M,'update'), a(c.updateLanguage))
+router.delete('/languages/delete/:id',   authenticate, permit(M,'delete'), a(c.deleteLanguage))
+
 // ── Movies CRUD ────────────────────────────────────────────────────────────
 router.get   ('/list',                   a(c.list))
 router.get   ('/get/:id',                a(c.getById))

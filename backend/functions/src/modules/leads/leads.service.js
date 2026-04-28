@@ -1,5 +1,5 @@
-import { leadsRepo }          from './leads.repository.js'
-import { CrudService, badReq } from '../../utils/serviceBase.js'
+import { leadsRepo, leadInquiryTypeRepo } from './leads.repository.js'
+import { CrudService, CategoryService, badReq } from '../../utils/serviceBase.js'
 
 // RULE 23 — Status workflow: new → contacted → resolved → closed
 export const LEAD_STATUSES = ['new', 'contacted', 'resolved', 'closed']
@@ -25,6 +25,8 @@ export async function updateLeadStatus(id, status) {
   if (!existing) badReq('Lead not found')
   return leadsRepo.update(id, { status })
 }
+
+export const leadInquiryTypeService = new CategoryService(leadInquiryTypeRepo, 'Inquiry type')
 
 /** Public submission — no auth */
 export async function submitLead(data) {
