@@ -5,6 +5,7 @@ import cors      from 'cors'
 import morgan    from 'morgan'
 import { globalLimit, strictLimit } from './middlewares/rateLimit.js'
 import { sanitizeInput }            from './middlewares/sanitize.middleware.js'
+import { verifyAppCheck }           from './middlewares/appCheck.middleware.js'
 import { createRequire } from 'module'
 const swaggerUi = createRequire(import.meta.url)('swagger-ui-express')
 
@@ -63,7 +64,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Firebase-AppCheck'],
 }))
 
 // Logger
@@ -92,6 +93,11 @@ app.get('/', (_req, res) => res.json({
 }))
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date() }))
+
+// App Check — enforced in production on all module routes
+// /setup is excluded (bootstraps before any app exists)
+// /realtime is excluded (SSE long-lived connections don't carry App Check headers on reconnect)
+app.use(/^\/(?!setup|realtime|docs)/, verifyAppCheck)
 
 // Routes
 app.use('/news', newsRoutes)
