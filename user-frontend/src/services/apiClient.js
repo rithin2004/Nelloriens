@@ -1,4 +1,6 @@
 import axios from "axios";
+import { getToken } from "firebase/app-check";
+import { appCheck } from "../config/firebase";
 
 export const validateItem = (item) => {
   if (!item || !item._id) return false;
@@ -30,6 +32,14 @@ const apiClient = axios.create({
   timeout: 15000,
   headers: { "Content-Type": "application/json" },
 });
+
+apiClient.interceptors.request.use(async (config) => {
+  try {
+    const { token } = await getToken(appCheck, false)
+    if (token) config.headers["X-Firebase-AppCheck"] = token
+  } catch { /* non-blocking */ }
+  return config
+})
 
 apiClient.interceptors.response.use(
   (response) => normalizeResponse(response),

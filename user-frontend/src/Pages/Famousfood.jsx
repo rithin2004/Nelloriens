@@ -120,7 +120,7 @@ const Famousfood = () => {
     window.scrollTo({ top: 300, behavior: "smooth" });
   };
 
-  const openModal = (item, section) => {
+  const openModal = (item) => {
     const id = item.id || item._id;
     if (id) trackCardView("famous-foods", id);
     setModal({

@@ -9,7 +9,7 @@ import Navbar from "../components/Navbar";
 import Pagination from "../components/Pagination";
 import TopHeader from "../components/TopHeader";
 import DetailModal from "../components/DetailModal";
-import { fetchNews, fetchNewsDetail, fetchNewsCategories, setNewsParams } from "../state/slices/newsSlice";
+import { fetchNews, fetchNewsDetail, fetchNewsCategories, setNewsParams, clearNewsDetail } from "../state/slices/newsSlice";
 import useAnalytics from "../hooks/useAnalytics";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -187,6 +187,9 @@ const NewsPage = () => {
     if (urlId) {
       dispatch(fetchNewsDetail(urlId));
       trackPageView("news", urlId);
+      trackCardView("news", urlId);
+    } else {
+      dispatch(clearNewsDetail());
     }
   }, [urlId, dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -208,20 +211,25 @@ const NewsPage = () => {
   };
 
   // ── Modal state ──────────────────────────────────────────────────────────
-  const [modal, setModal] = useState(null);
+  const [localModal, setLocalModal] = useState(null);
 
   const openArticle = (article) => {
     const id = article.id || article._id;
     if (id) trackCardView("news", id);
-    setModal({
+    setLocalModal({
       item: article,
       actionButtons: [{ label: "Read Full Article", to: `/news/${id}` }],
     });
   };
 
-  useEffect(() => {
-    if (currNewsDetail) openArticle(currNewsDetail);
-  }, [currNewsDetail]); // eslint-disable-line react-hooks/exhaustive-deps
+  const urlModal = useMemo(() => {
+    if (!currNewsDetail) return null;
+    const id = currNewsDetail.id || currNewsDetail._id;
+    return { item: currNewsDetail, actionButtons: [{ label: "Read Full Article", to: `/news/${id}` }] };
+  }, [currNewsDetail]);
+
+  const modal = localModal || urlModal;
+  const closeModal = () => { setLocalModal(null); dispatch(clearNewsDetail()); };
 
   // ── Scope ────────────────────────────────────────────────────────────────
   const handleScopeChange = (scope) => {
@@ -484,7 +492,7 @@ const NewsPage = () => {
       {modal && (
         <DetailModal
           item={modal.item}
-          onClose={() => setModal(null)}
+          onClose={closeModal}
           actionButtons={modal.actionButtons}
         />
       )}

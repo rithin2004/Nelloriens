@@ -8,7 +8,7 @@ import Footer from "../components/Footer";
 import SidebarContent from "../components/ContentSections/SidebarContent";
 import Pagination from "../components/Pagination";
 import DetailModal from "../components/DetailModal";
-import { fetchUpdates, fetchUpdateCategories, setUpdateParams } from "../state/slices/notificationSlice";
+import { fetchUpdates, fetchUpdateCategories } from "../state/slices/notificationSlice";
 import useAnalytics from "../hooks/useAnalytics";
 
 // ── IST date helpers ───────────────────────────────────────────────────────
