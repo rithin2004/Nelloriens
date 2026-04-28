@@ -38,16 +38,3 @@ export function truncate(str, length = 60) {
   return str.length > length ? str.slice(0, length) + '...' : str
 }
 
-export function slugify(str) {
-  return str
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
-
-export function stripHtml(html) {
-  if (!html) return ''
-  return html.replace(/<[^>]*>/g, '')
-}

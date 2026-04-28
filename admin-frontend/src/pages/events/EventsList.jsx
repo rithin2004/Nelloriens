@@ -136,6 +136,7 @@ export default function EventsList() {
     try {
       await eventsApi.update(item._id, { isVerified: !item.isVerified })
       toast.success(item.isVerified ? 'Verification removed' : 'Marked as Verified')
+      fetch()
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to update')
     } finally { setTogglingVerifiedId(null) }
@@ -148,6 +149,7 @@ export default function EventsList() {
       await eventsApi.update(replacePendingItem._id, { isPopular: true, replaceId })
       toast.success('Marked as Popular — replaced previous item')
       setReplaceOpen(false); setReplaceCandidates([]); setReplacePendingItem(null)
+      fetch()
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to update')
     } finally { setReplacingId(null) }

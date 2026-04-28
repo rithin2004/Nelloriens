@@ -1,6 +1,7 @@
-import { initializeApp } from 'firebase/app'
-import { getAuth }       from 'firebase/auth'
-import { getAnalytics }  from 'firebase/analytics'
+import { initializeApp }                        from 'firebase/app'
+import { getAuth }                               from 'firebase/auth'
+import { getAnalytics }                          from 'firebase/analytics'
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FB_API_KEY,
@@ -15,4 +16,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const auth      = getAuth(app)
 export const analytics = getAnalytics(app)
+
+// In dev, Firebase generates a debug token automatically (printed in console).
+// Copy it into Firebase Console → App Check → Apps → Manage debug tokens.
+if (import.meta.env.DEV) {
+  // @ts-ignore
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true
+}
+
+export const appCheck = initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),
+  isTokenAutoRefreshEnabled: true,
+})
+
 export default app

@@ -24,10 +24,11 @@ export default function JobsList() {
     try {
       await jobsApi.update(item._id, { isVerified: !item.isVerified })
       toast.success(item.isVerified ? 'Verification removed' : 'Marked as Verified')
+      fetch()
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to update')
     } finally { setTogglingVerifiedId(null) }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetch])
 
   const verifiedColumn = {
     id: 'isVerified',

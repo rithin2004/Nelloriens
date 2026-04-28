@@ -13,6 +13,7 @@ export default function OffersList() {
     try {
       await offersApi.update(item._id, { isVerified: !item.isVerified })
       toast.success(item.isVerified ? 'Verification removed' : 'Marked as Verified')
+      useOffersStore.getState().fetch()
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to update')
     } finally { setTogglingVerifiedId(null) }

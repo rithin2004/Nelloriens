@@ -19,7 +19,7 @@ export default function OnboardingCompany() {
       const data = r.data.data
       if (data?._exists) {
         setExists(true)
-        const { _exists, createdAt, updatedAt, ...fields } = data
+        const { _exists, createdAt: _c, updatedAt: _u, ...fields } = data
         setForm((prev) => ({ ...prev, ...fields }))
       }
     }).catch(() => {})

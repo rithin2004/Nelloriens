@@ -1,14 +1,22 @@
 import axios from 'axios'
-import { auth } from '../utils/firebase'
+import { getToken } from 'firebase/app-check'
+import { auth, appCheck } from '../utils/firebase'
 import { API_BASE_URL } from '../utils/constants'
 
 const api = axios.create({ baseURL: API_BASE_URL })
 
 api.interceptors.request.use(async (config) => {
-  // forceRefresh=true re-fetches the token from Firebase if it is expired or
-  // about to expire, so a stale cached token never reaches the backend.
-  const token = await auth.currentUser?.getIdToken(/* forceRefresh */ true).catch(() => null)
+  // Auth token — forceRefresh ensures expired tokens are never sent
+  const token = await auth.currentUser?.getIdToken(true).catch(() => null)
   if (token) config.headers.Authorization = `Bearer ${token}`
+
+  // App Check token — non-blocking; if unavailable the request still goes through
+  // (backend enforces in production, skips in development)
+  try {
+    const { token: acToken } = await getToken(appCheck, false)
+    if (acToken) config.headers['X-Firebase-AppCheck'] = acToken
+  } catch { /* non-blocking */ }
+
   return config
 })
 

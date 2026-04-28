@@ -81,11 +81,13 @@ export default function StaysList() {
     finally { setTopStaysLoading(false) }
   }
 
-  useEffect(() => { loadTopStays() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { loadTopStays() }, [])
 
   useEffect(() => {
     fetch({ page, limit: PAGE_SIZE, search: debouncedSearch })
   }, [page, debouncedSearch]) // eslint-disable-line react-hooks/exhaustive-deps
+
+
 
   useEffect(() => {
     if (location.state?.openCreate) { openCreate(); window.history.replaceState({}, '') }
@@ -114,6 +116,7 @@ export default function StaysList() {
     try {
       await staysApi.update(item._id, { isVerified: !item.isVerified })
       toast.success(item.isVerified ? 'Verification removed' : 'Marked as Verified')
+      fetch()
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to update')
     } finally { setTogglingVerifiedId(null) }
@@ -127,6 +130,7 @@ export default function StaysList() {
       toast.success('Marked as Top Stay — replaced previous item')
       setReplaceOpen(false); setReplaceCandidates([]); setReplacePendingItem(null)
       loadTopStays()
+      fetch()
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to update')
     } finally { setReplacingId(null) }

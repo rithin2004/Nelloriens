@@ -8,7 +8,7 @@ import DataTable from '../../components/common/DataTable'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import FormModal from '../../components/common/FormModal'
 import MovieForm from '../../components/forms/MovieForm'
-import { truncate, formatDate } from '../../utils/helpers'
+import { truncate } from '../../utils/helpers'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from '../../hooks/useDebounce'
 

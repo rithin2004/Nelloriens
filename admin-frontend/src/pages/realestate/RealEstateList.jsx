@@ -123,6 +123,7 @@ export default function RealEstateList() {
     try {
       await realEstateApi.update(item._id, { isVerified: !item.isVerified })
       toast.success(item.isVerified ? 'Verification removed' : 'Marked as Verified')
+      fetch()
     } catch (e) {
       toast.error(e?.response?.data?.message || 'Failed to update')
     } finally { setTogglingVerifiedId(null) }
