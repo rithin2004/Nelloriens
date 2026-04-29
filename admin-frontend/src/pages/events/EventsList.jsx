@@ -155,6 +155,14 @@ export default function EventsList() {
     } finally { setReplacingId(null) }
   }
 
+  const fetchInfluencerEvents = () => {
+    setInfLoading(true)
+    eventsApi.getInfluencerEvents({ page: infPage, limit: PAGE_SIZE, search: debouncedSearch })
+      .then(r => { setInfItems(r.data.data || []); setInfTotal(r.data.pagination?.total || 0); setInfTotalPages(r.data.pagination?.totalPages || 1) })
+      .catch(() => {})
+      .finally(() => setInfLoading(false))
+  }
+
   const handleDelete = async () => {
     setDeleting(true)
     try {
@@ -162,16 +170,17 @@ export default function EventsList() {
       else                      { await eventsApi.delete(deleteId) }
       toast.success('Moved to Recycle Bin')
       setDeleteId(null)
-      if (tab !== 'influencer') fetch()
+      if (tab === 'influencer') fetchInfluencerEvents()
+      else fetch()
     } catch { toast.error('Delete failed') }
     finally { setDeleting(false) }
   }
 
   const openCreate = async () => {
-    setFormEditId(null); setFormDirty(false)
+    setFormEditId(null); setFormDirty(false); setReservedId(null)
+    setFormDefaults({}); setFormOpen(true)  // open immediately
     try { const r = await uploadApi.reserveId('EVT'); setReservedId(r.data.data.id) }
-    catch { toast.error('Failed to reserve ID — please try again'); return }
-    setFormDefaults({}); setFormOpen(true)
+    catch { toast.error('Failed to reserve ID — please try again'); setFormOpen(false) }
   }
 
   const openEdit = async (id) => {

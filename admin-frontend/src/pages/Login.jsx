@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { Eye, EyeOff, Loader, ArrowLeft, Mail } from 'lucide-react'
@@ -9,8 +9,12 @@ import { companyApi } from '../services/api'
 import toast from 'react-hot-toast'
 
 export default function Login() {
-  const { login } = useAuth()
+  const { login, user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!authLoading && user) navigate('/dashboard', { replace: true })
+  }, [user, authLoading, navigate])
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [forgotMode, setForgotMode] = useState(false)

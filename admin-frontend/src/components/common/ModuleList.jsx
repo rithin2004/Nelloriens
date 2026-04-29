@@ -96,20 +96,18 @@ export default function ModuleList({
 
   const openCreate = async () => {
     if (!FormComponent) { navigate(createPath); return }
-    setFormEditId(null); setFormDirty(false)
-    // RULE 10 — reserve a content ID so the upload filename matches before the doc is created
+    setFormEditId(null); setFormDirty(false); setReservedId(null)
+    setFormDefaults({}); setFormOpen(true)  // open immediately — don't wait for reserveId
+    // RULE 10 — reserve a content ID concurrently so the upload filename matches before the doc is created
     if (idPrefix) {
       try {
         const r = await uploadApi.reserveId(idPrefix)
         setReservedId(r.data.data.id)
       } catch {
         toast.error('Failed to reserve ID — please try again')
-        return
+        setFormOpen(false)
       }
-    } else {
-      setReservedId(null)
     }
-    setFormDefaults({}); setFormOpen(true)
   }
 
   const openEdit = async (id) => {

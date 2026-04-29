@@ -72,10 +72,10 @@ export default function SportsList() {
   }
 
   const openCreate = async () => {
-    setFormEditId(null); setFormDirty(false)
-    try { const r = await uploadApi.reserveId('SPT'); setReservedId(r.data.data.id) }
-    catch { toast.error('Failed to reserve ID — please try again'); return }
+    setFormEditId(null); setFormDirty(false); setReservedId(null)
     setFormDefaults({ type: tab }); setFormOpen(true)
+    try { const r = await uploadApi.reserveId('SPT'); setReservedId(r.data.data.id) }
+    catch { toast.error('Failed to reserve ID — please try again'); setFormOpen(false) }
   }
 
   const openEdit = async (id) => {

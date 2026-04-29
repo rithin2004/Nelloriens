@@ -83,10 +83,10 @@ export default function RealEstateList() {
   }
 
   const openCreate = async () => {
-    setFormEditId(null); setFormDirty(false)
-    try { const r = await uploadApi.reserveId('RES'); setReservedId(r.data.data.id) }
-    catch { toast.error('Failed to reserve ID — please try again'); return }
+    setFormEditId(null); setFormDirty(false); setReservedId(null)
     setFormDefaults({ section: activeTab }); setFormOpen(true)
+    try { const r = await uploadApi.reserveId('RES'); setReservedId(r.data.data.id) }
+    catch { toast.error('Failed to reserve ID — please try again'); setFormOpen(false) }
   }
 
   const openEdit = async (id) => {

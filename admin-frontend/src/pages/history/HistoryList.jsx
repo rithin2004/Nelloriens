@@ -98,11 +98,10 @@ export default function HistoryList() {
   }
 
   const openCreate = async () => {
-    setFormEditId(null)
+    setFormEditId(null); setReservedId(null)
+    setFormDefaults({}); setFormOpen(true)
     try { const r = await uploadApi.reserveId('HIS'); setReservedId(r.data.data.id) }
-    catch { toast.error('Failed to reserve ID — please try again'); return }
-    setFormDefaults({})
-    setFormOpen(true)
+    catch { toast.error('Failed to reserve ID — please try again'); setFormOpen(false) }
   }
 
   const openEdit = async (id) => {

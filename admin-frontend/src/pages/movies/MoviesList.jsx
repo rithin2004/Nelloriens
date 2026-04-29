@@ -61,10 +61,10 @@ export default function MoviesList() {
   }
 
   const openCreateMovie = async () => {
-    setFormEditId(null); setFormDirty(false)
-    try { const r = await uploadApi.reserveId('MOV'); setReservedId(r.data.data.id) }
-    catch { toast.error('Failed to reserve ID'); return }
+    setFormEditId(null); setFormDirty(false); setReservedId(null)
     setFormDefaults({}); setFormOpen(true)
+    try { const r = await uploadApi.reserveId('MOV'); setReservedId(r.data.data.id) }
+    catch { toast.error('Failed to reserve ID'); setFormOpen(false) }
   }
 
   const openEditMovie = async (id) => {

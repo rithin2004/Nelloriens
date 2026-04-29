@@ -150,10 +150,10 @@ export default function StaysList() {
   }
 
   const openCreate = async () => {
-    setFormEditId(null); setFormDirty(false)
-    try { const r = await uploadApi.reserveId('STY'); setReservedId(r.data.data.id) }
-    catch { toast.error('Failed to reserve ID — please try again'); return }
+    setFormEditId(null); setFormDirty(false); setReservedId(null)
     setFormDefaults({}); setFormOpen(true)
+    try { const r = await uploadApi.reserveId('STY'); setReservedId(r.data.data.id) }
+    catch { toast.error('Failed to reserve ID — please try again'); setFormOpen(false) }
   }
 
   const openEdit = async (id) => {

@@ -23,16 +23,18 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (res) => res,
   async (err) => {
-    // 401 means the token was rejected server-side (revoked, invalid, etc.)
-    // Sign the user out so they land on the login page instead of getting
-    // stuck in a broken authenticated state.
     if (err.response?.status === 401) {
-      await auth.signOut().catch(() => {})
-      // Let the onAuthStateChanged listener in AuthContext clear the user state
-      // and the ProtectedRoute redirect to /login.
+      const msg = err.response?.data?.message || ''
+      // App Check rejections are non-fatal — do not sign the user out.
+      // They happen on first request after login when the token isn't ready yet.
+      if (!msg.includes('App Check')) {
+        await auth.signOut().catch(() => {})
+      }
     }
-    const msg = err.response?.data?.message || err.message || 'Request failed'
-    return Promise.reject(new Error(msg))
+    // Normalize the message while preserving err.response so catch blocks can
+    // still read err.response.data.code (e.g. MAX_LIMIT_REACHED prompts).
+    err.message = err.response?.data?.message || err.message || 'Request failed'
+    return Promise.reject(err)
   }
 )
 

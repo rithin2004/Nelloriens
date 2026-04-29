@@ -287,10 +287,10 @@ export default function TourismList() {
   }
 
   const openCreate = async () => {
-    setFormEditId(null)
-    try { const r = await uploadApi.reserveId('TUR'); setReservedId(r.data.data.id) }
-    catch { toast.error('Failed to reserve ID — please try again'); return }
+    setFormEditId(null); setReservedId(null)
     setFormDefaults({}); setFormOpen(true)
+    try { const r = await uploadApi.reserveId('TUR'); setReservedId(r.data.data.id) }
+    catch { toast.error('Failed to reserve ID — please try again'); setFormOpen(false) }
   }
 
   const openEdit = async (id) => {

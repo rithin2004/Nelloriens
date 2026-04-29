@@ -132,10 +132,10 @@ export default function NewsList() {
   }
 
   const openCreate = async () => {
-    setFormEditId(null); setFormDirty(false)
+    setFormEditId(null); setFormDirty(false); setReservedId(null)
+    setFormDefaults({}); setFormOpen(true)  // open immediately — don't wait for reserveId
     try { const r = await uploadApi.reserveId('NEW'); setReservedId(r.data.data.id) }
-    catch { toast.error('Failed to reserve ID — please try again'); return }
-    setFormDefaults({}); setFormOpen(true)
+    catch { toast.error('Failed to reserve ID — please try again'); setFormOpen(false) }
   }
 
   const openEdit = async (id) => {

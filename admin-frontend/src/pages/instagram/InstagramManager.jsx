@@ -31,6 +31,7 @@ export default function InstagramManager() {
   const [postEditId, setPostEditId] = useState(null)
   const [postSaving, setPostSaving] = useState(false)
   const [postReservedId, setPostReservedId] = useState(null)
+  const [postImageError, setPostImageError] = useState(false)
   const [deleteId, setDeleteId]     = useState(null)
   const [deleting, setDeleting]     = useState(false)
 
@@ -85,19 +86,20 @@ export default function InstagramManager() {
 
   // ── Manual posts ─────────────────────────────────────────────────────────
   const openAddPost = async () => {
-    setPostEditId(null); setPostForm({})
+    setPostEditId(null); setPostForm({}); setPostImageError(false); setPostReservedId(null)
+    setPostOpen(true)  // open immediately
     try { const r = await uploadApi.reserveId('INS'); setPostReservedId(r.data.data.id) }
-    catch { toast.error('Failed to reserve ID — please try again'); return }
-    setPostOpen(true)
+    catch { toast.error('Failed to reserve ID — please try again'); setPostOpen(false) }
   }
-  const openEditPost = (p) => { setPostEditId(p._id); setPostReservedId(null); setPostForm({ ...p }); setPostOpen(true) }
+  const openEditPost = (p) => { setPostEditId(p._id); setPostReservedId(null); setPostForm({ ...p }); setPostImageError(false); setPostOpen(true) }
 
   const handleSavePost = async (e) => {
     e.preventDefault()
     if (!postForm.thumbnailUrl && !postForm.mediaUrl) {
-      toast.error('An image is required')
+      setPostImageError(true)
       return
     }
+    setPostImageError(false)
     setPostSaving(true)
     try {
       if (postEditId) {
@@ -303,8 +305,9 @@ export default function InstagramManager() {
       >
         <form onSubmit={handleSavePost} className="space-y-4">
           <div>
-            <label className={lbl}>Thumbnail / Image URL</label>
-            <ImageUpload module="instagram" label="" value={postForm.thumbnailUrl || ''} onChange={(url) => setPostForm((p) => ({ ...p, thumbnailUrl: url, mediaUrl: url }))} contentId={postEditId || postReservedId} section="thumbnails" />
+            <label className={lbl}>Thumbnail / Image *</label>
+            <ImageUpload module="instagram" label="" value={postForm.thumbnailUrl || ''} onChange={(url) => { setPostForm((p) => ({ ...p, thumbnailUrl: url, mediaUrl: url })); if (url) setPostImageError(false) }} contentId={postEditId || postReservedId} section="thumbnails" />
+            {postImageError && <p className="text-xs mt-1.5 font-medium" style={{ color: '#DC2626' }}>An image is required</p>}
           </div>
           <div>
             <label htmlFor="post-caption" className={lbl}>Caption</label>
