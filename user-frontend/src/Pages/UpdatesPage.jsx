@@ -23,8 +23,8 @@ const getISTMidnight = (offsetDays = 0) => {
 const classifyUpdate = (item) => {
   const todayStart    = getISTMidnight();
   const tomorrowStart = getISTMidnight(1);
-  // Prefer targetDate (scheduled date) over publishedAt
-  const raw  = item.targetDate || item.publishedAt || item.timestamp;
+  // Prefer targetDate (scheduled date) over createdAt
+  const raw  = item.targetDate || item.createdAt || item.timestamp;
   const date = new Date(raw);
   if (date >= tomorrowStart) return "week";    // upcoming (any future date)
   if (date >= todayStart)    return "today";   // today
@@ -109,7 +109,7 @@ const SkeletonUpdateCard = () => (
 // ── Update card ────────────────────────────────────────────────────────────
 const UpdateCard = ({ item, onClick }) => {
   const cat  = item.categoryName || item.category || "";
-  const time = item.targetDate || item.publishedAt || item.timestamp;
+  const time = item.targetDate || item.createdAt || item.timestamp;
   return (
     <div
       className="bg-white rounded-xl border border-slate-100 p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 flex gap-3"

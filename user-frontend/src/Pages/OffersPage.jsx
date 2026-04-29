@@ -40,7 +40,7 @@ const isExpiringSoon = (date) => {
 const formatDate = (dateStr) => {
   if (!dateStr) return "";
   try {
-    return new Date(dateStr).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+    return new Date(dateStr).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" });
   } catch { return dateStr; }
 };
 

@@ -24,7 +24,7 @@ const CAPITALIZE_FIELDS = new Set([
 ]);
 
 const SKIP_FIELDS = new Set([
-  "_id", "id", "__v", "createdAt", "updatedAt", "publishedAt", "publishedBy",
+  "_id", "id", "__v", "createdAt", "updatedAt", "publishedBy",
   "lastModifiedAt", "lastModifiedBy", "pageViews", "cardViews", "impressions",
   "clicks", "touches", "scope", "city", "region", "isPopular", "isImportant",
   "isTop", "is24x7", "status", "_liveScore",

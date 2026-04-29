@@ -87,7 +87,7 @@ const ImportantCard = ({ article, onClick }) => (
         </span>
       )}
       <span className="absolute bottom-3 right-3 bg-black/50 text-white text-[10px] font-medium px-2 py-0.5 rounded-full">
-        {timeAgo(article.publishedAt || article.createdAt)}
+        {timeAgo(article.createdAt)}
       </span>
     </div>
     <div className="p-5">
@@ -117,7 +117,7 @@ const UpdateCard = ({ article, onClick }) => (
     </div>
     <div className="p-3">
       <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide mb-1">
-        {article.categoryName || article.category} · {timeAgo(article.publishedAt || article.createdAt)}
+        {article.categoryName || article.category} · {timeAgo(article.createdAt)}
       </p>
       <h3 className="text-[0.85rem] font-bold text-slate-800 line-clamp-2 m-0 leading-snug">{article.title}</h3>
     </div>
@@ -139,9 +139,9 @@ const ArticleRow = ({ article, onClick }) => (
     <div className="flex-1 flex flex-col gap-1 min-w-0">
       <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#2563EB' }}>
         {article.categoryName || article.category}
-        {(article.publishedAt || article.createdAt) && (
+        {(article.createdAt) && (
           <span className="text-slate-400 font-normal normal-case tracking-normal">
-            {" "}· {timeAgo(article.publishedAt || article.createdAt)}
+            {" "}· {timeAgo(article.createdAt)}
           </span>
         )}
       </p>

@@ -125,7 +125,7 @@ const EventCard = ({ event, onClick }) => (
             <span className="text-[11px] text-slate-400">
               {event.date || event.startDate
                 ? new Date(event.date || event.startDate).toLocaleDateString("en-IN", {
-                    day: "2-digit", month: "short", year: "numeric",
+                    timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric",
                   })
                 : ""}
               {(event.eventStartTime || event.startTime) && (

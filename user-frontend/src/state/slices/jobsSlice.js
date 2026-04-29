@@ -117,7 +117,7 @@ const jobsSlice = createSlice({
           ...item,
           company: item.companyName || item.company,
           salary: item.salaryRange || item.salary,
-          postedAt: item.publishedAt || item.postedAt,
+          postedAt: item.createdAt || item.postedAt,
           description: item.shortDescription || item.description,
           applyLink: item.redirectUrl || item.applyLink,
         });

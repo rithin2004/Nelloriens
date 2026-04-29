@@ -113,7 +113,7 @@ const resultsSlice = createSlice({
             ...item,
             title: item.examName || item.title,
             status,
-            publishedDate: item.publishedAt || item.publishedDate,
+            publishedDate: item.createdAt || item.publishedDate,
             description: item.shortDescription || item.description,
             board: item.conductingBody || item.board,
             link: item.redirectUrl || item.link,

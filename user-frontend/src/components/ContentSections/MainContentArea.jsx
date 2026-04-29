@@ -181,7 +181,7 @@ const MainContentArea = () => {
                       image={news.thumbnail || news.image || news.imageUrl}
                       eyebrow={news.categoryName || news.category}
                       title={news.title}
-                      meta={timeAgo(news.publishedAt || news.createdAt)}
+                      meta={timeAgo(news.createdAt)}
                       onClick={() => openCard('news', news, [
                         { label: 'Read Full Article', to: `/news/${news.id || news._id}` },
                       ])}
@@ -260,7 +260,7 @@ const MainContentArea = () => {
                       image={event.thumbnail || event.image || event.imageUrl}
                       eyebrow={event.categoryName || event.category}
                       title={event.title}
-                      meta={timeAgo(event.publishedAt || event.createdAt)}
+                      meta={timeAgo(event.createdAt)}
                       onClick={() => openCard('events', event, [
                         ...(event.bookingUrl ? [{ label: 'Book Now', url: event.bookingUrl }] : []),
                         ...(event.trailerUrl ? [{ label: 'Watch Trailer', url: event.trailerUrl }] : []),

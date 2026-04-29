@@ -81,10 +81,10 @@ const JobCard = ({ job, onClick }) => (
             {job.salary}
           </span>
         )}
-        {(job.postedAt || job.publishedAt) && (
+        {(job.postedAt || job.createdAt) && (
           <span className="flex items-center gap-1 text-slate-400">
             <Calendar className="w-3 h-3 shrink-0" />
-            Posted {timeAgo(job.postedAt || job.publishedAt)}
+            Posted {timeAgo(job.postedAt || job.createdAt)}
           </span>
         )}
       </div>

@@ -97,7 +97,7 @@ const WeatherCard = () => {
         <div className="flex flex-col flex-[1.2]">
           <span className="text-base font-bold tracking-tight text-white">Nellore, AP</span>
           <span className="text-[0.65rem] text-slate-400 font-medium uppercase mt-0.5">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' })}
+            {new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'short' })}
           </span>
         </div>
 

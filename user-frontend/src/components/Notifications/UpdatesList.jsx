@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { nowIST } from '../../utils/timezone';
 import { ChevronUp } from 'lucide-react';
 import UpdateCard from './UpdateCard';
 import UpdateAdCard from './UpdateAdCard';
@@ -29,9 +30,9 @@ const UpdatesList = ({ updates, loading, expandedId, onToggleExpand, showInlineA
   };
 
   const groupUpdates = (items) => {
-    const today = new Date();
+    const today = nowIST();
     today.setHours(0, 0, 0, 0);
-    
+
     const oneWeekAgo = new Date(today);
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
@@ -42,7 +43,7 @@ const UpdatesList = ({ updates, loading, expandedId, onToggleExpand, showInlineA
     };
 
     items.forEach(item => {
-      const itemDate = new Date(item.timestamp);
+      const itemDate = new Date(new Date(item.timestamp).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
       const itemDay = new Date(itemDate);
       itemDay.setHours(0, 0, 0, 0);
 

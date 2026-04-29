@@ -247,7 +247,7 @@ const SportsPage = () => {
                             <div className="flex justify-between items-center text-[11px] text-slate-500 mt-2">
                               {event.venue && <span>{event.venue}</span>}
                               {event.eventDate && (
-                                <span>{new Date(event.eventDate).toLocaleDateString()}</span>
+                                <span>{new Date(event.eventDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })}</span>
                               )}
                             </div>
                             {event.category && (
@@ -348,8 +348,8 @@ const SportsPage = () => {
                               </p>
                             )}
                             <div className="flex justify-between items-center text-[11px] text-slate-400">
-                              {(article.postedAt || article.publishedAt) && (
-                                <span>{timeAgo(article.postedAt || article.publishedAt)}</span>
+                              {(article.postedAt || article.createdAt) && (
+                                <span>{timeAgo(article.postedAt || article.createdAt)}</span>
                               )}
                               {article.category && (
                                 <span className="font-bold text-blue-600 uppercase">

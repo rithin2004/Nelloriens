@@ -106,7 +106,7 @@ const notificationSlice = createSlice({
 
         const normalize = (item) => ({
           ...item,
-          timestamp: item.publishedAt || item.timestamp,
+          timestamp: item.createdAt || item.timestamp,
           description: item.message || item.description,
         });
 
