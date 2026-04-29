@@ -276,7 +276,8 @@ export const paths = {
         '| `read` | GET list and get endpoints only |\n' +
         '| `read_write` | GET + POST + PUT |\n' +
         '| `full` | GET + POST + PUT + DELETE |\n\n' +
-        'Modules not listed in `permissions` default to `none`.',
+        'Modules not listed in `permissions` default to `none`.\n\n' +
+        'Returns `400` if a role with the same name (case-insensitive) already exists.',
       security: auth,
       requestBody: body('#/components/schemas/CreateRoleRequest'),
       responses: { ...created('Role created.', '#/components/schemas/RoleDocument'), ...fail },
@@ -286,8 +287,10 @@ export const paths = {
   '/roles/update/{id}': {
     put: {
       tags: ['Roles'],
-      summary: "Update a role's name, description, or permissions",
-      description: '`ROL00001` (superadmin) **cannot** be modified — returns `403`.',
+      summary: "Update a role's name or permissions",
+      description:
+        '`ROL00001` (superadmin) **cannot** be modified — returns `403`.\n\n' +
+        'Returns `400` if the new name conflicts with an existing role (case-insensitive).',
       security: auth,
       parameters: id,
       requestBody: body('#/components/schemas/CreateRoleRequest'),

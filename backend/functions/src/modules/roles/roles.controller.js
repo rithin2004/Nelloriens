@@ -24,6 +24,10 @@ export const rolesCtrl = {
     if (!name?.trim()) badReq('name is required')
     if (isSuperadminName(name)) forbidden('Cannot create a role named superadmin')
     validatePermissions(permissions)
+    const { items } = await rolesService.list({ limit: 500 })
+    if (items.some((r) => r.name.toLowerCase() === name.trim().toLowerCase())) {
+      badReq(`A role named "${name.trim()}" already exists`)
+    }
     const role = await rolesService.create({ name: name.trim(), permissions })
     res.status(201).json({ success: true, message: 'Created', data: role })
   },
@@ -34,6 +38,13 @@ export const rolesCtrl = {
     if (name !== undefined && !name?.trim()) badReq('name cannot be empty')
     if (name !== undefined && isSuperadminName(name)) forbidden('Cannot rename a role to superadmin')
     if (permissions !== undefined) validatePermissions(permissions)
+
+    if (name) {
+      const { items } = await rolesService.list({ limit: 500 })
+      if (items.some((r) => r._id !== req.params.id && r.name.toLowerCase() === name.trim().toLowerCase())) {
+        badReq(`A role named "${name.trim()}" already exists`)
+      }
+    }
 
     const updates = {}
     if (name)        updates.name        = name.trim()
