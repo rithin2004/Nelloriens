@@ -69,7 +69,7 @@ export async function listBin({ page = 1, limit = 20, module: moduleFilter = '' 
 /**
  * Restore a single item: writes full original doc back to its collection,
  * then hard-deletes from recyclebin.
- * RULE 9: publishedAt = restoredAt (now), originalPublishedAt preserved separately.
+ * RULE 9: restoredAt = now, originalPublishedAt (= original createdAt) preserved separately.
  */
 export async function restoreItem(id) {
   const snap = await db.collection(RECYCLE_COL).doc(id).get()
@@ -90,9 +90,8 @@ export async function restoreItem(id) {
 
   await db.collection(originalCollection).doc(id).set({
     ...originalFields,
-    publishedAt:         now,               // RULE 9: restored item published from now
     restoredAt:          now,
-    originalPublishedAt,                    // RULE 9: preserved separately
+    originalPublishedAt,
     originalPublishedBy: originalPublishedBy || null,
     updatedAt:           now,
   })

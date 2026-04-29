@@ -74,8 +74,8 @@ export async function archiveOldContent() {
           batch.set(db.collection(RECYCLE_COL).doc(doc.id), {
             ...data,
             originalCollection:  collection,
-            originalPublishedAt: data.publishedAt || data.createdAt || now,
-            originalPublishedBy: data.publishedBy || null,
+            originalPublishedAt: data.createdAt || now,
+            originalPublishedBy: null,
             deletedAt:           now,
             deletedBy:           null,   // system action
             reason:              'auto-90-days',

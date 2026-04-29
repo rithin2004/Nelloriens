@@ -5,16 +5,13 @@ class NewsRepository extends FirestoreRepo {
   constructor() { super('news', { idPrefix: 'NEW' }) }
 
   async searchByTitle(query) {
-    const snap = await this.ref.orderBy('publishedAt', 'desc').get()
+    const snap = await this.ref.orderBy('createdAt', 'desc').get()
     const q    = query.toLowerCase()
     return snap.docs
       .map(d => ({ _id: d.id, ...d.data() }))
       .filter(n => n.title?.toLowerCase().includes(q) || n.slug?.toLowerCase().includes(q))
   }
 
-  async batchPublish(ids) {
-    return this.batchUpdate(ids, { publishedAt: new Date().toISOString() })
-  }
 }
 
 class NewsCategoryRepository extends FirestoreRepo {

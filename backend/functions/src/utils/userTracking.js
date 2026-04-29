@@ -2,7 +2,7 @@
  * User Tracking Helpers — RULE 5, RULE 8, RULE 22
  *
  * Provides tracking fields to attach on every content create/update operation:
- *  - Create: publishedAt, publishedBy, createdBy
+ *  - Create: createdBy
  *  - Update:  lastModifiedBy, lastModifiedAt
  *
  * Usage in controllers:
@@ -23,19 +23,13 @@ function byUser(user) {
 
 /**
  * Returns tracking fields for a create operation.
- * Skips publishedAt if already set in data (allows scheduled publishing).
  *
  * @param {object} user  req.user from auth middleware
- * @returns {{ publishedAt: string, publishedBy: object, createdBy: object }}
+ * @returns {{ createdBy: object }}
  */
 export function createTracking(user) {
-  const now = new Date().toISOString()
-  const by  = byUser(user)
-  return {
-    publishedAt: now,
-    publishedBy: by,
-    createdBy:   by,
-  }
+  const by = byUser(user)
+  return { createdBy: by }
 }
 
 /**

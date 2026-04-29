@@ -9,8 +9,7 @@ const M = 'news'
 const a = asyncHandler
 
 // Bulk actions (write — auth required)
-router.post('/delete-batch',  authenticate, permit(M,'delete'), a(c.bulkDelete))
-router.post('/publish-batch', authenticate, permit(M,'update'), a(c.bulkPublish))
+router.post('/delete-batch', authenticate, permit(M,'delete'), a(c.bulkDelete))
 
 // Categories
 router.get   ('/categories/list',                        a(c.listCategories))

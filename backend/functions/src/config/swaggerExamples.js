@@ -322,7 +322,7 @@ export const schemas = {
 
   CreateNewsRequest: {
     type: 'object',
-    required: ['title', 'category', 'thumbnail', 'shortDescription', 'publishedAt'],
+    required: ['title', 'category', 'thumbnail', 'shortDescription'],
     properties: {
       title:            { type: 'string', example: 'CM Jagan inaugurates new flyover on Trunk Road, Nellore' },
       category:         { type: 'string', example: 'NCT00003', description: 'ID of a news_category document.' },
@@ -334,7 +334,6 @@ export const schemas = {
       sourceName:       { type: 'string', example: 'The Hindu - Nellore' },
       sourceUrl:        { type: 'string', example: 'https://thehindu.com/news/nellore-flyover' },
       isImportant:      { type: 'boolean', example: false, description: 'Max 3 important articles per category are shown in the highlighted section.' },
-      publishedAt:      { type: 'string', format: 'date-time', example: '2025-04-11T09:00:00.000Z' },
     },
   },
 
@@ -360,7 +359,7 @@ export const schemas = {
 
   CreateJobRequest: {
     type: 'object',
-    required: ['title', 'companyName', 'category', 'experienceType', 'location', 'shortDescription', 'publishedAt'],
+    required: ['title', 'companyName', 'category', 'experienceType', 'location', 'shortDescription'],
     properties: {
       title:            { type: 'string', example: 'Junior Software Engineer — React & Node.js' },
       companyName:      { type: 'string', example: 'IndiGrid Technologies, Nellore' },
@@ -379,7 +378,6 @@ export const schemas = {
       ageLimit:         { type: 'string', example: '20 – 28 years' },
       lastDate:         { type: 'string', format: 'date-time', example: '2025-05-31T23:59:59.000Z', description: 'Application deadline.' },
       thumbnail:        { type: 'string', example: 'https://storage.googleapis.com/nelloriens.appspot.com/jobs/jse-banner.jpg' },
-      publishedAt:      { type: 'string', format: 'date-time', example: '2025-04-11T10:00:00.000Z' },
     },
   },
 
@@ -387,7 +385,7 @@ export const schemas = {
 
   CreateResultRequest: {
     type: 'object',
-    required: ['examName', 'category', 'resultDate', 'shortDescription', 'publishedAt'],
+    required: ['examName', 'category', 'resultDate', 'shortDescription'],
     properties: {
       examName:         { type: 'string', example: 'AP SSC (Class 10) Board Examinations 2025' },
       category:         { type: 'string', example: 'RCT00001', description: 'ID of a result_category document.' },
@@ -398,7 +396,6 @@ export const schemas = {
       thumbnail:        { type: 'string', example: 'https://storage.googleapis.com/nelloriens.appspot.com/results/ssc-2025.jpg' },
       conductingBody:   { type: 'string', example: 'BSEAP (Board of Secondary Education, Andhra Pradesh)' },
       year:             { type: 'integer', example: 2025 },
-      publishedAt:      { type: 'string', format: 'date-time', example: '2025-05-15T09:00:00.000Z' },
     },
   },
 
@@ -406,7 +403,7 @@ export const schemas = {
 
   CreateSportsRequest: {
     type: 'object',
-    required: ['title', 'type', 'publishedAt'],
+    required: ['title', 'type'],
     properties: {
       title:       { type: 'string', example: 'Nellore District Cricket League — Upcoming Semi-Final' },
       type:        { type: 'string', enum: ['upcoming', 'article'], example: 'upcoming', description: '"entry" type has been removed. Use "upcoming" for events or "article" for news.' },
@@ -418,7 +415,6 @@ export const schemas = {
       description: { type: 'string', example: 'District cricket league semi-final at YSR Stadium.' },
       content:     { type: 'string', example: '<p>Full article content here...</p>', description: 'For article type only.' },
       thumbnail:   { type: 'string', example: 'https://storage.googleapis.com/nelloriens.appspot.com/sports/cricket-semifinal.jpg' },
-      publishedAt: { type: 'string', format: 'date-time', example: '2025-04-18T08:00:00.000Z' },
       scope:       { type: 'string', enum: ['nellore', 'worldwide'], example: 'nellore' },
       location:    { type: 'string', example: 'Nellore' },
       city:        { type: 'string', example: 'Nellore' },
@@ -714,7 +710,7 @@ export const schemas = {
       message:     { type: 'string', example: 'The website will be under maintenance on Sunday, 13 April 2025 from 2:00 AM to 5:00 AM. Services will be unavailable during this window.' },
       category:    { type: 'string', example: 'UCT00002', description: 'ID of an update_category document. Optional.' },
       updateType:  { type: 'string', enum: ['banner', 'popup', 'ticker', 'push_notification'], example: 'banner' },
-      targetDate:  { type: 'string', format: 'date-time', example: '2025-04-13T02:00:00.000Z', description: 'The scheduled date/time this update refers to. Used on user site to group into Today / Upcoming / Earlier sections. Defaults to publishedAt if omitted.' },
+      targetDate:  { type: 'string', format: 'date-time', example: '2025-04-13T02:00:00.000Z', description: 'The scheduled date/time this update refers to. Used on user site to group into Today / Upcoming / Earlier sections. Defaults to createdAt if omitted.' },
       redirectUrl: { type: 'string', example: 'https://nelloriens.com/maintenance-info' },
       thumbnail:   { type: 'string', example: 'https://storage.googleapis.com/nelloriens.appspot.com/updates/maintenance-banner.jpg' },
       validUntil:  { type: 'string', format: 'date-time', example: '2025-04-13T05:00:00.000Z', description: 'The update will stop displaying after this time.' },

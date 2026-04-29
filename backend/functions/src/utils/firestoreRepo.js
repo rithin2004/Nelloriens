@@ -176,7 +176,7 @@ export class FirestoreRepo {
       ...originalData,
       // Recyclebin metadata — RULE 9
       originalCollection:  this.col,
-      originalPublishedAt: originalData.publishedAt || originalData.createdAt || now,
+      originalPublishedAt: originalData.createdAt || now,
       originalPublishedBy: originalData.publishedBy || null,
       deletedAt:           now,
       deletedBy,
@@ -193,8 +193,8 @@ export class FirestoreRepo {
    * Restore a document from the Recycle Bin back to its original collection.
    *   1. Read from 'recyclebin'.
    *   2. Write back to the original collection:
-   *        - publishedAt = restoredAt (new publish time)
-   *        - originalPublishedAt preserved separately (RULE 9)
+   *        - restoredAt = now
+   *        - originalPublishedAt (= original createdAt) preserved separately
    *   3. Hard-delete from 'recyclebin'.
    */
   async restore(id) {
@@ -212,9 +212,8 @@ export class FirestoreRepo {
 
     await db.collection(originalCollection).doc(id).set({
       ...originalFields,
-      publishedAt:         now,                  // RULE 9: publishedAt becomes restoredAt
       restoredAt:          now,
-      originalPublishedAt,                       // RULE 9: preserved separately
+      originalPublishedAt,
       originalPublishedBy: originalPublishedBy || null,
       updatedAt:           now,
     })
@@ -244,7 +243,7 @@ export class FirestoreRepo {
         batch.set(db.collection(RECYCLE_COL).doc(snap.id), {
           ...data,
           originalCollection:  this.col,
-          originalPublishedAt: data.publishedAt || data.createdAt || now,
+          originalPublishedAt: data.createdAt || now,
           originalPublishedBy: data.publishedBy || null,
           deletedAt:           now,
           deletedBy,

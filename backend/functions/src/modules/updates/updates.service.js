@@ -4,7 +4,7 @@ import { CrudService, CategoryService } from '../../utils/serviceBase.js'
 export const updatesService = new CrudService(updatesRepo, {
   entityName:   'Update',
   searchField:  'title',
-  orderBy:      'publishedAt',
+  orderBy:      'createdAt',
   order:        'desc',
   extraFilters: ({ category }) => {
     const f = []

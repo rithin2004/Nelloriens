@@ -8,7 +8,7 @@ export async function listNews({ page, limit, search, category, isImportant, sco
   const safePage  = Math.max(parseInt(page)  || 1, 1)
 
   // RULE 9: deleted items are in 'recyclebin' collection — no deletedAt filter needed
-  let items = await newsRepo.findAll({ orderBy: 'publishedAt', order: 'desc' })
+  let items = await newsRepo.findAll({ orderBy: 'createdAt', order: 'desc' })
 
   if (search) {
     const q = search.toLowerCase()
@@ -52,7 +52,7 @@ export async function updateNewsArticle(id, data) {
     const category = data.category || existing.category
     if (category) {
       const { maxImportantNewsPerCategory } = await getLimits()
-      const allArticles       = await newsRepo.findAll({ orderBy: 'publishedAt', order: 'desc' })
+      const allArticles       = await newsRepo.findAll({ orderBy: 'createdAt', order: 'desc' })
       const importantInCat    = allArticles.filter(n => n.isImportant === true && n.category === category && n._id !== id)
       if (importantInCat.length >= maxImportantNewsPerCategory) {
         if (!data.replaceId) {
@@ -90,10 +90,6 @@ export async function bulkDeleteNews(ids, requestUser = null) {
   })
 }
 
-export async function bulkPublishNews(ids) {
-  if (!Array.isArray(ids) || !ids.length) throw { status: 400, message: 'ids array required' }
-  return newsRepo.batchUpdate(ids, { publishedAt: new Date().toISOString() })
-}
 
 // ── Categories ─────────────────────────────────────────────────────────────
 

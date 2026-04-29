@@ -48,12 +48,6 @@ export async function bulkDelete(req, res) {
   res.json({ success: true, message: `Moved ${count} articles to Recycle Bin`, data: null })
 }
 
-export async function bulkPublish(req, res) {
-  const count = await svc.bulkPublishNews(req.body.ids)
-  await log(req, 'bulk_publish', 'news', null, { count })
-  res.json({ success: true, message: `Published ${count} articles`, data: null })
-}
-
 // ── Categories ─────────────────────────────────────────────────────────────
 
 export async function listCategories(req, res) {

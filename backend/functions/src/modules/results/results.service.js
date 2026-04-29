@@ -4,7 +4,7 @@ import { CrudService, CategoryService, badReq } from '../../utils/serviceBase.js
 export const resultsService = new CrudService(resultsRepo, {
   entityName:   'Result',
   searchField:  'title',
-  orderBy:      'publishedAt',
+  orderBy:      'createdAt',
   order:        'desc',
   validate: (data) => {
     if (!data.title?.trim())          badReq('title is required')
