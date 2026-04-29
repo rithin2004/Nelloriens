@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import ImageUpload from '../common/ImageUpload'
@@ -11,11 +11,13 @@ const section = 'bg-white rounded-xl border border-slate-200 p-5 space-y-4'
 
 const PAGES = ['home', 'news', 'jobs', 'results', 'sports', 'foods', 'events', 'movies', 'tourism']
 
-export default function SponsorForm({ defaultValues, onSubmit, loading, contentId }) {
-  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues })
+export default function SponsorForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
+  const { register, handleSubmit, formState: { errors, isDirty } } = useForm({ defaultValues })
   const [logo, setLogo] = useState(defaultValues?.logo || '')
   const [validFrom, setValidFrom] = useState(defaultValues?.validFrom ? new Date(defaultValues.validFrom) : null)
   const [validUntil, setValidUntil] = useState(defaultValues?.validUntil ? new Date(defaultValues.validUntil) : null)
+
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   const submit = (data) => {
     if (!logo) { toast.error('Logo is required'); return }

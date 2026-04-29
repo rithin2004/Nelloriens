@@ -30,14 +30,16 @@ function ToggleSwitch({ id, checked, onChange, label, hint }) {
   )
 }
 
-export default function NewsForm({ defaultValues, onSubmit, loading, contentId }) {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({ defaultValues })
+export default function NewsForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
+  const { register, handleSubmit, watch, formState: { errors, isDirty } } = useForm({ defaultValues })
   const [categories, setCategories] = useState([])
   const [isImportant, setIsImportant] = useState(defaultValues?.isImportant || false)
   const [body, setBody] = useState(defaultValues?.body || '')
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
   const [publishedAt, setPublishedAt] = useState(defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date())
   const redirectUrl = watch('redirectUrl', '')
+
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   const fetchCategories = () => newsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   useEffect(() => { fetchCategories() }, [])

@@ -71,8 +71,8 @@ function ToggleSwitch({ id, checked, onChange, label }) {
   )
 }
 
-export default function JobForm({ defaultValues, onSubmit, loading, contentId }) {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({ defaultValues })
+export default function JobForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
+  const { register, handleSubmit, watch, formState: { errors, isDirty } } = useForm({ defaultValues })
   const companyNameVal = watch('companyName', defaultValues?.companyName || '')
   const [isVerified, setIsVerified] = useState(defaultValues?.isVerified || false)
   const [categories, setCategories] = useState([])
@@ -90,6 +90,7 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId })
   const fetchTypes      = () => jobsApi.getTypes().then((r)       => setJobTypes(r.data.data   || [])).catch(() => {})
 
   useEffect(() => { fetchCategories(); fetchLocations(); fetchTypes() }, [])
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   const submit = (data) => {
     onSubmit({ ...data, fullDescription: description, thumbnail, companyLogo, isVerified, lastDate: lastDate?.toISOString(), publishedAt: publishedAt?.toISOString() })

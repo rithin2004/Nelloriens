@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Plus, X } from 'lucide-react'
 import RichTextEditor from '../common/RichTextEditor'
@@ -10,11 +10,13 @@ const section = 'rounded-xl p-5 space-y-4'
 const sectionStyle = { background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }
 const inp = 'w-full px-3 py-2.5 rounded-lg text-sm'
 
-export default function HistoryForm({ defaultValues, onSubmit, loading, contentId }) {
-  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues })
+export default function HistoryForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
+  const { register, handleSubmit, formState: { errors, isDirty } } = useForm({ defaultValues })
   const [description, setDescription] = useState(defaultValues?.description || '')
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
   const [references, setReferences] = useState(defaultValues?.references || [''])
+
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   const addReference = () => setReferences([...references, ''])
   const updateRef = (i, val) => { const r = [...references]; r[i] = val; setReferences(r) }

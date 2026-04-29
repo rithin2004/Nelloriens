@@ -25,8 +25,8 @@ function ToggleSwitch({ id, checked, onChange, label }) {
   )
 }
 
-export default function OfferForm({ defaultValues, onSubmit, loading, contentId }) {
-  const { register, handleSubmit } = useForm({ defaultValues })
+export default function OfferForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
+  const { register, handleSubmit, formState: { isDirty } } = useForm({ defaultValues })
   const [isVerified, setIsVerified] = useState(defaultValues?.isVerified || false)
   const [thumbnail,  setThumbnail]  = useState(defaultValues?.thumbnail  || '')
   const [validFrom,  setValidFrom]  = useState(defaultValues?.validFrom  ? new Date(defaultValues.validFrom)  : null)
@@ -40,6 +40,7 @@ export default function OfferForm({ defaultValues, onSubmit, loading, contentId 
   const fetchTypes      = () => offersApi.getTypes().then((r)       => setOfferTypes(r.data.data || [])).catch(() => {})
 
   useEffect(() => { fetchCategories(); fetchLocations(); fetchTypes() }, [])
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   const submit = (data) => {
     onSubmit({ ...data, thumbnail, isVerified, validFrom: validFrom?.toISOString(), validUntil: validUntil?.toISOString() })

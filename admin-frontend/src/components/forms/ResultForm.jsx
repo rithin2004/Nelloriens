@@ -13,8 +13,8 @@ const section = 'rounded-xl p-5 space-y-4'
 const sectionStyle = { background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }
 const inp = 'w-full px-3 py-2.5 rounded-lg text-sm'
 
-export default function ResultForm({ defaultValues, onSubmit, loading, contentId }) {
-  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues })
+export default function ResultForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
+  const { register, handleSubmit, formState: { errors, isDirty } } = useForm({ defaultValues })
   const [categories, setCategories] = useState([])
   const [details, setDetails] = useState(defaultValues?.fullDetails || '')
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
@@ -23,6 +23,7 @@ export default function ResultForm({ defaultValues, onSubmit, loading, contentId
 
   const fetchCategories = () => resultsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   useEffect(() => { fetchCategories() }, [])
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   const submit = (data) => {
     onSubmit({ ...data, fullDetails: details, thumbnail, resultDate: resultDate?.toISOString(), publishedAt: publishedAt?.toISOString() })

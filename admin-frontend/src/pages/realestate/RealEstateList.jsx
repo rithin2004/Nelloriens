@@ -358,6 +358,7 @@ export default function RealEstateList() {
             defaultValues={formDefaults}
             onSubmit={handleFormSubmit}
             loading={formSubmitting}
+            onDirtyChange={setFormDirty}
             contentId={formEditId || reservedId}
           />
         )}

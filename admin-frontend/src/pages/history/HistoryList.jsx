@@ -64,6 +64,7 @@ export default function HistoryList() {
   const [formEditId, setFormEditId] = useState(null)
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [formFetching, setFormFetching] = useState(false)
+  const [formDirty, setFormDirty] = useState(false)
   const [reservedId, setReservedId] = useState(null)
 
   const sensors = useSensors(useSensor(PointerSensor))
@@ -98,7 +99,7 @@ export default function HistoryList() {
   }
 
   const openCreate = async () => {
-    setFormEditId(null); setReservedId(null)
+    setFormEditId(null); setFormDirty(false); setReservedId(null)
     setFormDefaults({}); setFormOpen(true)
     try { const r = await uploadApi.reserveId('HIS'); setReservedId(r.data.data.id) }
     catch { toast.error('Failed to reserve ID — please try again'); setFormOpen(false) }
@@ -108,6 +109,7 @@ export default function HistoryList() {
     setFormFetching(true)
     setFormDefaults(null)
     setFormEditId(id)
+    setFormDirty(false)
     setFormOpen(true)
     try {
       const r = await historyApi.getById(id)
@@ -130,13 +132,18 @@ export default function HistoryList() {
         await historyApi.create(reservedId ? { ...data, _reservedId: reservedId } : data)
         toast.success('Created!')
       }
-      setFormOpen(false); setReservedId(null)
+      setFormOpen(false); setFormDirty(false); setReservedId(null)
       storeFetch({ limit: 100 })
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || 'Save failed')
     } finally {
       setFormSubmitting(false)
     }
+  }
+
+  const handleCloseForm = () => {
+    if (formDirty && !window.confirm('You have unsaved changes. Are you sure you want to close?')) return
+    setFormOpen(false); setFormDirty(false); setReservedId(null)
   }
 
   return (
@@ -179,7 +186,7 @@ export default function HistoryList() {
 
       <FormModal
         isOpen={formOpen}
-        onClose={() => setFormOpen(false)}
+        onClose={handleCloseForm}
         title={formEditId ? 'Edit History' : 'Add History'}
       >
         {formFetching || formDefaults === null ? (
@@ -187,7 +194,7 @@ export default function HistoryList() {
             <div className="w-7 h-7 rounded-full animate-spin" style={{ border: '3px solid #dce8fb', borderTopColor: '#0a3d95' }} />
           </div>
         ) : (
-          <HistoryForm defaultValues={formDefaults} onSubmit={handleFormSubmit} loading={formSubmitting} contentId={formEditId || reservedId} />
+          <HistoryForm defaultValues={formDefaults} onSubmit={handleFormSubmit} loading={formSubmitting} onDirtyChange={setFormDirty} contentId={formEditId || reservedId} />
         )}
       </FormModal>
     </div>

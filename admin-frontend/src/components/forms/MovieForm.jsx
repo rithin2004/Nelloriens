@@ -13,8 +13,8 @@ const section = 'rounded-xl p-5 space-y-4'
 const sectionStyle = { background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }
 const inp = 'w-full px-3 py-2.5 rounded-lg text-sm'
 
-export default function MovieForm({ defaultValues, onSubmit, loading, contentId }) {
-  const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues })
+export default function MovieForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
+  const { register, handleSubmit, formState: { errors, isDirty } } = useForm({ defaultValues })
   const [theatres,      setTheatres]      = useState([])
   const [genres,        setGenres]        = useState([])
   const [languages,     setLanguages]     = useState([])
@@ -26,6 +26,8 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId 
 
   const fetchGenres    = () => moviesApi.getGenres().then((r)    => setGenres(r.data?.data    || [])).catch(() => {})
   const fetchLanguages = () => moviesApi.getLanguages().then((r) => setLanguages(r.data?.data || [])).catch(() => {})
+
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   useEffect(() => {
     moviesApi.getTheatres().then((r) => setTheatres(r.data?.data || [])).catch(() => {})

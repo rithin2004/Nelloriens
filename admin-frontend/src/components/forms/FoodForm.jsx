@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { Plus, Trash2, Star, Upload, Loader, X } from 'lucide-react'
 import RichTextEditor from '../common/RichTextEditor'
@@ -58,8 +58,8 @@ function RestaurantPair({ register, prefix, label }) {
   )
 }
 
-export default function FoodForm({ defaultValues, onSubmit, loading, contentId }) {
-  const { register, handleSubmit, control, setValue, formState: { errors } } = useForm({
+export default function FoodForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
+  const { register, handleSubmit, control, setValue, formState: { errors, isDirty } } = useForm({
     defaultValues: {
       ...defaultValues,
       photos:    defaultValues?.photos    || [],
@@ -79,6 +79,8 @@ export default function FoodForm({ defaultValues, onSubmit, loading, contentId }
   const { fields: varietyFields, append: appendVariety, remove: removeVariety } = useFieldArray({ control, name: 'varieties' })
   const { fields: sweetFields,   append: appendSweet,   remove: removeSweet   } = useFieldArray({ control, name: 'sweets' })
   const watchedVarieties = useWatch({ control, name: 'varieties' })
+
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   const handleMapChange = ({ lat, lng }) => {
     setLocation({ lat, lng })

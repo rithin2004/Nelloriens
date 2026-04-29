@@ -31,8 +31,8 @@ const MAX_PHOTOS = 6
 
 const FALLBACK_TYPES = ['Plot', 'Flat', 'House', 'Villa']
 
-export default function RealEstateForm({ defaultValues, onSubmit, loading, contentId }) {
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm({ defaultValues })
+export default function RealEstateForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
+  const { register, handleSubmit, setValue, formState: { errors, isDirty } } = useForm({ defaultValues })
   const [isVerified,    setIsVerified]    = useState(defaultValues?.isVerified || false)
   const [locations,     setLocations]     = useState([])
   const [propertyTypes, setPropertyTypes] = useState([])
@@ -45,6 +45,8 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
   const photoInputRef = useRef(null)
 
   const isSale = (defaultValues?.section || 'sale') === 'sale'
+
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   useEffect(() => {
     realEstateApi.getLocations().then((r)  => setLocations(r.data.data     || [])).catch(() => {})
