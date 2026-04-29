@@ -3,8 +3,7 @@ import { useForm } from 'react-hook-form'
 import RichTextEditor from '../common/RichTextEditor'
 import ImageUpload from '../common/ImageUpload'
 import InlineCategoryAdd from '../common/InlineCategoryAdd'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import DateField from '../common/DateField'
 import { jobsApi } from '../../services/api'
 
 /** Company logo upload with initial-letter fallback */
@@ -242,8 +241,8 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId, o
         </div>
         <div>
           <label htmlFor="job-lastdate" className={lbl} style={lblStyle}>Last Date (Deadline)</label>
-          <DatePicker id="job-lastdate" selected={lastDate} onChange={setLastDate}
-            dateFormat="dd/MM/yyyy" className="w-full" placeholderText="Select date" isClearable />
+          <DateField id="job-lastdate" selected={lastDate} onChange={setLastDate}
+            dateFormat="dd/MM/yyyy" placeholderText="Select date" isClearable />
         </div>
         <ImageUpload module="jobs" label="Thumbnail" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
       </div>
@@ -252,8 +251,8 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId, o
         <h3 className="font-semibold text-slate-800">Publish Settings</h3>
         <div>
           <label htmlFor="job-publishedat" className={lbl} style={lblStyle}>Published At *</label>
-          <DatePicker id="job-publishedat" selected={publishedAt} onChange={setPublishedAt}
-            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" className="w-full" />
+          <DateField id="job-publishedat" selected={publishedAt} onChange={setPublishedAt}
+            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" />
         </div>
       </div>
 

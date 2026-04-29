@@ -3,8 +3,7 @@ import { useForm } from 'react-hook-form'
 import RichTextEditor from '../common/RichTextEditor'
 import ImageUpload from '../common/ImageUpload'
 import InlineCategoryAdd from '../common/InlineCategoryAdd'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import DateField from '../common/DateField'
 import { resultsApi } from '../../services/api'
 
 const lbl = 'block text-sm font-medium mb-1.5'
@@ -62,8 +61,8 @@ export default function ResultForm({ defaultValues, onSubmit, loading, contentId
 
         <div>
           <label htmlFor="result-date" className={lbl} style={lblStyle}>Result Date *</label>
-          <DatePicker id="result-date" selected={resultDate} onChange={setResultDate}
-            dateFormat="dd/MM/yyyy" className="w-full" placeholderText="Select date" />
+          <DateField id="result-date" selected={resultDate} onChange={setResultDate}
+            dateFormat="dd/MM/yyyy" placeholderText="Select date" />
         </div>
 
         <div>
@@ -103,8 +102,8 @@ export default function ResultForm({ defaultValues, onSubmit, loading, contentId
       <div className={section} style={sectionStyle}>
         <div>
           <label htmlFor="result-publishedat" className={lbl} style={lblStyle}>Published At *</label>
-          <DatePicker id="result-publishedat" selected={publishedAt} onChange={setPublishedAt}
-            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" className="w-full" />
+          <DateField id="result-publishedat" selected={publishedAt} onChange={setPublishedAt}
+            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" />
         </div>
       </div>
 

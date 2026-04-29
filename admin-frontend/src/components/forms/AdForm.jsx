@@ -1,6 +1,5 @@
 import { useForm } from 'react-hook-form'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import DateField from '../common/DateField'
 import { useState } from 'react'
 
 const field = 'block text-sm font-medium text-slate-700 mb-1'
@@ -39,11 +38,11 @@ export default function AdForm({ defaultValues, onSubmit, loading }) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="ad-valid-from" className={field}>Valid From</label>
-            <DatePicker id="ad-valid-from" name="validFrom" selected={validFrom} onChange={setValidFrom} dateFormat="dd/MM/yyyy" className={input} isClearable />
+            <DateField id="ad-valid-from" name="validFrom" selected={validFrom} onChange={setValidFrom} dateFormat="dd/MM/yyyy" className={input} isClearable />
           </div>
           <div>
             <label htmlFor="ad-valid-until" className={field}>Valid Until</label>
-            <DatePicker id="ad-valid-until" name="validUntil" selected={validUntil} onChange={setValidUntil} dateFormat="dd/MM/yyyy" minDate={validFrom} className={input} isClearable />
+            <DateField id="ad-valid-until" name="validUntil" selected={validUntil} onChange={setValidUntil} dateFormat="dd/MM/yyyy" minDate={validFrom} className={input} isClearable />
           </div>
         </div>
         <div>

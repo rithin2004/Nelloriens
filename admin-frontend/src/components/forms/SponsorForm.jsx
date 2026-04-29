@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import ImageUpload from '../common/ImageUpload'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import DateField from '../common/DateField'
 
 const field = 'block text-sm font-medium text-slate-700 mb-1'
 const input = 'w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'
@@ -51,11 +50,11 @@ export default function SponsorForm({ defaultValues, onSubmit, loading, contentI
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="spn-valid-from" className={field}>Valid From</label>
-            <DatePicker id="spn-valid-from" name="validFrom" selected={validFrom} onChange={setValidFrom} dateFormat="dd/MM/yyyy" className={input} isClearable />
+            <DateField id="spn-valid-from" name="validFrom" selected={validFrom} onChange={setValidFrom} dateFormat="dd/MM/yyyy" className={input} isClearable />
           </div>
           <div>
             <label htmlFor="spn-valid-until" className={field}>Valid Until</label>
-            <DatePicker id="spn-valid-until" name="validUntil" selected={validUntil} onChange={setValidUntil} dateFormat="dd/MM/yyyy" minDate={validFrom} className={input} isClearable />
+            <DateField id="spn-valid-until" name="validUntil" selected={validUntil} onChange={setValidUntil} dateFormat="dd/MM/yyyy" minDate={validFrom} className={input} isClearable />
           </div>
         </div>
         <div>

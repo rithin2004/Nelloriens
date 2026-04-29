@@ -3,8 +3,7 @@ import { useForm } from 'react-hook-form'
 import RichTextEditor from '../common/RichTextEditor'
 import ImageUpload from '../common/ImageUpload'
 import MapPicker from '../common/MapPicker'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import DateField from '../common/DateField'
 import { eventsApi } from '../../services/api'
 
 const field   = 'block text-sm font-medium text-slate-700 mb-1'
@@ -126,7 +125,7 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="event-start" className={field}>Start Date & Time *</label>
-            <DatePicker
+            <DateField
               id="event-start"
               selected={startDate}
               onChange={setStartDate}
@@ -138,7 +137,7 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
           </div>
           <div>
             <label htmlFor="event-end" className={field}>End Date & Time</label>
-            <DatePicker
+            <DateField
               id="event-end"
               selected={endDate}
               onChange={setEndDate}
@@ -218,13 +217,13 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="event-reg-start" className={field}>Registration Opens</label>
-                    <DatePicker id="event-reg-start" selected={regStartDate} onChange={setRegStartDate}
+                    <DateField id="event-reg-start" selected={regStartDate} onChange={setRegStartDate}
                       showTimeSelect dateFormat="dd/MM/yyyy HH:mm" placeholderText="Select date"
                       className={input} />
                   </div>
                   <div>
                     <label htmlFor="event-reg-end" className={field}>Registration Closes</label>
-                    <DatePicker id="event-reg-end" selected={regEndDate} onChange={setRegEndDate}
+                    <DateField id="event-reg-end" selected={regEndDate} onChange={setRegEndDate}
                       showTimeSelect dateFormat="dd/MM/yyyy HH:mm" minDate={regStartDate}
                       placeholderText="Select date" className={input} />
                   </div>

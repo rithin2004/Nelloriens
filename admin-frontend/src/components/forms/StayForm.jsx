@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import ImageUpload from '../common/ImageUpload'
 import MapPicker from '../common/MapPicker'
 import InlineCategoryAdd from '../common/InlineCategoryAdd'
+import TimePicker from '../common/TimePicker'
 import { staysApi } from '../../services/api'
 
 const field = 'block text-sm font-medium text-slate-700 mb-1'
@@ -29,12 +30,14 @@ const AMENITIES = ['WiFi', 'AC', 'Parking', 'Pool', 'Restaurant', 'Gym']
 
 export default function StayForm({ defaultValues, onSubmit, loading, contentId, onDirtyChange }) {
   const { register, handleSubmit, setValue, formState: { isDirty } } = useForm({ defaultValues })
-  const [isTop,      setIsTop]      = useState(defaultValues?.isTop      || false)
-  const [isVerified, setIsVerified] = useState(defaultValues?.isVerified || false)
-  const [thumbnail,  setThumbnail]  = useState(defaultValues?.thumbnail || '')
-  const [categories, setCategories] = useState([])
-  const [locations,  setLocations]  = useState([])
-  const [location,   setLocation]   = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
+  const [isTop,          setIsTop]          = useState(defaultValues?.isTop      || false)
+  const [isVerified,     setIsVerified]     = useState(defaultValues?.isVerified || false)
+  const [thumbnail,      setThumbnail]      = useState(defaultValues?.thumbnail || '')
+  const [categories,     setCategories]     = useState([])
+  const [locations,      setLocations]      = useState([])
+  const [location,       setLocation]       = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
+  const [checkInTime,    setCheckInTime]    = useState(defaultValues?.checkInTime  || '12:00 PM')
+  const [checkOutTime,   setCheckOutTime]   = useState(defaultValues?.checkOutTime || '11:00 AM')
 
   const fetchCategories = () => staysApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   const fetchLocations  = () => staysApi.getLocations().then((r)  => setLocations(r.data.data  || [])).catch(() => {})
@@ -49,7 +52,7 @@ export default function StayForm({ defaultValues, onSubmit, loading, contentId, 
   }
 
   const submit = (data) => {
-    onSubmit({ ...data, thumbnail, isTop, isVerified, latitude: location.lat, longitude: location.lng })
+    onSubmit({ ...data, thumbnail, isTop, isVerified, latitude: location.lat, longitude: location.lng, checkInTime, checkOutTime })
   }
 
   return (
@@ -141,11 +144,11 @@ export default function StayForm({ defaultValues, onSubmit, loading, contentId, 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="sty-checkin" className={field}>Check-in Time</label>
-            <input id="sty-checkin" name="checkInTime" autoComplete="off" {...register('checkInTime')} className={input} placeholder="e.g. 12:00 PM" />
+            <TimePicker id="sty-checkin" value={checkInTime} onChange={setCheckInTime} />
           </div>
           <div>
             <label htmlFor="sty-checkout" className={field}>Check-out Time</label>
-            <input id="sty-checkout" name="checkOutTime" autoComplete="off" {...register('checkOutTime')} className={input} placeholder="e.g. 11:00 AM" />
+            <TimePicker id="sty-checkout" value={checkOutTime} onChange={setCheckOutTime} />
           </div>
         </div>
         <div>

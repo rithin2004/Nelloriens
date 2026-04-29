@@ -3,8 +3,7 @@ import { useForm } from 'react-hook-form'
 import { Upload, Loader } from 'lucide-react'
 import ImageUpload from '../common/ImageUpload'
 import MapPicker from '../common/MapPicker'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import DateField from '../common/DateField'
 import { realEstateApi, uploadApi } from '../../services/api'
 import toast from 'react-hot-toast'
 
@@ -188,8 +187,8 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
 
         <div>
           <label htmlFor="res-possession" className={field}>Possession Date</label>
-          <DatePicker id="res-possession" selected={possessionDate} onChange={setPossessionDate}
-            dateFormat="dd/MM/yyyy" className="w-full" isClearable placeholderText="Select date" />
+          <DateField id="res-possession" selected={possessionDate} onChange={setPossessionDate}
+            dateFormat="dd/MM/yyyy" isClearable placeholderText="Select date" />
         </div>
 
         {amenities.length > 0 && (

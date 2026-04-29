@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import ImageUpload from '../common/ImageUpload'
 import InlineCategoryAdd from '../common/InlineCategoryAdd'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import DateField from '../common/DateField'
 import { offersApi } from '../../services/api'
 
 const field = 'block text-sm font-medium text-slate-700 mb-1'
@@ -95,11 +94,11 @@ export default function OfferForm({ defaultValues, onSubmit, loading, contentId,
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="ofr-valid-from" className={field}>Valid From *</label>
-            <DatePicker id="ofr-valid-from" name="validFrom" selected={validFrom} onChange={setValidFrom} dateFormat="dd/MM/yyyy" className={input} />
+            <DateField id="ofr-valid-from" name="validFrom" selected={validFrom} onChange={setValidFrom} dateFormat="dd/MM/yyyy" className={input} />
           </div>
           <div>
             <label htmlFor="ofr-valid-until" className={field}>Valid Until *</label>
-            <DatePicker id="ofr-valid-until" name="validUntil" selected={validUntil} onChange={setValidUntil} dateFormat="dd/MM/yyyy" minDate={validFrom} className={input} />
+            <DateField id="ofr-valid-until" name="validUntil" selected={validUntil} onChange={setValidUntil} dateFormat="dd/MM/yyyy" minDate={validFrom} className={input} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">

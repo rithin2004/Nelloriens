@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Plus, X } from 'lucide-react'
 import ImageUpload from '../common/ImageUpload'
+import TimePicker from '../common/TimePicker'
 
 const lbl   = 'block text-sm font-medium mb-1.5'
 const lblSt = { color: '#374151' }
@@ -75,8 +76,12 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
   const { register, handleSubmit, watch, formState: { errors, isDirty } } = useForm({
     defaultValues: { type: 'train', is24x7: false, ...defaultValues },
   })
-  const [thumbnail,   setThumbnail]   = useState(defaultValues?.thumbnail || '')
-  const [is24x7,      setIs24x7]      = useState(defaultValues?.is24x7 || false)
+  const [thumbnail,          setThumbnail]          = useState(defaultValues?.thumbnail || '')
+  const [is24x7,             setIs24x7]             = useState(defaultValues?.is24x7 || false)
+  const [departureTime,      setDepartureTime]      = useState(defaultValues?.departureTime      || '06:00 AM')
+  const [arrivalTime,        setArrivalTime]        = useState(defaultValues?.arrivalTime        || '10:00 AM')
+  const [operatingHoursFrom, setOperatingHoursFrom] = useState(defaultValues?.operatingHoursFrom || '06:00 AM')
+  const [operatingHoursTo,   setOperatingHoursTo]   = useState(defaultValues?.operatingHoursTo   || '10:00 PM')
   const [fareRows,    setFareRows]    = useState(
     Array.isArray(defaultValues?.fareDetails) && defaultValues.fareDetails.length
       ? defaultValues.fareDetails
@@ -98,9 +103,22 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
 
   const submit = (data) => {
     const payload = { ...data, thumbnail }
-    if (type === 'train') { payload.daysOfOperation = selectedDays.join(','); payload.fareDetails = fareRows.filter(r => r.class || r.fare) }
-    if (type === 'bus')   { payload.fareDetails = fareRows.filter(r => r.class || r.fare) }
-    if (type === 'local') payload.is24x7 = is24x7
+    if (type === 'train') {
+      payload.daysOfOperation = selectedDays.join(',')
+      payload.fareDetails = fareRows.filter(r => r.class || r.fare)
+      payload.departureTime = departureTime
+      payload.arrivalTime = arrivalTime
+    }
+    if (type === 'bus') {
+      payload.fareDetails = fareRows.filter(r => r.class || r.fare)
+      payload.departureTime = departureTime
+      payload.arrivalTime = arrivalTime
+    }
+    if (type === 'local') {
+      payload.is24x7 = is24x7
+      payload.operatingHoursFrom = operatingHoursFrom
+      payload.operatingHoursTo = operatingHoursTo
+    }
     onSubmit(payload)
   }
 
@@ -166,13 +184,11 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="t-dep" className={lbl} style={lblSt}>Departure Time</label>
-              <input id="t-dep" name="departureTime" autoComplete="off"
-                {...register('departureTime')} className={inp} style={inpSt} placeholder="e.g. 06:30 AM" />
+              <TimePicker id="t-dep" value={departureTime} onChange={setDepartureTime} selectStyle={inpSt} />
             </div>
             <div>
               <label htmlFor="t-arr" className={lbl} style={lblSt}>Arrival Time</label>
-              <input id="t-arr" name="arrivalTime" autoComplete="off"
-                {...register('arrivalTime')} className={inp} style={inpSt} placeholder="e.g. 10:45 AM" />
+              <TimePicker id="t-arr" value={arrivalTime} onChange={setArrivalTime} selectStyle={inpSt} />
             </div>
           </div>
 
@@ -256,13 +272,11 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="b-dep" className={lbl} style={lblSt}>Departure Time</label>
-              <input id="b-dep" name="departureTime" autoComplete="off"
-                {...register('departureTime')} className={inp} style={inpSt} placeholder="e.g. 06:00 AM" />
+              <TimePicker id="b-dep" value={departureTime} onChange={setDepartureTime} selectStyle={inpSt} />
             </div>
             <div>
               <label htmlFor="b-arr" className={lbl} style={lblSt}>Arrival Time</label>
-              <input id="b-arr" name="arrivalTime" autoComplete="off"
-                {...register('arrivalTime')} className={inp} style={inpSt} placeholder="e.g. 12:30 PM" />
+              <TimePicker id="b-arr" value={arrivalTime} onChange={setArrivalTime} selectStyle={inpSt} />
             </div>
           </div>
 
@@ -398,13 +412,11 @@ export default function TransportForm({ defaultValues, onSubmit, loading, conten
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="l-ophrs-from" className={lbl} style={lblSt}>Operating Hours From</label>
-              <input id="l-ophrs-from" name="operatingHoursFrom" autoComplete="off"
-                {...register('operatingHoursFrom')} className={inp} style={inpSt} placeholder="e.g. 06:00 AM" />
+              <TimePicker id="l-ophrs-from" value={operatingHoursFrom} onChange={setOperatingHoursFrom} selectStyle={inpSt} />
             </div>
             <div>
               <label htmlFor="l-ophrs-to" className={lbl} style={lblSt}>Operating Hours To</label>
-              <input id="l-ophrs-to" name="operatingHoursTo" autoComplete="off"
-                {...register('operatingHoursTo')} className={inp} style={inpSt} placeholder="e.g. 10:00 PM" />
+              <TimePicker id="l-ophrs-to" value={operatingHoursTo} onChange={setOperatingHoursTo} selectStyle={inpSt} />
             </div>
           </div>
 

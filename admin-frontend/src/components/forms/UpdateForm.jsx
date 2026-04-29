@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import ImageUpload from '../common/ImageUpload'
 import InlineCategoryAdd from '../common/InlineCategoryAdd'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import DateField from '../common/DateField'
 import { updatesApi } from '../../services/api'
 
 const field = 'block text-sm font-medium text-slate-700 mb-1'
@@ -65,7 +64,7 @@ export default function UpdateForm({ defaultValues, onSubmit, loading, contentId
         <ImageUpload module="updates" label="Thumbnail" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
         <div>
           <label htmlFor="upd-targetdate" className={field}>Target Date</label>
-          <DatePicker
+          <DateField
             id="upd-targetdate"
             name="targetDate"
             selected={targetDate}
@@ -85,7 +84,7 @@ export default function UpdateForm({ defaultValues, onSubmit, loading, contentId
             Expires At
             <span className="ml-1.5 text-xs font-normal text-slate-400">(IST — India Standard Time)</span>
           </label>
-          <DatePicker
+          <DateField
             id="upd-datetime"
             name="validUntil"
             selected={dateTime}

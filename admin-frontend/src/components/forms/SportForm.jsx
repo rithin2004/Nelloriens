@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import ImageUpload from '../common/ImageUpload'
 import InlineCategoryAdd from '../common/InlineCategoryAdd'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import DateField from '../common/DateField'
 import { sportsApi } from '../../services/api'
 
 const lbl = 'block text-sm font-medium mb-1.5'
@@ -117,7 +116,7 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
                 control={control}
                 name="_eventDateCtrl"
                 render={() => (
-                  <DatePicker
+                  <DateField
                     id="sport-eventdate"
                     selected={eventDate}
                     onChange={setEventDate}
@@ -223,7 +222,7 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
             control={control}
             name="_publishedAtCtrl"
             render={() => (
-              <DatePicker
+              <DateField
                 id="sport-publishedat"
                 selected={publishedAt}
                 onChange={setPublishedAt}

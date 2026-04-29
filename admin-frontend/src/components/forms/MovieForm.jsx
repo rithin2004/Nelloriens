@@ -3,8 +3,8 @@ import { useForm } from 'react-hook-form'
 import { Plus, X } from 'lucide-react'
 import ImageUpload from '../common/ImageUpload'
 import InlineCategoryAdd from '../common/InlineCategoryAdd'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import TimePicker from '../common/TimePicker'
+import DateField from '../common/DateField'
 import { moviesApi } from '../../services/api'
 
 const lbl = 'block text-sm font-medium mb-1.5'
@@ -148,9 +148,8 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId,
         <div>
           <p className={lbl} style={lblStyle}>Show Timings</p>
           {timings.map((t, i) => (
-            <div key={i} className="flex gap-2 mb-2">
-              <input id={`mov-timing-${i}`} name={`showTimings[${i}]`} value={t} onChange={(e) => updateTiming(i, e.target.value)}
-                className={`${inp} flex-1`} placeholder="10:00 AM" autoComplete="off" />
+            <div key={i} className="flex items-center gap-2 mb-2">
+              <TimePicker id={`mov-timing-${i}`} value={t || '10:00 AM'} onChange={(v) => updateTiming(i, v)} />
               {timings.length > 1 && (
                 <button type="button" onClick={() => removeTiming(i)}
                   className="p-2 rounded-lg text-red-400 hover:text-red-300 transition-colors"
@@ -172,20 +171,20 @@ export default function MovieForm({ defaultValues, onSubmit, loading, contentId,
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="mov-from" className={lbl} style={lblStyle}>Running From</label>
-            <DatePicker id="mov-from" selected={runningFrom} onChange={setRunningFrom}
-              dateFormat="dd/MM/yyyy" className="w-full" placeholderText="Select date" />
+            <DateField id="mov-from" selected={runningFrom} onChange={setRunningFrom}
+              dateFormat="dd/MM/yyyy" placeholderText="Select date" />
           </div>
           <div>
             <label htmlFor="mov-until" className={lbl} style={lblStyle}>Running Until</label>
-            <DatePicker id="mov-until" selected={runningUntil} onChange={setRunningUntil}
-              dateFormat="dd/MM/yyyy" minDate={runningFrom} className="w-full" isClearable placeholderText="Optional" />
+            <DateField id="mov-until" selected={runningUntil} onChange={setRunningUntil}
+              dateFormat="dd/MM/yyyy" minDate={runningFrom} isClearable placeholderText="Optional" />
           </div>
         </div>
 
         <div>
           <label htmlFor="mov-expected" className={lbl} style={lblStyle}>Expected Release Date</label>
-          <DatePicker id="mov-expected" selected={expectedRelease} onChange={setExpectedRelease}
-            dateFormat="dd/MM/yyyy" className="w-full" isClearable placeholderText="For coming soon" />
+          <DateField id="mov-expected" selected={expectedRelease} onChange={setExpectedRelease}
+            dateFormat="dd/MM/yyyy" isClearable placeholderText="For coming soon" />
         </div>
 
         <div>

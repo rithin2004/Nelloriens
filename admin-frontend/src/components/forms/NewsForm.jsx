@@ -3,8 +3,7 @@ import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import RichTextEditor from '../common/RichTextEditor'
 import ImageUpload from '../common/ImageUpload'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import DateField from '../common/DateField'
 import InlineCategoryAdd from '../common/InlineCategoryAdd'
 import { newsApi } from '../../services/api'
 
@@ -133,8 +132,8 @@ export default function NewsForm({ defaultValues, onSubmit, loading, contentId, 
         <h3 className="font-semibold text-slate-800">Publish Settings</h3>
         <div>
           <label htmlFor="news-publishedat" className={lbl} style={lblStyle}>Published At *</label>
-          <DatePicker id="news-publishedat" selected={publishedAt} onChange={setPublishedAt}
-            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" className="w-full" />
+          <DateField id="news-publishedat" selected={publishedAt} onChange={setPublishedAt}
+            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" />
         </div>
       </div>
 
