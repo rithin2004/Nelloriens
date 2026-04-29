@@ -114,7 +114,23 @@ const useSSE = () => {
         }
       });
 
-      es.onopen = () => { retryRef.current = 0; };
+      es.onopen = () => {
+        if (retryRef.current > 0) {
+          const p = paramsRef.current;
+          dispatch(fetchNews(p.news));             dispatch(fetchBreakingPoints());
+          dispatch(fetchJobs(p.jobs));             dispatch(fetchUpdates(p.updates));
+          dispatch(fetchEvents(p.events));         dispatch(fetchTourism(p.tourism));
+          dispatch(fetchFamousFoods(p.foods));     dispatch(fetchSweets(p.foods));
+          dispatch(fetchFamousStays(p.stays));     dispatch(fetchMovies(p.movies));
+          dispatch(fetchTheaters({}));             dispatch(fetchSportsEvents(p.sports));
+          dispatch(fetchSportsArticles(p.sports)); dispatch(fetchResults(p.results));
+          dispatch(fetchHistory(p.history));       dispatch(fetchOffers(p.offers));
+          dispatch(fetchTransports(p.transport));  dispatch(fetchProperties(p.realestate));
+          dispatch(fetchAds());                    dispatch(fetchSponsorships());
+          dispatch(fetchInstagramFeed());
+        }
+        retryRef.current = 0;
+      };
 
       es.onerror = () => {
         es.close();

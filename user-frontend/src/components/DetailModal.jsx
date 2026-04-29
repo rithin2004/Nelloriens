@@ -16,7 +16,12 @@ const sanitizeHtml = (html) =>
     .replace(/\s+on\w+='[^']*'/gi, '')
     .replace(/javascript:/gi, '');
 
-const CAPITALIZE_FIELDS = new Set(["company", "organization", "organizer", "companyName"]);
+const CAPITALIZE_FIELDS = new Set([
+  "company", "organization", "organizer", "companyName",
+  "location", "venue", "from", "to", "operator",
+  "trainType", "busType", "type",
+  "language", "genre", "categoryName", "category",
+]);
 
 const SKIP_FIELDS = new Set([
   "_id", "id", "__v", "createdAt", "updatedAt", "publishedAt", "publishedBy",
@@ -28,7 +33,7 @@ const SKIP_FIELDS = new Set([
 const isUrl = (val) => typeof val === "string" && /^https?:\/\//.test(val);
 
 const isHtmlContent = (val) =>
-  typeof val === "string" && (val.includes("<p>") || val.includes("<br") || val.includes("<ul>"));
+  typeof val === "string" && /<(p|br|ul|ol|h[1-3]|blockquote)[\s>/]/i.test(val);
 
 const formatLabel = (key) =>
   key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase()).trim();
@@ -165,7 +170,7 @@ const DetailModal = ({ item, onClose, title, actionButtons }) => {
                   <div key={key}>
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1">{formatLabel(key)}</p>
                     <div
-                      className="text-sm text-slate-700 leading-relaxed prose prose-sm max-w-none"
+                      className="text-sm text-slate-700 leading-relaxed rich-text"
                       dangerouslySetInnerHTML={{ __html: sanitizeHtml(val) }}
                     />
                   </div>
