@@ -90,12 +90,17 @@ input[type="checkbox"] { accent-color: #0a3d95; width: 1rem; height: 1rem; }
   color: #0F172A !important;
   box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(10,61,149,0.08) !important;
   overflow: hidden;
+  display: flex !important;
 }
 .react-datepicker__header {
   background: linear-gradient(135deg,#0a3d95 0%,#072d6e 100%) !important;
   border-bottom: 1px solid #072d6e !important;
   border-radius: 14px 14px 0 0 !important;
   padding: 14px 0 10px !important;
+}
+/* When time panel is present, calendar header loses its top-right radius */
+.react-datepicker__month-container:has(~ .react-datepicker__time-container) .react-datepicker__header {
+  border-radius: 14px 0 0 0 !important;
 }
 .react-datepicker__current-month,
 .react-datepicker__day-name { color: #fff !important; font-weight: 600; letter-spacing: 0.02em; }
@@ -112,7 +117,25 @@ input[type="checkbox"] { accent-color: #0a3d95; width: 1rem; height: 1rem; }
 .react-datepicker__day--disabled { color: #CBD5E1 !important; cursor: not-allowed; }
 .react-datepicker__navigation-icon::before { border-color: #fff !important; }
 .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before { border-color: #dce8fb !important; }
-.react-datepicker__time-container { border-left: 1px solid #dce8fb !important; }
+.react-datepicker__time-container {
+  border-left: 1px solid #dce8fb !important;
+  float: none !important;
+  border-radius: 0 14px 14px 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.react-datepicker__header--time {
+  background: linear-gradient(135deg,#0a3d95 0%,#072d6e 100%) !important;
+  border-bottom: 1px solid #072d6e !important;
+  border-radius: 0 14px 0 0 !important;
+  padding: 14px 8px 10px !important;
+}
+.react-datepicker-time__header {
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  letter-spacing: 0.02em;
+}
 .react-datepicker__time,
 .react-datepicker__time-box { background: #FFFFFF !important; }
 .react-datepicker__time-list-item { color: #334155 !important; transition: all 0.12s; }
