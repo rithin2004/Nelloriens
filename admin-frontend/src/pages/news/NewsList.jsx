@@ -195,22 +195,11 @@ export default function NewsList() {
       ),
     },
     {
-      accessorKey: 'publishedAt',
+      accessorKey: 'createdAt',
       header: 'Published',
-      cell: ({ row }) => {
-        const pubAt = row.original.publishedAt || row.original.createdAt
-        const isScheduled = pubAt && new Date(pubAt) > new Date()
-        return (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-slate-500 text-xs">{formatDate(pubAt)}</span>
-            {isScheduled && (
-              <span className="text-xs font-semibold px-1.5 py-0.5 rounded w-fit" style={{ background: '#FEF3C7', color: '#92400E' }}>
-                Scheduled
-              </span>
-            )}
-          </div>
-        )
-      },
+      cell: ({ getValue }) => (
+        <span className="text-slate-500 text-xs">{formatDate(getValue())}</span>
+      ),
     },
     {
       id: 'important',

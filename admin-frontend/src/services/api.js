@@ -7,8 +7,7 @@ export const newsApi = {
   create:   (data)   => api.post('/news/create', data),
   update:   (id, data) => api.put(`/news/update/${id}`, data),
   delete:   (id)     => api.delete(`/news/delete/${id}`),
-  bulkDelete:  (ids) => api.post('/news/delete-batch', { ids }),
-  bulkPublish: (ids) => api.post('/news/publish-batch', { ids }),
+  bulkDelete: (ids) => api.post('/news/delete-batch', { ids }),
   // Categories
   getCategories:    ()           => api.get('/news/categories/list'),
   createCategory:   (data)       => api.post('/news/categories/create', data),

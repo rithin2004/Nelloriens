@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import RichTextEditor from '../common/RichTextEditor'
 import ImageUpload from '../common/ImageUpload'
-import DateField from '../common/DateField'
 import InlineCategoryAdd from '../common/InlineCategoryAdd'
 import { newsApi } from '../../services/api'
 
@@ -35,7 +34,6 @@ export default function NewsForm({ defaultValues, onSubmit, loading, contentId, 
   const [isImportant, setIsImportant] = useState(defaultValues?.isImportant || false)
   const [body, setBody] = useState(defaultValues?.body || '')
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
-  const [publishedAt, setPublishedAt] = useState(defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date())
   const redirectUrl = watch('redirectUrl', '')
 
   useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
@@ -45,7 +43,7 @@ export default function NewsForm({ defaultValues, onSubmit, loading, contentId, 
 
   const submit = (data) => {
     if (!thumbnail) { toast.error('Thumbnail is required'); return }
-    onSubmit({ ...data, body, thumbnail, isImportant, publishedAt: publishedAt?.toISOString() })
+    onSubmit({ ...data, body, thumbnail, isImportant })
   }
 
   return (
@@ -125,15 +123,6 @@ export default function NewsForm({ defaultValues, onSubmit, loading, contentId, 
           <label htmlFor="news-sourceurl" className={lbl} style={lblStyle}>Source URL</label>
           <input id="news-sourceurl" name="sourceUrl" type="url" autoComplete="url"
             {...register('sourceUrl')} placeholder="https://" className={inp} />
-        </div>
-      </div>
-
-      <div className={section} style={sectionStyle}>
-        <h3 className="font-semibold text-slate-800">Publish Settings</h3>
-        <div>
-          <label htmlFor="news-publishedat" className={lbl} style={lblStyle}>Published At *</label>
-          <DateField id="news-publishedat" selected={publishedAt} onChange={setPublishedAt}
-            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" />
         </div>
       </div>
 

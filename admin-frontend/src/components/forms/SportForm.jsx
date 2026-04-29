@@ -21,9 +21,6 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
   const [eventDate,   setEventDate]   = useState(
     defaultValues?.eventDate ? new Date(defaultValues.eventDate) : null
   )
-  const [publishedAt, setPublishedAt] = useState(
-    defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date()
-  )
 
   const type = watch('type')
 
@@ -36,7 +33,6 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
     onSubmit({
       ...data,
       thumbnail,
-      publishedAt: publishedAt?.toISOString(),
       ...(type === 'event' ? { eventDate: eventDate?.toISOString() ?? null } : {}),
     })
   }
@@ -212,27 +208,6 @@ export default function SportForm({ defaultValues, onSubmit, loading, contentId,
             <input id="sport-region" name="region" autoComplete="off"
               {...register('region')} className={inp} style={inpStyle} />
           </div>
-        </div>
-      </div>
-
-      <div className={section} style={sectionStyle}>
-        <div>
-          <label htmlFor="sport-publishedat" className={lbl} style={lblStyle}>Published At *</label>
-          <Controller
-            control={control}
-            name="_publishedAtCtrl"
-            render={() => (
-              <DateField
-                id="sport-publishedat"
-                selected={publishedAt}
-                onChange={setPublishedAt}
-                showTimeSelect
-                dateFormat="dd/MM/yyyy HH:mm"
-                className="w-full px-3 py-2.5 rounded-lg text-sm"
-                style={inpStyle}
-              />
-            )}
-          />
         </div>
       </div>
 

@@ -80,7 +80,6 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId, o
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
   const [companyLogo, setCompanyLogo] = useState(defaultValues?.companyLogo || '')
   const [lastDate, setLastDate] = useState(defaultValues?.lastDate ? new Date(defaultValues.lastDate) : null)
-  const [publishedAt, setPublishedAt] = useState(defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date())
 
   const [jobTypes,   setJobTypes]   = useState([])
 
@@ -92,7 +91,7 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId, o
   useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   const submit = (data) => {
-    onSubmit({ ...data, fullDescription: description, thumbnail, companyLogo, isVerified, lastDate: lastDate?.toISOString(), publishedAt: publishedAt?.toISOString() })
+    onSubmit({ ...data, fullDescription: description, thumbnail, companyLogo, isVerified, lastDate: lastDate?.toISOString() })
   }
 
   return (
@@ -245,15 +244,6 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId, o
             dateFormat="dd/MM/yyyy" placeholderText="Select date" isClearable />
         </div>
         <ImageUpload module="jobs" label="Thumbnail" value={thumbnail} onChange={setThumbnail} contentId={contentId} section="thumbnails" />
-      </div>
-
-      <div className={section} style={sectionStyle}>
-        <h3 className="font-semibold text-slate-800">Publish Settings</h3>
-        <div>
-          <label htmlFor="job-publishedat" className={lbl} style={lblStyle}>Published At *</label>
-          <DateField id="job-publishedat" selected={publishedAt} onChange={setPublishedAt}
-            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" />
-        </div>
       </div>
 
       <div className={section} style={sectionStyle}>

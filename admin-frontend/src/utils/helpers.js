@@ -1,4 +1,4 @@
-import { format, formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 
 // Safely convert any date-like value to a JS Date.
 // Handles: ISO strings, JS Date, Unix timestamps (ms),
@@ -12,18 +12,23 @@ function toDate(val) {
   return new Date(val)
 }
 
-export function formatDate(date, pattern = 'dd MMM yyyy') {
+// Admin portal always shows IST (RULE 5)
+function istFmt(d, opts) {
+  return new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', ...opts }).format(d)
+}
+
+export function formatDate(date) {
   if (!date) return '—'
   const d = toDate(date)
   if (!d || isNaN(d.getTime())) return '—'
-  return format(d, pattern)
+  return istFmt(d, { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 export function formatDateTime(date) {
   if (!date) return '—'
   const d = toDate(date)
   if (!d || isNaN(d.getTime())) return '—'
-  return format(d, 'dd MMM yyyy, hh:mm a')
+  return istFmt(d, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
 export function timeAgo(date) {

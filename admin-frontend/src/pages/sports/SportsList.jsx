@@ -198,10 +198,10 @@ export default function SportsList() {
       ),
     },
     {
-      accessorKey: 'publishedAt',
+      accessorKey: 'createdAt',
       header: 'Published',
-      cell: ({ row }) => (
-        <span className="text-slate-500 text-xs">{formatDate(row.original.publishedAt || row.original.createdAt)}</span>
+      cell: ({ getValue }) => (
+        <span className="text-slate-500 text-xs">{formatDate(getValue())}</span>
       ),
     },
     { id: 'actions', header: '', cell: ({ row }) => actionButtons(row) },

@@ -18,14 +18,13 @@ export default function ResultForm({ defaultValues, onSubmit, loading, contentId
   const [details, setDetails] = useState(defaultValues?.fullDetails || '')
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
   const [resultDate, setResultDate] = useState(defaultValues?.resultDate ? new Date(defaultValues.resultDate) : null)
-  const [publishedAt, setPublishedAt] = useState(defaultValues?.publishedAt ? new Date(defaultValues.publishedAt) : new Date())
 
   const fetchCategories = () => resultsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
   useEffect(() => { fetchCategories() }, [])
   useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   const submit = (data) => {
-    onSubmit({ ...data, fullDetails: details, thumbnail, resultDate: resultDate?.toISOString(), publishedAt: publishedAt?.toISOString() })
+    onSubmit({ ...data, fullDetails: details, thumbnail, resultDate: resultDate?.toISOString() })
   }
 
   return (
@@ -96,14 +95,6 @@ export default function ResultForm({ defaultValues, onSubmit, loading, contentId
             <input id="result-year" name="year" type="number" autoComplete="off"
               {...register('year')} className={inp} />
           </div>
-        </div>
-      </div>
-
-      <div className={section} style={sectionStyle}>
-        <div>
-          <label htmlFor="result-publishedat" className={lbl} style={lblStyle}>Published At *</label>
-          <DateField id="result-publishedat" selected={publishedAt} onChange={setPublishedAt}
-            showTimeSelect dateFormat="dd/MM/yyyy HH:mm" />
         </div>
       </div>
 
