@@ -7,12 +7,14 @@
  */
 
 const MONGO_OP_RE = /\$[a-zA-Z]/g
-// Matches dangerous HTML constructs: <script>, <iframe>, on* handlers, javascript: URLs
-const DANGEROUS_HTML_RE = /<(?:script|style|iframe|object|embed|link|meta|svg|math|base|applet|form)\b[^>]*>|<\/(?:script|style|iframe|object|embed|form)\s*>|javascript\s*:|on[a-z]{2,}\s*=/gi
+// Strip full <script>...</script> blocks including their content
+const SCRIPT_BLOCK_RE = /<script\b[^>]*>[\s\S]*?<\/script\s*>/gi
+// Matches remaining dangerous HTML constructs: <iframe>, on* handlers, javascript: URLs
+const DANGEROUS_HTML_RE = /<(?:style|iframe|object|embed|link|meta|svg|math|base|applet|form)\b[^>]*>|<\/(?:style|iframe|object|embed|form)\s*>|javascript\s*:|on[a-z]{2,}\s*=/gi
 
 function stripString(val) {
   if (typeof val !== 'string') return val
-  return val.replace(MONGO_OP_RE, '').replace(DANGEROUS_HTML_RE, '')
+  return val.replace(SCRIPT_BLOCK_RE, '').replace(MONGO_OP_RE, '').replace(DANGEROUS_HTML_RE, '')
 }
 
 function sanitizeValue(val) {
