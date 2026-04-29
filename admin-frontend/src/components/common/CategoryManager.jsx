@@ -193,7 +193,7 @@ export default function CategoryManager({
           <div className="flex gap-2 shrink-0">
             <button
               onClick={handleCreate}
-              disabled={adding || !addName.trim()}
+              disabled={adding}
               className="flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all disabled:opacity-50"
               style={{ background: `linear-gradient(135deg,${P},#072d6e)` }}
             >

@@ -19,10 +19,12 @@ function CompanyLogoField({ logo, onChange, companyName }) {
       <div className="flex items-center gap-3">
         {/* Preview */}
         <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center"
-          style={{ background: logo ? 'transparent' : color, border: '1px solid #E2E8F0' }}>
+          style={{ background: logo ? 'transparent' : (companyName?.trim() ? color : '#E2E8F0'), border: '1px solid #E2E8F0' }}>
           {logo
             ? <img src={logo} alt="logo" className="w-full h-full object-cover" />
-            : <span className="text-white font-bold text-lg">{initial}</span>
+            : companyName?.trim()
+              ? <span className="text-white font-bold text-lg">{initial}</span>
+              : <span className="text-slate-400 font-bold text-lg">?</span>
           }
         </div>
         <div className="flex-1 flex flex-col gap-1">

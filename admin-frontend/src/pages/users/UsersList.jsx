@@ -61,12 +61,14 @@ export default function UsersList() {
 
   const handleCreate = async (e) => {
     e.preventDefault()
+    if (!createForm.name.trim()) { toast.error('Name is required'); return }
     if (!createForm.roleId) { toast.error('Role is required'); return }
     setCreating(true)
     try {
       await usersApi.create(createForm)
       toast.success('User created!')
       setCreateOpen(false)
+      fetchUsers({ page, limit: PAGE_SIZE, search: debouncedSearch })
     } catch (err) {
       toast.error(err.response?.data?.message || 'Create failed')
     } finally { setCreating(false) }
@@ -86,6 +88,7 @@ export default function UsersList() {
       await usersApi.update(editId, { ...editForm, active: editForm.active === true || editForm.active === 'true' })
       toast.success('User updated')
       setEditOpen(false)
+      fetchUsers({ page, limit: PAGE_SIZE, search: debouncedSearch })
     } catch (err) {
       toast.error(err.response?.data?.message || 'Update failed')
     } finally { setSaving(false) }
@@ -94,7 +97,12 @@ export default function UsersList() {
   // ── Delete ────────────────────────────────────────────────────────────────────
   const handleDelete = async () => {
     setDeleting(true)
-    try { await usersApi.delete(deleteId); toast.success('User deleted'); setDeleteId(null) }
+    try {
+      await usersApi.delete(deleteId)
+      toast.success('User deleted')
+      setDeleteId(null)
+      fetchUsers({ page, limit: PAGE_SIZE, search: debouncedSearch })
+    }
     catch (err) { toast.error(err.response?.data?.message || 'Delete failed') }
     finally { setDeleting(false) }
   }

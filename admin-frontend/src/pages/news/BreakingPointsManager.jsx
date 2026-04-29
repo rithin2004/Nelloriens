@@ -190,7 +190,7 @@ export default function BreakingPointsManager() {
             <div className="flex gap-2">
               <button
                 onClick={handleAdd}
-                disabled={adding || !addText.trim()}
+                disabled={adding}
                 className="flex items-center justify-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all disabled:opacity-50"
                 style={{ background: 'linear-gradient(135deg,#DC2626,#B91C1C)', boxShadow: '0 4px 12px rgba(220,38,38,0.25)' }}
               >
