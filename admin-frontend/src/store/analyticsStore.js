@@ -11,7 +11,7 @@ const useAnalyticsStore = create((set, get) => ({
     set({ loading: true })
     try {
       const res = await analyticsApi.getPageViews()
-      set({ pageViews: res.data || {}, loaded: true })
+      set({ pageViews: res.data?.data || {}, loaded: true })
     } catch {
       // non-blocking — admin works without analytics
     } finally {
