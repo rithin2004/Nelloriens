@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, Info, Tag, Star, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { newsApi, uploadApi } from '../../services/api'
 import useNewsStore from '../../store/newsStore'
+import useAnalyticsStore from '../../store/analyticsStore'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable from '../../components/common/DataTable'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -66,7 +67,9 @@ export default function NewsList() {
   // Data from Zustand store — updated by useSSE in Layout automatically
   const { items: data, totalPages, loading, fetch } = useNewsStore()
 
-  const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
+  const { pageViews: analyticsPageViews, loaded: analyticsLoaded, fetch: fetchAnalytics } = useAnalyticsStore()
+  useEffect(() => { if (!analyticsLoaded) fetchAnalytics() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const totalPageViews = analyticsPageViews['news'] || 0
 
   const [formOpen,       setFormOpen]       = useState(false)
   const [formDefaults,   setFormDefaults]   = useState(null)

@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, Tag, Star, Users, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { eventsApi, uploadApi } from '../../services/api'
 import useEventsStore from '../../store/eventsStore'
+import useAnalyticsStore from '../../store/analyticsStore'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable from '../../components/common/DataTable'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -84,7 +85,9 @@ export default function EventsList() {
 
   const { items: data, totalPages, loading, fetch } = useEventsStore()
 
-  const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
+  const { pageViews: analyticsPageViews, loaded: analyticsLoaded, fetch: fetchAnalytics } = useAnalyticsStore()
+  useEffect(() => { if (!analyticsLoaded) fetchAnalytics() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const totalPageViews = analyticsPageViews['events'] || 0
 
   // Fetch regular events
   useEffect(() => {

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { sportsApi, uploadApi } from '../../services/api'
 import useSportsStore from '../../store/sportsStore'
+import useAnalyticsStore from '../../store/analyticsStore'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable from '../../components/common/DataTable'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -44,7 +45,9 @@ export default function SportsList() {
 
   const { items: data, totalPages, loading, fetch } = useSportsStore()
 
-  const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
+  const { pageViews: analyticsPageViews, loaded: analyticsLoaded, fetch: fetchAnalytics } = useAnalyticsStore()
+  useEffect(() => { if (!analyticsLoaded) fetchAnalytics() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const totalPageViews = analyticsPageViews['sports'] || 0
 
   const [deleteId,       setDeleteId]       = useState(null)
   const [deleting,       setDeleting]       = useState(false)

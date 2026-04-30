@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, Star, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { staysApi, uploadApi } from '../../services/api'
 import useStaysStore from '../../store/staysStore'
+import useAnalyticsStore from '../../store/analyticsStore'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable from '../../components/common/DataTable'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -72,7 +73,9 @@ export default function StaysList() {
 
   const { items: data, totalPages, loading, fetch } = useStaysStore()
 
-  const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
+  const { pageViews: analyticsPageViews, loaded: analyticsLoaded, fetch: fetchAnalytics } = useAnalyticsStore()
+  useEffect(() => { if (!analyticsLoaded) fetchAnalytics() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const totalPageViews = analyticsPageViews['stays'] || 0
 
   const loadTopStays = async () => {
     setTopStaysLoading(true)

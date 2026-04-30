@@ -11,6 +11,7 @@ import { Plus, Pencil, Trash2, Eye, Star, GripVertical, Upload, Loader } from 'l
 import toast from 'react-hot-toast'
 import { tourismApi, uploadApi } from '../../services/api'
 import useTourismStore from '../../store/tourismStore'
+import useAnalyticsStore from '../../store/analyticsStore'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable from '../../components/common/DataTable'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -135,7 +136,9 @@ export default function TourismList() {
 
   const { items: data, totalPages, loading, fetch } = useTourismStore()
 
-  const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
+  const { pageViews: analyticsPageViews, loaded: analyticsLoaded, fetch: fetchAnalytics } = useAnalyticsStore()
+  useEffect(() => { if (!analyticsLoaded) fetchAnalytics() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const totalPageViews = analyticsPageViews['tourism'] || 0
 
   const loadPopularPlaces = async () => {
     setPopularLoading(true)

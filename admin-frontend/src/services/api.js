@@ -413,3 +413,8 @@ export const setupApi = {
   getStatus:       ()     => api.get('/setup/status'),
   createSuperadmin:(data) => api.post('/setup/create-superadmin', data),
 }
+
+// ── Analytics ──────────────────────────────────────────────────────────────
+export const analyticsApi = {
+  getPageViews: () => api.get('/analytics/page-views'),
+}

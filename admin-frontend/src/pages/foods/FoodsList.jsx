@@ -10,6 +10,7 @@ import {
 import toast from 'react-hot-toast'
 import { foodsApi, uploadApi } from '../../services/api'
 import useFoodsStore from '../../store/foodsStore'
+import useAnalyticsStore from '../../store/analyticsStore'
 import PageHeader from '../../components/common/PageHeader'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import FormModal from '../../components/common/FormModal'
@@ -362,7 +363,9 @@ export default function FoodsList() {
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
-  const totalPageViews = [...varieties, ...sweets, ...healthTips].reduce((s, i) => s + (i.pageViews || 0), 0)
+  const { pageViews: analyticsPageViews, loaded: analyticsLoaded, fetch: fetchAnalytics } = useAnalyticsStore()
+  useEffect(() => { if (!analyticsLoaded) fetchAnalytics() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const totalPageViews = analyticsPageViews['foods'] || 0
 
   return (
     <div className="space-y-6 animate-fade-in">

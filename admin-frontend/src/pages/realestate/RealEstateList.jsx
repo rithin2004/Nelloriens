@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, Eye, Home, Building, Settings2 } from 'lucide-rea
 import toast from 'react-hot-toast'
 import { realEstateApi, uploadApi } from '../../services/api'
 import useRealEstateStore from '../../store/realEstateStore'
+import useAnalyticsStore from '../../store/analyticsStore'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable from '../../components/common/DataTable'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -54,7 +55,9 @@ export default function RealEstateList() {
 
   const { items: data, totalPages, loading, fetch } = useRealEstateStore()
 
-  const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
+  const { pageViews: analyticsPageViews, loaded: analyticsLoaded, fetch: fetchAnalytics } = useAnalyticsStore()
+  useEffect(() => { if (!analyticsLoaded) fetchAnalytics() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const totalPageViews = analyticsPageViews['realestate'] || 0
 
   useEffect(() => {
     realEstateApi.getLocations().then((r) => setLocations(r.data.data || [])).catch(() => {})

@@ -6,6 +6,7 @@ import { GripVertical, Pencil, Trash2, Plus, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { historyApi, uploadApi } from '../../services/api'
 import useHistoryStore from '../../store/historyStore'
+import useAnalyticsStore from '../../store/analyticsStore'
 import PageHeader from '../../components/common/PageHeader'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import FormModal from '../../components/common/FormModal'
@@ -57,7 +58,10 @@ export default function HistoryList() {
   // Subscribe to store so SSE-triggered fetches auto-refresh this page
   const { items: storeItems, loading, fetch: storeFetch } = useHistoryStore()
   const [items, setItems] = useState([])
-  const totalPageViews = (storeItems || []).reduce((s, i) => s + (i.pageViews || 0), 0)
+
+  const { pageViews: analyticsPageViews, loaded: analyticsLoaded, fetch: fetchAnalytics } = useAnalyticsStore()
+  useEffect(() => { if (!analyticsLoaded) fetchAnalytics() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const totalPageViews = analyticsPageViews['history'] || 0
   const prevStoreRef = useRef(storeItems)
   const [deleteId, setDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)

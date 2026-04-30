@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, Theater, Film, CalendarClock, Info, Eye } from 'l
 import toast from 'react-hot-toast'
 import { moviesApi, uploadApi } from '../../services/api'
 import useMoviesStore from '../../store/moviesStore'
+import useAnalyticsStore from '../../store/analyticsStore'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable from '../../components/common/DataTable'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -37,7 +38,9 @@ export default function MoviesList() {
 
   const { items: moviesData, totalPages: moviesTotalPages, loading: moviesLoading, fetch: moviesFetch } = useMoviesStore()
 
-  const totalPageViews = (moviesData || []).reduce((s, i) => s + (i.pageViews || 0), 0)
+  const { pageViews: analyticsPageViews, loaded: analyticsLoaded, fetch: fetchAnalytics } = useAnalyticsStore()
+  useEffect(() => { if (!analyticsLoaded) fetchAnalytics() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const totalPageViews = analyticsPageViews['movies'] || 0
 
   const [deleteId,       setDeleteId]       = useState(null)
   const [deleting,       setDeleting]       = useState(false)

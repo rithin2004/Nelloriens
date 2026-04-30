@@ -18,6 +18,7 @@ import FormModal from './FormModal'
 import { formatDate, truncate } from '../../utils/helpers'
 import { useDebounce } from '../../hooks/useDebounce'
 import { uploadApi } from '../../services/api'
+import useAnalyticsStore from '../../store/analyticsStore'
 
 const P  = '#0a3d95'
 const PL = '#dce8fb'
@@ -33,6 +34,7 @@ const toSingular = (str) => {
 
 export default function ModuleList({
   title,
+  collectionName,        // used as analytics module key
   store,                 // Zustand store hook for this module
   createPath,
   editPath,
@@ -70,7 +72,10 @@ export default function ModuleList({
   // Read data from Zustand store
   const { items: data = [], totalPages = 1, loading = false, fetch } = store ? store() : {}
 
-  const totalPageViews = data.reduce((s, i) => s + (i.pageViews || 0), 0)
+  // Module-level page visit count from analytics store
+  const { pageViews: analyticsPageViews, loaded: analyticsLoaded, fetch: fetchAnalytics } = useAnalyticsStore()
+  useEffect(() => { if (!analyticsLoaded) fetchAnalytics() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const totalPageViews = collectionName ? (analyticsPageViews[collectionName] || 0) : 0
 
   const extraFilterStr = JSON.stringify(extraFilterVals)
 
