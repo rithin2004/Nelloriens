@@ -1,4 +1,5 @@
 import { BrowserRouter, useNavigate, useLocation } from 'react-router-dom'
+import ErrorBoundary from './components/common/ErrorBoundary'
 import { Toaster } from 'react-hot-toast'
 import { useEffect, useState } from 'react'
 import { setupApi } from './services/api'
@@ -31,6 +32,7 @@ function SetupGuard({ children }) {
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <Toaster
         position="top-right"
@@ -46,5 +48,6 @@ export default function App() {
         <AppRoutes />
       </SetupGuard>
     </BrowserRouter>
+    </ErrorBoundary>
   )
 }
