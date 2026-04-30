@@ -44,6 +44,9 @@ export default function SportsList() {
 
   const { items: data, totalPages, loading, fetch } = useSportsStore()
 
+  const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
+  const totalCardViews = (data || []).reduce((s, i) => s + (i.cardViews || 0), 0)
+
   const [deleteId,       setDeleteId]       = useState(null)
   const [deleting,       setDeleting]       = useState(false)
   const [formOpen,       setFormOpen]       = useState(false)
@@ -189,11 +192,11 @@ export default function SportsList() {
       cell: ({ row }) => <span className="text-slate-500 text-xs">{row.original.category?.name || row.original.category || '—'}</span>,
     },
     {
-      accessorKey: 'pageViews',
-      header: 'Views',
+      accessorKey: 'cardViews',
+      header: 'Card Views',
       cell: ({ row }) => (
         <span className="flex items-center gap-1 text-slate-400 text-xs">
-          <Eye className="w-3 h-3" /> {row.original.pageViews ?? 0}
+          <Eye className="w-3 h-3" /> {row.original.cardViews ?? 0}
         </span>
       ),
     },
@@ -216,6 +219,8 @@ export default function SportsList() {
     <div className="animate-fade-in">
       <PageHeader
         title="Sports"
+        pageViews={totalPageViews}
+        cardViews={totalCardViews}
         action={
           <div className="flex items-center gap-2 flex-wrap">
             <button

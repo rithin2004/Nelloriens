@@ -66,6 +66,9 @@ export default function ModuleList({
   // Read data from Zustand store
   const { items: data = [], totalPages = 1, loading = false, fetch } = store ? store() : {}
 
+  const totalPageViews = data.reduce((s, i) => s + (i.pageViews || 0), 0)
+  const totalCardViews = data.reduce((s, i) => s + (i.cardViews || 0), 0)
+
   const extraFilterStr = JSON.stringify(extraFilterVals)
 
   // Fetch via store — store saves _params so SSE-triggered re-fetch uses same filters
@@ -166,12 +169,12 @@ export default function ModuleList({
     },
     ...extraColumns,
     {
-      accessorKey: 'pageViews',
-      header: 'Views',
+      accessorKey: 'cardViews',
+      header: 'Card Views',
       cell: ({ row }) => (
         <span className="flex items-center gap-1 text-slate-400 text-xs">
           <Eye className="w-3 h-3" />
-          {row.original.pageViews ?? row.original.viewCount ?? 0}
+          {row.original.cardViews ?? 0}
         </span>
       ),
     },
@@ -208,6 +211,8 @@ export default function ModuleList({
     <div className="animate-fade-in">
       <PageHeader
         title={title}
+        pageViews={totalPageViews}
+        cardViews={totalCardViews}
         action={
           <div className="flex items-center gap-2 flex-wrap">
             {headerExtra}
@@ -271,7 +276,7 @@ export default function ModuleList({
         <div className="flex items-center gap-1.5 text-xs text-slate-400"><Info className="w-3 h-3" /><span>Row actions:</span></div>
         <div className="flex items-center gap-1 text-xs text-slate-400"><Pencil className="w-3 h-3" style={{ color: P }} /><span>Edit</span></div>
         <div className="flex items-center gap-1 text-xs text-slate-400"><Trash2 className="w-3 h-3 text-red-400" /><span>Delete (moves to Recycle Bin)</span></div>
-        <div className="flex items-center gap-1 text-xs text-slate-400"><Eye className="w-3 h-3 text-slate-400" /><span>Page views</span></div>
+        <div className="flex items-center gap-1 text-xs text-slate-400"><Eye className="w-3 h-3 text-slate-400" /><span>Card views</span></div>
       </div>
 
       <ConfirmModal

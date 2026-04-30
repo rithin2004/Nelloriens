@@ -135,6 +135,9 @@ export default function TourismList() {
 
   const { items: data, totalPages, loading, fetch } = useTourismStore()
 
+  const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
+  const totalCardViews = (data || []).reduce((s, i) => s + (i.cardViews || 0), 0)
+
   const loadPopularPlaces = async () => {
     setPopularLoading(true)
     try {
@@ -339,11 +342,11 @@ export default function TourismList() {
       cell: ({ getValue }) => <span className="text-slate-500 text-xs">{getValue() || '—'}</span>,
     },
     {
-      accessorKey: 'pageViews',
-      header: 'Views',
+      accessorKey: 'cardViews',
+      header: 'Card Views',
       cell: ({ row }) => (
         <span className="flex items-center gap-1 text-slate-400 text-xs">
-          <Eye className="w-3 h-3" /> {row.original.pageViews ?? 0}
+          <Eye className="w-3 h-3" /> {row.original.cardViews ?? 0}
         </span>
       ),
     },
@@ -409,6 +412,8 @@ export default function TourismList() {
     <div className="animate-fade-in">
       <PageHeader
         title="Tourism"
+        pageViews={totalPageViews}
+        cardViews={totalCardViews}
         action={
           <button
             onClick={openCreate}

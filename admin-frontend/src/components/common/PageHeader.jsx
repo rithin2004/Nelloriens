@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Eye, MousePointerClick } from 'lucide-react'
 
-export default function PageHeader({ title, subtitle, action, backTo }) {
+export default function PageHeader({ title, subtitle, action, backTo, pageViews, cardViews }) {
   const navigate = useNavigate()
 
   return (
@@ -17,7 +17,21 @@ export default function PageHeader({ title, subtitle, action, backTo }) {
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="text-lg sm:text-xl font-bold text-slate-800 leading-tight">{title}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-lg sm:text-xl font-bold text-slate-800 leading-tight">{title}</h1>
+            {pageViews != null && (
+              <span className="flex items-center gap-1 text-xs text-slate-400 font-medium">
+                <Eye className="w-3.5 h-3.5" />
+                {pageViews.toLocaleString('en-IN')}
+              </span>
+            )}
+            {cardViews != null && (
+              <span className="flex items-center gap-1 text-xs text-slate-400 font-medium">
+                <MousePointerClick className="w-3.5 h-3.5" />
+                {cardViews.toLocaleString('en-IN')}
+              </span>
+            )}
+          </div>
           {subtitle && <p className="text-sm mt-0.5 text-slate-500 leading-tight">{subtitle}</p>}
         </div>
       </div>

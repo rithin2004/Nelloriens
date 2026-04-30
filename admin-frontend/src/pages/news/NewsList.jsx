@@ -66,6 +66,9 @@ export default function NewsList() {
   // Data from Zustand store — updated by useSSE in Layout automatically
   const { items: data, totalPages, loading, fetch } = useNewsStore()
 
+  const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
+  const totalCardViews = (data || []).reduce((s, i) => s + (i.cardViews || 0), 0)
+
   const [formOpen,       setFormOpen]       = useState(false)
   const [formDefaults,   setFormDefaults]   = useState(null)
   const [formEditId,     setFormEditId]     = useState(null)
@@ -185,12 +188,12 @@ export default function NewsList() {
       },
     },
     {
-      accessorKey: 'pageViews',
-      header: 'Views',
+      accessorKey: 'cardViews',
+      header: 'Card Views',
       cell: ({ row }) => (
         <span className="flex items-center gap-1 text-slate-400 text-xs">
           <Eye className="w-3 h-3" />
-          {row.original.pageViews ?? row.original.viewCount ?? 0}
+          {row.original.cardViews ?? 0}
         </span>
       ),
     },
@@ -241,6 +244,8 @@ export default function NewsList() {
     <div className="animate-fade-in">
       <PageHeader
         title="News"
+        pageViews={totalPageViews}
+        cardViews={totalCardViews}
         action={
           <div className="flex items-center gap-2 flex-wrap">
             <button
@@ -328,7 +333,7 @@ export default function NewsList() {
         <div className="flex items-center gap-1.5 text-xs text-slate-400"><Info className="w-3 h-3" /><span>Row actions:</span></div>
         <div className="flex items-center gap-1 text-xs text-slate-400"><Pencil className="w-3 h-3" style={{ color: P }} /><span>Edit</span></div>
         <div className="flex items-center gap-1 text-xs text-slate-400"><Trash2 className="w-3 h-3 text-red-400" /><span>Delete (moves to Recycle Bin)</span></div>
-        <div className="flex items-center gap-1 text-xs text-slate-400"><Eye className="w-3 h-3" /><span>Page views</span></div>
+        <div className="flex items-center gap-1 text-xs text-slate-400"><Eye className="w-3 h-3" /><span>Card views</span></div>
         <div className="flex items-center gap-1 text-xs text-slate-400"><Star className="w-3 h-3 text-amber-400" /><span>Toggle Important</span></div>
       </div>
 
