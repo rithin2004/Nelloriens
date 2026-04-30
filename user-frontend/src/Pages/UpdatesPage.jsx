@@ -147,7 +147,9 @@ const PER_PAGE = 20;
 // ── Main page ──────────────────────────────────────────────────────────────
 const UpdatesPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView, trackPageView } = useAnalytics();
+  const { trackCardView, trackPageVisit } = useAnalytics();
+
+  useEffect(() => { trackPageVisit('updates') }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     notificationsList = [],
@@ -181,7 +183,7 @@ const UpdatesPage = () => {
 
   const openUpdate = (item) => {
     const id = item.id || item._id;
-    if (id) { trackCardView("updates", id); trackPageView("updates", id); }
+    if (id) trackCardView("updates", id);
     setModal({ item, actionButtons: [] });
   };
 

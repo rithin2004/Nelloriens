@@ -104,7 +104,9 @@ const SectionHeading = ({ title }) => (
 
 const JobsPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView, trackPageView } = useAnalytics();
+  const { trackCardView, trackPageVisit } = useAnalytics();
+
+  useEffect(() => { trackPageVisit('jobs') }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     jobsList    = [],
@@ -137,7 +139,7 @@ const JobsPage = () => {
 
   const openJob = (job) => {
     const id = job.id || job._id;
-    if (id) { trackCardView("jobs", id); trackPageView("jobs", id); }
+    if (id) trackCardView("jobs", id);
     setModal({
       item: job,
       actionButtons: job.applyLink ? [{ label: "Apply Now", url: job.applyLink }] : [],

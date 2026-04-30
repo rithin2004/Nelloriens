@@ -25,7 +25,9 @@ const STATS = [
 
 const HistoryPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView, trackPageView } = useAnalytics();
+  const { trackCardView, trackPageVisit } = useAnalytics();
+
+  useEffect(() => { trackPageVisit('history') }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { timelineData, historyEras, storedParams, status, historyPage } =
     useSelector((state) => state.history);
@@ -54,7 +56,7 @@ const HistoryPage = () => {
 
   const openModal = (item) => {
     const id = item.id || item._id;
-    if (id) { trackCardView("history", id); trackPageView("history", id); }
+    if (id) trackCardView("history", id);
     setModal({ item });
   };
 

@@ -182,7 +182,9 @@ const InfluencerCard = ({ event, onClick }) => (
 
 const EventsPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView, trackPageView } = useAnalytics();
+  const { trackCardView, trackPageVisit } = useAnalytics();
+
+  useEffect(() => { trackPageVisit('events') }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     categories = [],
@@ -237,7 +239,7 @@ const EventsPage = () => {
 
   const openEvent = (event) => {
     const id = event.id || event._id;
-    if (id) { trackCardView("events", id); trackPageView("events", id); }
+    if (id) trackCardView("events", id);
     setModal({
       item: event,
       actionButtons: [

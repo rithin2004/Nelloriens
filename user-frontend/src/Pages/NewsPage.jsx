@@ -165,7 +165,9 @@ const SectionHeading = ({ title }) => (
 const NewsPage = () => {
   const dispatch = useDispatch();
   const { id: urlId } = useParams();
-  const { trackCardView, trackPageView } = useAnalytics();
+  const { trackCardView, trackPageVisit } = useAnalytics();
+
+  useEffect(() => { trackPageVisit('news') }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     newsFeedArticles = [],
@@ -186,7 +188,6 @@ const NewsPage = () => {
   useEffect(() => {
     if (urlId) {
       dispatch(fetchNewsDetail(urlId));
-      trackPageView("news", urlId);
       trackCardView("news", urlId);
     } else {
       dispatch(clearNewsDetail());
@@ -215,7 +216,7 @@ const NewsPage = () => {
 
   const openArticle = (article) => {
     const id = article.id || article._id;
-    if (id) { trackCardView("news", id); trackPageView("news", id); }
+    if (id) trackCardView("news", id);
     setLocalModal({
       item: article,
       actionButtons: [{ label: "Read Full Article", to: `/news/${id}` }],

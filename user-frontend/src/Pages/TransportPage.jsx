@@ -118,7 +118,9 @@ const SkeletonLocalCard = () => (
 
 const TransportationPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView, trackPageView } = useAnalytics();
+  const { trackCardView, trackPageVisit } = useAnalytics();
+
+  useEffect(() => { trackPageVisit('transport') }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { transports, storedParams, status, transportPage } = useSelector((state) => state.transport);
   const isLoading = status === "loading";
@@ -172,7 +174,7 @@ const TransportationPage = () => {
 
   const openModal = (item) => {
     const id = item.id || item._id;
-    if (id) { trackCardView("transport", id); trackPageView("transport", id); }
+    if (id) trackCardView("transport", id);
     setModal({
       item,
       actionButtons: item.bookingUrl ? [{ label: "Book Now", url: item.bookingUrl }] : [],

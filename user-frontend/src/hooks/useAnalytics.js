@@ -1,34 +1,22 @@
 import { useCallback } from "react";
 import apiClient from "../services/apiClient";
 
-/**
- * Global Analytics Hook (§13)
- * Implements fire-and-forget view tracking for cards and pages.
- */
 const useAnalytics = () => {
-  /**
-   * Track specific card interaction/view
-   */
+  // Fires when a specific card's detail modal is opened — per-item counter
   const trackCardView = useCallback((module, id) => {
     if (!module || !id) return;
-    
-    // Using module-specific card-views endpoint §4/§13
     apiClient.post(`/${module}/${id}/card-views`)
-      .catch(err => console.warn(`[Analytics] Card track failed for ${module}:${id}`, err));
+      .catch(err => console.warn(`[Analytics] Card view failed for ${module}:${id}`, err));
   }, []);
 
-  /**
-   * Track module page entry
-   */
-  const trackPageView = useCallback((module, id) => {
-    if (!module || !id) return;
-
-    // Using module-specific views endpoint §4/§13
-    apiClient.post(`/${module}/${id}/views`)
-      .catch(err => console.warn(`[Analytics] Page track failed for ${module}:${id}`, err));
+  // Fires on page mount — module-level page visit counter, no item ID
+  const trackPageVisit = useCallback((module) => {
+    if (!module) return;
+    apiClient.post('/analytics/page-visit', { module })
+      .catch(err => console.warn(`[Analytics] Page visit failed for ${module}`, err));
   }, []);
 
-  return { trackCardView, trackPageView };
+  return { trackCardView, trackPageVisit };
 };
 
 export default useAnalytics;

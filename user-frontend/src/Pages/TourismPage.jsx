@@ -80,7 +80,9 @@ const PlaceCard = ({ item, onClick }) => (
 
 const TourismPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView, trackPageView } = useAnalytics();
+  const { trackCardView, trackPageVisit } = useAnalytics();
+
+  useEffect(() => { trackPageVisit('tourism') }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const carouselRef = useRef(null);
 
   const {
@@ -135,7 +137,7 @@ const TourismPage = () => {
 
   const openModal = (item) => {
     const id = item.id || item._id;
-    if (id) { trackCardView("tourism", id); trackPageView("tourism", id); }
+    if (id) trackCardView("tourism", id);
     setModal({
       item,
       actionButtons: item.directionsUrl ? [{ label: "Get Directions", url: item.directionsUrl }] : [],

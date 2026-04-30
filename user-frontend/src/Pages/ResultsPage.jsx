@@ -39,7 +39,9 @@ const SkeletonResultCard = () => (
 
 const ResultsPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView, trackPageView } = useAnalytics();
+  const { trackCardView, trackPageVisit } = useAnalytics();
+
+  useEffect(() => { trackPageVisit('results') }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     resultsList  = [],
@@ -116,7 +118,7 @@ const ResultsPage = () => {
 
   const openResult = (result) => {
     const id = result.id || result._id;
-    if (id) { trackCardView("results", id); trackPageView("results", id); }
+    if (id) trackCardView("results", id);
 
     setModal({ item: result, actionButtons: buildActionButtons(result) });
 

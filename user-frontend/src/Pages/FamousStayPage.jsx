@@ -161,7 +161,9 @@ const StayCard = ({ stay, onClick }) => (
 
 const FamousStayPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView, trackPageView } = useAnalytics();
+  const { trackCardView, trackPageVisit } = useAnalytics();
+
+  useEffect(() => { trackPageVisit('stays') }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     topPicks     = [],
@@ -216,7 +218,7 @@ const FamousStayPage = () => {
 
   const openStay = (stay) => {
     const id = stay.id || stay._id;
-    if (id) { trackCardView("stays", id); trackPageView("stays", id); }
+    if (id) trackCardView("stays", id);
     setModal({
       item: stay,
       actionButtons: stay.bookingUrl ? [{ label: "Book Now", url: stay.bookingUrl }] : [],

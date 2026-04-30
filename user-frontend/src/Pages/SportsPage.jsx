@@ -74,7 +74,9 @@ const SkeletonArticleCard = () => (
 
 const SportsPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView, trackPageView } = useAnalytics();
+  const { trackCardView, trackPageVisit } = useAnalytics();
+
+  useEffect(() => { trackPageVisit('sports') }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     sportsEvents   = [],
@@ -127,7 +129,7 @@ const SportsPage = () => {
 
   const openModal = (item, actionButtons) => {
     const id = item.id || item._id;
-    if (id) { trackCardView("sports", id); trackPageView("sports", id); }
+    if (id) trackCardView("sports", id);
     setModal({ item, actionButtons: actionButtons || [] });
   };
 

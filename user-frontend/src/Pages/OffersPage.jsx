@@ -152,7 +152,9 @@ const OfferCard = ({ offer, onClick }) => (
 
 const OffersPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView, trackPageView } = useAnalytics();
+  const { trackCardView, trackPageVisit } = useAnalytics();
+
+  useEffect(() => { trackPageVisit('offers') }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { offersList, categories, storedParams, status, offersPage } = useSelector((state) => state.offers);
   const isLoading = status === "loading";
@@ -197,7 +199,7 @@ const OffersPage = () => {
 
   const openModal = (offer) => {
     const id = offer.id || offer._id;
-    if (id) { trackCardView("offers", id); trackPageView("offers", id); }
+    if (id) trackCardView("offers", id);
     setModal({
       item: offer,
       actionButtons: offer.redirectUrl ? [{ label: "Claim Offer", url: offer.redirectUrl }] : [],
