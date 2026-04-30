@@ -151,7 +151,7 @@ export default function AdsList() {
         </div>
       ) : (
         !settingsLoading && (
-          <ModuleList title="Manual Ads" collectionName="ads" store={useAdsStore} api={adsApi} FormComponent={AdForm} idPrefix="ADS" />
+          <ModuleList title="Manual Ads" collectionName="ads" store={useAdsStore} api={adsApi} FormComponent={AdForm} idPrefix="ADS" hideCardViews showImpressions showClicks />
         )
       )}
 

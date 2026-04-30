@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Pencil, Trash2, Plus } from 'lucide-react'
+import { GripVertical, Pencil, Trash2, Plus, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { historyApi, uploadApi } from '../../services/api'
 import useHistoryStore from '../../store/historyStore'
@@ -30,6 +30,9 @@ function SortableCard({ item, onEdit, onDelete }) {
         <p className="font-semibold text-slate-800 text-sm truncate">{item.title}</p>
         <p className="text-xs text-slate-500 mt-0.5">{item.eraPeriod}{item.yearLabel ? ` · ${item.yearLabel}` : ''}</p>
       </div>
+      <span className="flex items-center gap-1 text-slate-400 text-xs shrink-0 mr-1">
+        <Eye className="w-3 h-3" /> {item.cardViews ?? 0}
+      </span>
       <button
         onClick={() => onEdit(item._id)}
         className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 transition-colors"
@@ -54,6 +57,7 @@ export default function HistoryList() {
   // Subscribe to store so SSE-triggered fetches auto-refresh this page
   const { items: storeItems, loading, fetch: storeFetch } = useHistoryStore()
   const [items, setItems] = useState([])
+  const totalPageViews = (storeItems || []).reduce((s, i) => s + (i.pageViews || 0), 0)
   const prevStoreRef = useRef(storeItems)
   const [deleteId, setDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
@@ -151,6 +155,7 @@ export default function HistoryList() {
       <PageHeader
         title="History"
         subtitle="Drag to reorder"
+        pageViews={totalPageViews}
         action={
           <button
             onClick={openCreate}

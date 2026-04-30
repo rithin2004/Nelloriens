@@ -55,7 +55,6 @@ export default function RealEstateList() {
   const { items: data, totalPages, loading, fetch } = useRealEstateStore()
 
   const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
-  const totalCardViews = (data || []).reduce((s, i) => s + (i.cardViews || 0), 0)
 
   useEffect(() => {
     realEstateApi.getLocations().then((r) => setLocations(r.data.data || [])).catch(() => {})
@@ -225,7 +224,6 @@ export default function RealEstateList() {
       <PageHeader
         title="Real Estate"
         pageViews={totalPageViews}
-        cardViews={totalCardViews}
         action={
           <div className="flex items-center gap-2">
             <button onClick={() => navigate('/realestate/manage')}

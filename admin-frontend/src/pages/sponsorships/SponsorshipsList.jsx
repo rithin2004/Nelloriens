@@ -13,6 +13,9 @@ export default function SponsorshipsList() {
       titleKey="sponsorName"
       FormComponent={SponsorForm}
       idPrefix="SPN"
+      hideCardViews
+      showImpressions
+      showClicks
     />
   )
 }

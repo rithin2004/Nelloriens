@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Pencil, Trash2, Theater, Film, CalendarClock, Info } from 'lucide-react'
+import { Plus, Pencil, Trash2, Theater, Film, CalendarClock, Info, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { moviesApi, uploadApi } from '../../services/api'
 import useMoviesStore from '../../store/moviesStore'
@@ -36,6 +36,8 @@ export default function MoviesList() {
   const debouncedSearch = useDebounce(search)
 
   const { items: moviesData, totalPages: moviesTotalPages, loading: moviesLoading, fetch: moviesFetch } = useMoviesStore()
+
+  const totalPageViews = (moviesData || []).reduce((s, i) => s + (i.pageViews || 0), 0)
 
   const [deleteId,       setDeleteId]       = useState(null)
   const [deleting,       setDeleting]       = useState(false)
@@ -135,6 +137,14 @@ export default function MoviesList() {
         ? <a href={getValue()} target="_blank" rel="noreferrer" className="text-xs hover:underline" style={{ color: P }}>Watch ↗</a>
         : <span className="text-slate-300 text-xs">—</span>,
     },
+    {
+      accessorKey: 'cardViews', header: 'Card Views',
+      cell: ({ row }) => (
+        <span className="flex items-center gap-1 text-slate-400 text-xs">
+          <Eye className="w-3 h-3" /> {row.original.cardViews ?? 0}
+        </span>
+      ),
+    },
     { id: 'actions', header: '', cell: ({ row }) => actionBtns(row) },
   ]
 
@@ -176,6 +186,14 @@ export default function MoviesList() {
         ? <a href={getValue()} target="_blank" rel="noreferrer" className="text-xs hover:underline" style={{ color: P }}>Watch ↗</a>
         : <span className="text-slate-300 text-xs">—</span>,
     },
+    {
+      accessorKey: 'cardViews', header: 'Card Views',
+      cell: ({ row }) => (
+        <span className="flex items-center gap-1 text-slate-400 text-xs">
+          <Eye className="w-3 h-3" /> {row.original.cardViews ?? 0}
+        </span>
+      ),
+    },
     { id: 'actions', header: '', cell: ({ row }) => actionBtns(row) },
   ]
 
@@ -183,6 +201,7 @@ export default function MoviesList() {
     <div className="animate-fade-in">
       <PageHeader
         title="Movies"
+        pageViews={totalPageViews}
         action={
           <div className="flex items-center gap-2 flex-wrap">
             <button

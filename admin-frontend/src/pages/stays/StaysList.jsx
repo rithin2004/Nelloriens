@@ -73,7 +73,6 @@ export default function StaysList() {
   const { items: data, totalPages, loading, fetch } = useStaysStore()
 
   const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
-  const totalCardViews = (data || []).reduce((s, i) => s + (i.cardViews || 0), 0)
 
   const loadTopStays = async () => {
     setTopStaysLoading(true)
@@ -280,7 +279,6 @@ export default function StaysList() {
       <PageHeader
         title="Stays"
         pageViews={totalPageViews}
-        cardViews={totalCardViews}
         action={
           <button
             onClick={openCreate}

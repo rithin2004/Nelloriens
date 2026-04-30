@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { RefreshCw, RotateCcw, Eye, EyeOff, Link2, Link2Off, Plus, Pencil, Trash2 } from 'lucide-react'
+import { RefreshCw, RotateCcw, Eye, EyeOff, Link2, Link2Off, Plus, Pencil, Trash2, MousePointerClick } from 'lucide-react'
 import toast from 'react-hot-toast'
 import PageHeader from '../../components/common/PageHeader'
 import FormModal from '../../components/common/FormModal'
@@ -134,10 +134,13 @@ export default function InstagramManager() {
   const inpS = { background: '#FFFFFF', border: '1px solid #CBD5E1' }
   const lbl  = 'block text-xs font-semibold uppercase tracking-wide mb-1.5 text-slate-500'
 
+  const totalImpressions = posts.reduce((s, p) => s + (p.impressions || 0), 0)
+
   return (
     <div className="animate-fade-in">
       <PageHeader
         title="Instagram"
+        pageViews={totalImpressions}
         action={
           <div className="flex gap-2 flex-wrap">
             {connected ? (
@@ -236,7 +239,15 @@ export default function InstagramManager() {
                 </div>
                 <div className="p-2">
                   <p className="text-xs text-slate-600 line-clamp-2">{post.caption || '—'}</p>
-                  <span className="text-[10px] text-slate-400 uppercase mt-1 block">{post.mediaType}</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] text-slate-400 uppercase">{post.mediaType}</span>
+                    <span className="flex items-center gap-0.5 text-[10px] text-slate-400 ml-auto">
+                      <Eye className="w-2.5 h-2.5" /> {post.impressions ?? 0}
+                    </span>
+                    <span className="flex items-center gap-0.5 text-[10px] text-slate-400">
+                      <MousePointerClick className="w-2.5 h-2.5" /> {post.touches ?? 0}
+                    </span>
+                  </div>
                 </div>
                 {/* Actions */}
                 <div className="absolute top-2 right-2 flex gap-1">

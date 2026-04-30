@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { useForm } from 'react-hook-form'
 import {
   Upload, Loader, X, Plus, Pencil, Trash2, Star, GripVertical,
-  UtensilsCrossed, Camera, HeartPulse,
+  UtensilsCrossed, Camera, HeartPulse, Eye,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { foodsApi, uploadApi } from '../../services/api'
@@ -362,9 +362,11 @@ export default function FoodsList() {
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
+  const totalPageViews = [...varieties, ...sweets, ...healthTips].reduce((s, i) => s + (i.pageViews || 0), 0)
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <PageHeader title="Foods" />
+      <PageHeader title="Foods" pageViews={totalPageViews} />
 
       {/* ══ SECTION 1 — PHOTOS ══ */}
       <div style={card}>
@@ -497,6 +499,9 @@ export default function FoodsList() {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
+                    <span className="flex items-center gap-1 text-slate-400 text-xs mr-1">
+                      <Eye className="w-3 h-3" /> {v.cardViews ?? 0}
+                    </span>
                     {/* Popular toggle */}
                     <button
                       onClick={() => handleTogglePopular(v)}
@@ -570,6 +575,9 @@ export default function FoodsList() {
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
+                    <span className="flex items-center gap-1 text-slate-400 text-xs mr-1">
+                      <Eye className="w-3 h-3" /> {s.cardViews ?? 0}
+                    </span>
                     <button onClick={() => openSweetEdit(s)} className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 transition-colors" onMouseEnter={(e) => e.currentTarget.style.background = '#eef3fd'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}><Pencil className="w-4 h-4" /></button>
                     <button onClick={() => setDeleteSweetId(s._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 transition-colors" onMouseEnter={(e) => e.currentTarget.style.background = '#FEE2E2'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}><Trash2 className="w-4 h-4" /></button>
                   </div>
@@ -623,6 +631,9 @@ export default function FoodsList() {
                     {t.tip && <p className="text-sm text-slate-500 mt-1 line-clamp-2">{t.tip}</p>}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
+                    <span className="flex items-center gap-1 text-slate-400 text-xs mr-1">
+                      <Eye className="w-3 h-3" /> {t.cardViews ?? 0}
+                    </span>
                     <button onClick={() => openTipEdit(t)} className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 transition-colors" onMouseEnter={(e) => e.currentTarget.style.background = '#eef3fd'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}><Pencil className="w-4 h-4" /></button>
                     <button onClick={() => setDeleteTipId(t._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 transition-colors" onMouseEnter={(e) => e.currentTarget.style.background = '#FEE2E2'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}><Trash2 className="w-4 h-4" /></button>
                   </div>

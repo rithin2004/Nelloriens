@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Info, Eye } from 'lucide-react'
+import { Plus, Pencil, Trash2, Info, Eye, MousePointerClick } from 'lucide-react'
 import toast from 'react-hot-toast'
 import PageHeader from './PageHeader'
 import DataTable from './DataTable'
@@ -44,6 +44,10 @@ export default function ModuleList({
   extraFilters = [],
   headerExtra,
   idPrefix,
+  hideCardViews = false,
+  showImpressions = false,
+  showClicks = false,
+  showTouches = false,
 }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -67,7 +71,6 @@ export default function ModuleList({
   const { items: data = [], totalPages = 1, loading = false, fetch } = store ? store() : {}
 
   const totalPageViews = data.reduce((s, i) => s + (i.pageViews || 0), 0)
-  const totalCardViews = data.reduce((s, i) => s + (i.cardViews || 0), 0)
 
   const extraFilterStr = JSON.stringify(extraFilterVals)
 
@@ -168,7 +171,7 @@ export default function ModuleList({
       cell: ({ getValue }) => <span className="font-medium text-slate-800">{truncate(getValue() || '', 60)}</span>,
     },
     ...extraColumns,
-    {
+    ...(!hideCardViews ? [{
       accessorKey: 'cardViews',
       header: 'Card Views',
       cell: ({ row }) => (
@@ -177,7 +180,37 @@ export default function ModuleList({
           {row.original.cardViews ?? 0}
         </span>
       ),
-    },
+    }] : []),
+    ...(showImpressions ? [{
+      accessorKey: 'impressions',
+      header: 'Impressions',
+      cell: ({ row }) => (
+        <span className="flex items-center gap-1 text-slate-400 text-xs">
+          <Eye className="w-3 h-3" />
+          {row.original.impressions ?? 0}
+        </span>
+      ),
+    }] : []),
+    ...(showClicks ? [{
+      accessorKey: 'clicks',
+      header: 'Clicks',
+      cell: ({ row }) => (
+        <span className="flex items-center gap-1 text-slate-400 text-xs">
+          <MousePointerClick className="w-3 h-3" />
+          {row.original.clicks ?? 0}
+        </span>
+      ),
+    }] : []),
+    ...(showTouches ? [{
+      accessorKey: 'touches',
+      header: 'Touches',
+      cell: ({ row }) => (
+        <span className="flex items-center gap-1 text-slate-400 text-xs">
+          <MousePointerClick className="w-3 h-3" />
+          {row.original.touches ?? 0}
+        </span>
+      ),
+    }] : []),
     {
       accessorKey: 'createdAt',
       header: 'Date',
@@ -212,7 +245,6 @@ export default function ModuleList({
       <PageHeader
         title={title}
         pageViews={totalPageViews}
-        cardViews={totalCardViews}
         action={
           <div className="flex items-center gap-2 flex-wrap">
             {headerExtra}
@@ -276,7 +308,9 @@ export default function ModuleList({
         <div className="flex items-center gap-1.5 text-xs text-slate-400"><Info className="w-3 h-3" /><span>Row actions:</span></div>
         <div className="flex items-center gap-1 text-xs text-slate-400"><Pencil className="w-3 h-3" style={{ color: P }} /><span>Edit</span></div>
         <div className="flex items-center gap-1 text-xs text-slate-400"><Trash2 className="w-3 h-3 text-red-400" /><span>Delete (moves to Recycle Bin)</span></div>
-        <div className="flex items-center gap-1 text-xs text-slate-400"><Eye className="w-3 h-3 text-slate-400" /><span>Card views</span></div>
+        {!hideCardViews && <div className="flex items-center gap-1 text-xs text-slate-400"><Eye className="w-3 h-3 text-slate-400" /><span>Card views</span></div>}
+        {showImpressions && <div className="flex items-center gap-1 text-xs text-slate-400"><Eye className="w-3 h-3 text-slate-400" /><span>Impressions</span></div>}
+        {(showClicks || showTouches) && <div className="flex items-center gap-1 text-xs text-slate-400"><MousePointerClick className="w-3 h-3 text-slate-400" /><span>{showTouches ? 'Touches' : 'Clicks'}</span></div>}
       </div>
 
       <ConfirmModal

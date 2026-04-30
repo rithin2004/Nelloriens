@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, Train, Bus, Plane, MapPin, Info } from 'lucide-react'
+import { Plus, Pencil, Trash2, Train, Bus, Plane, MapPin, Info, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { transportApi, uploadApi } from '../../services/api'
 import useTransportStore from '../../store/transportStore'
@@ -43,6 +43,8 @@ export default function TransportList() {
   const debouncedSearch = useDebounce(search)
 
   const { items: data, totalPages, loading, fetch } = useTransportStore()
+
+  const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
 
   const [deleteId,       setDeleteId]       = useState(null)
   const [deleting,       setDeleting]       = useState(false)
@@ -122,6 +124,7 @@ export default function TransportList() {
     { accessorKey: 'arrivalStation',   header: 'To',   cell: ({ getValue }) => <span className="text-slate-500 text-xs">{getValue() || '—'}</span> },
     { accessorKey: 'departureTime',    header: 'Dep.',  cell: ({ getValue }) => <span className="text-slate-500 text-xs">{getValue() || '—'}</span> },
     { accessorKey: 'createdAt', header: 'Added', cell: ({ getValue }) => <span className="text-slate-500 text-xs">{formatDate(getValue())}</span> },
+    { accessorKey: 'cardViews', header: 'Card Views', cell: ({ row }) => <span className="flex items-center gap-1 text-slate-400 text-xs"><Eye className="w-3 h-3" /> {row.original.cardViews ?? 0}</span> },
     { id: 'actions', header: '', cell: ({ row }) => actionButtons(row) },
   ]
 
@@ -133,6 +136,7 @@ export default function TransportList() {
     { accessorKey: 'toLocation',   header: 'To',   cell: ({ getValue }) => <span className="text-slate-500 text-xs">{getValue() || '—'}</span> },
     { accessorKey: 'operator',     header: 'Operator', cell: ({ getValue }) => <span className="text-slate-500 text-xs">{getValue() || '—'}</span> },
     { accessorKey: 'createdAt', header: 'Added', cell: ({ getValue }) => <span className="text-slate-500 text-xs">{formatDate(getValue())}</span> },
+    { accessorKey: 'cardViews', header: 'Card Views', cell: ({ row }) => <span className="flex items-center gap-1 text-slate-400 text-xs"><Eye className="w-3 h-3" /> {row.original.cardViews ?? 0}</span> },
     { id: 'actions', header: '', cell: ({ row }) => actionButtons(row) },
   ]
 
@@ -142,6 +146,7 @@ export default function TransportList() {
     { accessorKey: 'name', header: 'Airport', cell: ({ getValue }) => <span className="font-medium text-slate-800">{truncate(getValue() || '', 40)}</span> },
     { accessorKey: 'terminals', header: 'Terminals', cell: ({ getValue }) => <span className="text-slate-500 text-xs">{getValue() || '—'}</span> },
     { accessorKey: 'createdAt', header: 'Added', cell: ({ getValue }) => <span className="text-slate-500 text-xs">{formatDate(getValue())}</span> },
+    { accessorKey: 'cardViews', header: 'Card Views', cell: ({ row }) => <span className="flex items-center gap-1 text-slate-400 text-xs"><Eye className="w-3 h-3" /> {row.original.cardViews ?? 0}</span> },
     { id: 'actions', header: '', cell: ({ row }) => actionButtons(row) },
   ]
 
@@ -152,6 +157,7 @@ export default function TransportList() {
     { accessorKey: 'coverageArea', header: 'Coverage', cell: ({ getValue }) => <span className="text-slate-500 text-xs">{truncate(getValue() || '—', 30)}</span> },
     { accessorKey: 'baseFare', header: 'Base Fare', cell: ({ getValue }) => <span className="text-slate-500 text-xs">{getValue() || '—'}</span> },
     { accessorKey: 'createdAt', header: 'Added', cell: ({ getValue }) => <span className="text-slate-500 text-xs">{formatDate(getValue())}</span> },
+    { accessorKey: 'cardViews', header: 'Card Views', cell: ({ row }) => <span className="flex items-center gap-1 text-slate-400 text-xs"><Eye className="w-3 h-3" /> {row.original.cardViews ?? 0}</span> },
     { id: 'actions', header: '', cell: ({ row }) => actionButtons(row) },
   ]
 
@@ -165,6 +171,7 @@ export default function TransportList() {
     <div className="animate-fade-in">
       <PageHeader
         title="Transport"
+        pageViews={totalPageViews}
         action={
           <button
             onClick={openCreate}

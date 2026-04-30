@@ -136,7 +136,6 @@ export default function TourismList() {
   const { items: data, totalPages, loading, fetch } = useTourismStore()
 
   const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
-  const totalCardViews = (data || []).reduce((s, i) => s + (i.cardViews || 0), 0)
 
   const loadPopularPlaces = async () => {
     setPopularLoading(true)
@@ -413,7 +412,6 @@ export default function TourismList() {
       <PageHeader
         title="Tourism"
         pageViews={totalPageViews}
-        cardViews={totalCardViews}
         action={
           <button
             onClick={openCreate}

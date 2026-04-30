@@ -45,7 +45,6 @@ export default function SportsList() {
   const { items: data, totalPages, loading, fetch } = useSportsStore()
 
   const totalPageViews = (data || []).reduce((s, i) => s + (i.pageViews || 0), 0)
-  const totalCardViews = (data || []).reduce((s, i) => s + (i.cardViews || 0), 0)
 
   const [deleteId,       setDeleteId]       = useState(null)
   const [deleting,       setDeleting]       = useState(false)
@@ -220,7 +219,6 @@ export default function SportsList() {
       <PageHeader
         title="Sports"
         pageViews={totalPageViews}
-        cardViews={totalCardViews}
         action={
           <div className="flex items-center gap-2 flex-wrap">
             <button
