@@ -939,6 +939,49 @@ export const schemas = {
     },
   },
 
+  // ── Analytics ──────────────────────────────────────────────────────────────
+
+  PageVisitRequest: {
+    type: 'object',
+    required: ['module'],
+    properties: {
+      module: {
+        type: 'string',
+        example: 'news',
+        description: 'Module identifier. Must be one of: news, events, updates, history, transport, foods, stays, tourism, offers, movies, theatres, sports, realestate, results, jobs, ads, sponsorships, instagram, leads, company.',
+      },
+    },
+  },
+
+  PageViewsResponse: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      data: {
+        type: 'object',
+        description: 'Map of module name → total page views.',
+        example: {
+          news:       1840,
+          events:     973,
+          jobs:       512,
+          results:    407,
+          sports:     388,
+          transport:  321,
+          tourism:    289,
+          updates:    214,
+          foods:      198,
+          offers:     156,
+          stays:      142,
+          movies:     137,
+          realestate: 89,
+          history:    74,
+          leads:      61,
+          company:    38,
+        },
+      },
+    },
+  },
+
   // ── Upload ──────────────────────────────────────────────────────────────
 
   ReserveIdResponse: {

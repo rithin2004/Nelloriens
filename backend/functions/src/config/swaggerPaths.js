@@ -1773,4 +1773,32 @@ export const paths = {
   '/instagram/posts/{id}/card-views':  { post: { tags: ['Instagram'], summary: 'Increment card views on an Instagram post (public)', parameters: id, responses: { ...ok('Card views incremented.') } } },
   '/instagram/posts/{id}/impressions': { post: { tags: ['Instagram'], summary: 'Increment impressions on an Instagram post (public)', parameters: id, responses: { ...ok('Impressions incremented.') } } },
   '/instagram/posts/{id}/touches':     { post: { tags: ['Instagram'], summary: 'Increment touches on an Instagram post (public)', parameters: id, responses: { ...ok('Touches incremented.') } } },
+
+  // ── Analytics ──────────────────────────────────────────────────────────────
+
+  '/analytics/page-visit': {
+    post: {
+      tags: ['Analytics'],
+      summary: 'Record a module page visit (public)',
+      description: 'Fired from the user-facing site on page mount. Increments the `pageViews` counter for the given module in the analytics collection. No authentication required — anonymous counting supported (Rule 11).',
+      requestBody: body('#/components/schemas/PageVisitRequest'),
+      responses: {
+        ...ok('Page visit recorded.'),
+        400: { description: 'Invalid or missing module name.', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+      },
+    },
+  },
+
+  '/analytics/page-views': {
+    get: {
+      tags: ['Analytics'],
+      summary: 'Get all module page view counts (admin)',
+      description: 'Returns an object mapping each module name to its total page view count. Used by the admin dashboard and list page headers to display traffic stats.',
+      security: auth,
+      responses: {
+        ...ok('Module page view counts.', '#/components/schemas/PageViewsResponse'),
+        401: { description: 'Missing or invalid Bearer token.', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+      },
+    },
+  },
 }

@@ -68,6 +68,7 @@ export const swaggerSpec = swaggerJsdoc({
       { name: 'Upload',       description: 'Firebase Storage file upload/delete' },
       { name: 'Settings',    description: 'Site configuration & audit logs' },
       { name: 'RecycleBin', description: 'Soft-deleted content — restore or permanently purge' },
+      { name: 'Analytics',  description: 'Module-level page visit tracking (admin stats)' },
     ],
     paths,
   },
