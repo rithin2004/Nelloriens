@@ -25,7 +25,7 @@ const STATS = [
 
 const HistoryPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView } = useAnalytics();
+  const { trackCardView, trackPageView } = useAnalytics();
 
   const { timelineData, historyEras, storedParams, status, historyPage } =
     useSelector((state) => state.history);
@@ -54,7 +54,7 @@ const HistoryPage = () => {
 
   const openModal = (item) => {
     const id = item.id || item._id;
-    if (id) trackCardView("history", id);
+    if (id) { trackCardView("history", id); trackPageView("history", id); }
     setModal({ item });
   };
 

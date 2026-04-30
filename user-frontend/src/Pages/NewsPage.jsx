@@ -215,7 +215,7 @@ const NewsPage = () => {
 
   const openArticle = (article) => {
     const id = article.id || article._id;
-    if (id) trackCardView("news", id);
+    if (id) { trackCardView("news", id); trackPageView("news", id); }
     setLocalModal({
       item: article,
       actionButtons: [{ label: "Read Full Article", to: `/news/${id}` }],

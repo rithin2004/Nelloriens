@@ -182,7 +182,7 @@ const InfluencerCard = ({ event, onClick }) => (
 
 const EventsPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView } = useAnalytics();
+  const { trackCardView, trackPageView } = useAnalytics();
 
   const {
     categories = [],
@@ -237,7 +237,7 @@ const EventsPage = () => {
 
   const openEvent = (event) => {
     const id = event.id || event._id;
-    if (id) trackCardView("events", id);
+    if (id) { trackCardView("events", id); trackPageView("events", id); }
     setModal({
       item: event,
       actionButtons: [

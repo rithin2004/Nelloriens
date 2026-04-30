@@ -161,7 +161,7 @@ const StayCard = ({ stay, onClick }) => (
 
 const FamousStayPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView } = useAnalytics();
+  const { trackCardView, trackPageView } = useAnalytics();
 
   const {
     topPicks     = [],
@@ -216,7 +216,7 @@ const FamousStayPage = () => {
 
   const openStay = (stay) => {
     const id = stay.id || stay._id;
-    if (id) trackCardView("famousStays", id);
+    if (id) { trackCardView("stays", id); trackPageView("stays", id); }
     setModal({
       item: stay,
       actionButtons: stay.bookingUrl ? [{ label: "Book Now", url: stay.bookingUrl }] : [],

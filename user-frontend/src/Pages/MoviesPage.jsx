@@ -40,7 +40,7 @@ const THEATERS_DEFAULT = 3;
 
 const MoviesPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView } = useAnalytics();
+  const { trackCardView, trackPageView } = useAnalytics();
 
   const { currentMovies, upcomingMovies, theaters, moviesByTheatre, storedParams, status, moviesPage } =
     useSelector((state) => state.movies);
@@ -86,7 +86,7 @@ const MoviesPage = () => {
 
   const openModal = (movie) => {
     const id = movie.id || movie._id;
-    if (id) trackCardView("movies", id);
+    if (id) { trackCardView("movies", id); trackPageView("movies", id); }
     const actions = [];
     if (movie.trailerUrl) actions.push({ label: "Watch Trailer", url: movie.trailerUrl });
     if (movie.bookingUrl) actions.push({ label: "Book Now", url: movie.bookingUrl });

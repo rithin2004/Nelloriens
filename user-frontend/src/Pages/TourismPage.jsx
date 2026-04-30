@@ -80,7 +80,7 @@ const PlaceCard = ({ item, onClick }) => (
 
 const TourismPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView } = useAnalytics();
+  const { trackCardView, trackPageView } = useAnalytics();
   const carouselRef = useRef(null);
 
   const {
@@ -135,7 +135,7 @@ const TourismPage = () => {
 
   const openModal = (item) => {
     const id = item.id || item._id;
-    if (id) trackCardView("tourism", id);
+    if (id) { trackCardView("tourism", id); trackPageView("tourism", id); }
     setModal({
       item,
       actionButtons: item.directionsUrl ? [{ label: "Get Directions", url: item.directionsUrl }] : [],

@@ -70,7 +70,7 @@ const SkeletonSweetCard = () => (
 
 const Famousfood = () => {
   const dispatch = useDispatch();
-  const { trackCardView } = useAnalytics();
+  const { trackCardView, trackPageView } = useAnalytics();
 
   const { signatureDishes, popularVarieties, displayPhotos, sweets, healthTips, categories, storedParams, status, foodsPage } =
     useSelector((state) => state.famousFoods);
@@ -122,7 +122,7 @@ const Famousfood = () => {
 
   const openModal = (item) => {
     const id = item.id || item._id;
-    if (id) trackCardView("famous-foods", id);
+    if (id) { trackCardView("foods", id); trackPageView("foods", id); }
     setModal({
       item,
       actionButtons: item.redirectUrl ? [{ label: "Order Online", url: item.redirectUrl }] : [],

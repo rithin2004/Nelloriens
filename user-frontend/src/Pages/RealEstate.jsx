@@ -54,7 +54,7 @@ const FilterLabel = ({ children }) => (
 
 const RealEstate = () => {
   const dispatch = useDispatch();
-  const { trackCardView } = useAnalytics();
+  const { trackCardView, trackPageView } = useAnalytics();
 
   const { propertiesList, categories, locations, storedParams, status, realEstatePage } =
     useSelector((state) => state.realEstate);
@@ -97,7 +97,7 @@ const RealEstate = () => {
 
   const openModal = (prop) => {
     const id = prop.id || prop._id;
-    if (id) trackCardView("real-estate", id);
+    if (id) { trackCardView("realestate", id); trackPageView("realestate", id); }
     setModal({ item: prop });
   };
 

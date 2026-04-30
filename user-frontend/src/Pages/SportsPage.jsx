@@ -74,7 +74,7 @@ const SkeletonArticleCard = () => (
 
 const SportsPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView } = useAnalytics();
+  const { trackCardView, trackPageView } = useAnalytics();
 
   const {
     sportsEvents   = [],
@@ -127,7 +127,7 @@ const SportsPage = () => {
 
   const openModal = (item, actionButtons) => {
     const id = item.id || item._id;
-    if (id) trackCardView("sports", id);
+    if (id) { trackCardView("sports", id); trackPageView("sports", id); }
     setModal({ item, actionButtons: actionButtons || [] });
   };
 

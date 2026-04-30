@@ -39,7 +39,7 @@ const SkeletonResultCard = () => (
 
 const ResultsPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView } = useAnalytics();
+  const { trackCardView, trackPageView } = useAnalytics();
 
   const {
     resultsList  = [],
@@ -116,7 +116,7 @@ const ResultsPage = () => {
 
   const openResult = (result) => {
     const id = result.id || result._id;
-    if (id) trackCardView("results", id);
+    if (id) { trackCardView("results", id); trackPageView("results", id); }
 
     setModal({ item: result, actionButtons: buildActionButtons(result) });
 

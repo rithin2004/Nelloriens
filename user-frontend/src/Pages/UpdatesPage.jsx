@@ -147,7 +147,7 @@ const PER_PAGE = 20;
 // ── Main page ──────────────────────────────────────────────────────────────
 const UpdatesPage = () => {
   const dispatch = useDispatch();
-  const { trackCardView } = useAnalytics();
+  const { trackCardView, trackPageView } = useAnalytics();
 
   const {
     notificationsList = [],
@@ -181,7 +181,7 @@ const UpdatesPage = () => {
 
   const openUpdate = (item) => {
     const id = item.id || item._id;
-    if (id) trackCardView("updates", id);
+    if (id) { trackCardView("updates", id); trackPageView("updates", id); }
     setModal({ item, actionButtons: [] });
   };
 
