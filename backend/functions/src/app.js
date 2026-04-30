@@ -41,6 +41,7 @@ import leadsRoutes        from './modules/leads/leads.routes.js'
 import recycleBinRoutes   from './modules/recyclebin/recyclebin.routes.js'
 import realtimeRoutes     from './modules/realtime/realtime.routes.js'
 import realEstateRoutes   from './modules/realestate/realestate.routes.js'
+import analyticsRoutes    from './modules/analytics/analytics.routes.js'
 
 
 const app = express()
@@ -74,8 +75,11 @@ app.use(morgan(process.env.ALLOWED_ORIGINS ? 'combined' : 'dev'))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
-// Rate limits
-app.use(globalLimit)
+// Rate limits — SSE excluded: long-lived connections shouldn't consume the per-IP budget
+app.use((req, res, next) => {
+  if (req.path.startsWith('/realtime')) return next()
+  return globalLimit(req, res, next)
+})
 
 // Input sanitization — strips XSS and NoSQL injection vectors
 app.use(sanitizeInput)
@@ -129,6 +133,7 @@ app.use('/leads', leadsRoutes)
 app.use('/recycle-bin', recycleBinRoutes)
 app.use('/realtime', realtimeRoutes)
 app.use('/realestate', realEstateRoutes)
+app.use('/analytics', analyticsRoutes)
 
 // 404
 app.use((_req, res) =>
