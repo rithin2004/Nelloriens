@@ -7,20 +7,25 @@ const WeatherCard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_KEY = 'd994c25a28e5bec807501c6ea7cae959';
+  const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
   const CITY = 'Nellore';
 
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
     const fetchWeather = async () => {
       try {
         setLoading(true);
         const currentRes = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=metric&appid=${API_KEY}`
+          `https://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=metric&appid=${API_KEY}`,
+          { signal }
         );
         const currentJson = await currentRes.json();
 
         const forecastRes = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${CITY}&units=metric&appid=${API_KEY}`
+          `https://api.openweathermap.org/data/2.5/forecast?q=${CITY}&units=metric&appid=${API_KEY}`,
+          { signal }
         );
         const forecastJson = await forecastRes.json();
 
@@ -50,14 +55,15 @@ const WeatherCard = () => {
         setForecastData(dailyForecast.slice(0, 5));
         setLoading(false);
       } catch (err) {
-        console.error("Weather fetch error:", err);
+        if (err.name === 'AbortError') return;
         setError("Unable to load weather");
         setLoading(false);
       }
     };
 
     fetchWeather();
-  }, []);
+    return () => controller.abort();
+  }, [API_KEY]);
 
   const getDayName = (timestamp) => {
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];

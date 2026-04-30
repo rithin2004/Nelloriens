@@ -24,7 +24,7 @@ const loggerMiddleware = () => (next) => (action) => {
   if (action.type.endsWith("/rejected")) {
     const err = action.payload || action.error;
     if (err?.message !== "stale_request" && err !== "stale_request") {
-      console.error(`[API ERROR] ${action.type}`, err);
+      if (import.meta.env.DEV) console.error(`[API ERROR] ${action.type}`, err);
     }
   }
   return next(action);

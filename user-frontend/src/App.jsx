@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { MainContentArea } from "./components/ContentSections";
@@ -49,7 +50,7 @@ function App() {
     dispatch(fetchBreakingPoints());
   }, [dispatch]);
   return (
-    <>
+    <ErrorBoundary>
       <BrandingManager />
       <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]"><div className="w-8 h-8 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" /></div>}>
         <Routes>
@@ -75,7 +76,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
-    </>
+    </ErrorBoundary>
   );
 }
 
