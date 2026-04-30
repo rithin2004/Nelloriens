@@ -132,7 +132,6 @@ export const ENDPOINTS = {
   // Analytics (fire-and-forget)
   ANALYTICS: {
     CARD_VIEW: (module, id) => `/${module}/${id}/card-views`,
-    PAGE_VIEW:  (module, id) => `/${module}/${id}/views`,
   },
 
   // SSE
