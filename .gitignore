@@ -29,4 +29,5 @@ dist-ssr
 CLAUDE.md
 USER_SIDE_DEVELOPER_GUIDE.md
 functions/.env*
+!functions/.env.example
 functions/.env.production
