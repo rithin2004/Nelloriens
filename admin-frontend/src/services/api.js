@@ -342,9 +342,7 @@ export const uploadApi = {
    *  @param {string} prefix  e.g. 'NEWS', 'EVT', 'JOB'
    */
   reserveId: (prefix) => api.get('/upload/reserve-id', { params: { prefix } }),
-  upload: (moduleName, formData) => api.post(`/upload/${moduleName}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  }),
+  upload: (moduleName, formData) => api.post(`/upload/${moduleName}`, formData),
   delete: (url) => api.delete('/upload/delete', { data: { url } }),
 }
 

@@ -1,6 +1,5 @@
 import crypto                  from 'crypto'
 import { bucket }              from '../../config/firebase.js'
-import { fileTypeFromBuffer }  from 'file-type'
 import path                    from 'path'
 import { badReq }              from '../../utils/serviceBase.js'
 
@@ -57,46 +56,51 @@ export const uploadService = {
    * @param {number} [opts.index]    Index for multiple files on one content item (produces contentId_N.ext)
    */
   async upload(moduleName, file, { contentId, section, index } = {}) {
-    if (!file) badReq('No file provided')
-    if (!contentId?.trim()) badReq('contentId is required — RULE 10: filenames must match the content ID')
+    console.log(`[UPLOAD DEBUG] Starting upload for module: ${moduleName}, contentId: ${contentId}`)
+    try {
+      if (!file) badReq('No file provided')
+      if (!contentId?.trim()) badReq('contentId is required — RULE 10: filenames must match the content ID')
 
-    const config = MODULES[moduleName]
-    if (!config) badReq(`Unknown upload module: ${moduleName}`)
+      const config = MODULES[moduleName]
+      if (!config) badReq(`Unknown upload module: ${moduleName}`)
 
-    // Size check
-    if (file.size > config.maxSize) {
-      badReq(`File too large. Max size for ${moduleName}: ${config.maxSize / (1024 * 1024)}MB`)
+      // Size check
+      if (file.size > config.maxSize) {
+        badReq(`File too large. Max size for ${moduleName}: ${config.maxSize / (1024 * 1024)}MB`)
+      }
+
+      // Use mimetype provided by multer
+      const effectiveMime = file.mimetype || ''
+
+      if (!config.types.includes(effectiveMime)) {
+        badReq(`File type "${effectiveMime}" is not allowed for ${moduleName}. Allowed: ${config.types.join(', ')}`)
+      }
+
+      // RULE 10: module/section/contentId[_index].ext
+      const ext       = MIME_EXT[effectiveMime] || path.extname(file.originalname) || ''
+      const folder    = section?.trim() || 'thumbnails'
+      const idPart    = contentId.trim()
+      const indexPart = index !== undefined && index !== '' ? `_${index}` : ''
+      const fileName  = `${moduleName}/${folder}/${idPart}${indexPart}${ext}`
+      const fileRef   = bucket.file(fileName)
+
+      console.log(`[UPLOAD DEBUG] Saving to Firebase Storage: ${fileName}`)
+      await fileRef.save(file.buffer, {
+        metadata: {
+          contentType: effectiveMime,
+          metadata:    { firebaseStorageDownloadTokens: crypto.randomUUID() },
+        },
+      })
+
+      console.log(`[UPLOAD DEBUG] Making file public...`)
+      await fileRef.makePublic()
+      const url = `https://storage.googleapis.com/${bucket.name}/${fileName}`
+      console.log(`[UPLOAD DEBUG] Upload complete: ${url}`)
+      return { url, fileName, size: file.size, mimeType: effectiveMime }
+    } catch (error) {
+      console.error('[UPLOAD CRASH] Unhandled error during upload:', error)
+      throw error
     }
-
-    // Magic byte validation
-    const detected = await fileTypeFromBuffer(file.buffer)
-    const mime     = detected?.mime || ''
-
-    // SVG won't be detected by file-type (it's XML text), allow it if declared
-    const effectiveMime = mime || file.mimetype
-
-    if (!config.types.includes(effectiveMime)) {
-      badReq(`File type "${effectiveMime}" is not allowed for ${moduleName}. Allowed: ${config.types.join(', ')}`)
-    }
-
-    // RULE 10: module/section/contentId[_index].ext
-    const ext       = MIME_EXT[effectiveMime] || path.extname(file.originalname) || ''
-    const folder    = section?.trim() || 'thumbnails'
-    const idPart    = contentId.trim()
-    const indexPart = index !== undefined && index !== '' ? `_${index}` : ''
-    const fileName  = `${moduleName}/${folder}/${idPart}${indexPart}${ext}`
-    const fileRef   = bucket.file(fileName)
-
-    await fileRef.save(file.buffer, {
-      metadata: {
-        contentType: effectiveMime,
-        metadata:    { firebaseStorageDownloadTokens: crypto.randomUUID() },
-      },
-    })
-
-    await fileRef.makePublic()
-    const url = `https://storage.googleapis.com/${bucket.name}/${fileName}`
-    return { url, fileName, size: file.size, mimeType: effectiveMime }
   },
 
   async deleteByUrl(url) {
