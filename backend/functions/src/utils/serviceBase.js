@@ -57,42 +57,18 @@ export class CrudService {
     const lim = Math.min(parseInt(limit) || 20, 100)
     const pg  = Math.max(parseInt(page)  || 1,  1)
 
-    const firestoreFilters = []
-    const inMemoryFilters  = []
+    // Fetch all ordered, then filter in-memory to avoid ANY composite index requirements
+    let items = await this.repo.findAll({ orderBy: this.orderBy, order: this.order })
 
-    // Split filters: '==' can go to Firestore (if user has composite indexes), 
-    // but inequalities MUST be in-memory because Firestore forbids them if orderBy !== field
+    // Apply extra equality filters from query params in-memory
     for (const [field, op, value] of this.extraFilters(query)) {
       if (value !== undefined && value !== null && value !== '' && value !== 'All') {
-        if (op === '==') firestoreFilters.push([field, op, value])
-        else             inMemoryFilters.push([field, op, value])
+        if      (op === '==') items = items.filter(item => item[field] === value)
+        else if (op === '!=') items = items.filter(item => item[field] !== value)
+        else if (op === 'in') items = items.filter(item => Array.isArray(value) && value.includes(item[field]))
+        else if (op === '>=') items = items.filter(item => item[field] >= value)
+        else if (op === '<=') items = items.filter(item => item[field] <= value)
       }
-    }
-
-    // Fast path: No text search AND no complex in-memory filters -> Firestore paginate
-    if (!search && inMemoryFilters.length === 0) {
-      return this.repo.paginate({
-        page:    pg,
-        limit:   lim,
-        orderBy: this.orderBy,
-        order:   this.order,
-        filters: firestoreFilters,
-      })
-    }
-
-    // Slow path: Text search OR inequalities -> fetch narrowed dataset, filter in-memory
-    let items = await this.repo.findAll({
-      orderBy: this.orderBy,
-      order:   this.order,
-      filters: firestoreFilters,
-    })
-
-    // Apply JS inequalities
-    for (const [field, op, value] of inMemoryFilters) {
-      if      (op === '!=') items = items.filter(item => item[field] !== value)
-      else if (op === 'in') items = items.filter(item => Array.isArray(value) && value.includes(item[field]))
-      else if (op === '>=') items = items.filter(item => item[field] >= value)
-      else if (op === '<=') items = items.filter(item => item[field] <= value)
     }
 
     if (search) {
