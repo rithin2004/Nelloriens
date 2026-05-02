@@ -1,8 +1,6 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
-import Link from '@tiptap/extension-link'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   Heading1, Heading2, Heading3,
@@ -22,13 +20,13 @@ function ToolbarBtn({ onClick, active, title, children }) {
   )
 }
 
-const extensions = [
-  StarterKit,
-  Underline,
-  Link.configure({ openOnClick: false, autolink: true }),
-]
-
 export default function RichTextEditor({ value, onChange }) {
+  const extensions = useMemo(() => [
+    StarterKit.configure({
+      link: { openOnClick: false, autolink: true },
+    }),
+  ], [])
+
   const editor = useEditor({
     extensions,
     content: value || '',
