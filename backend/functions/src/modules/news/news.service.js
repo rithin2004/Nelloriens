@@ -7,15 +7,12 @@ export async function listNews({ page, limit, search, category, isImportant, sco
   const safeLimit = Math.min(parseInt(limit) || 20, 100)
   const safePage  = Math.max(parseInt(page)  || 1, 1)
 
-  // Build Firestore-native filters
+  // Only push category to Firestore, as isImportant and scope need custom logic/undefined checks
   const filters = []
-  if (category && category !== 'All')    filters.push(['category', '==', category])
-  if (isImportant === 'true')            filters.push(['isImportant', '==', true])
-  if (isImportant === 'false')           filters.push(['isImportant', '==', false])
-  if (scope && scope !== 'all')          filters.push(['scope', '==', scope])
+  if (category && category !== 'All') filters.push(['category', '==', category])
 
-  // ── Fast path: no text search → Firestore-level pagination ──
-  if (!search) {
+  // Fast path: if no search, no isImportant, no scope -> we can paginate directly
+  if (!search && !isImportant && !scope) {
     return newsRepo.paginate({
       page:    safePage,
       limit:   safeLimit,
@@ -25,10 +22,17 @@ export async function listNews({ page, limit, search, category, isImportant, sco
     })
   }
 
-  // ── Slow path: text search → narrow with Firestore filters, search in-memory ──
+  // Slow path: fetch all matching category, then filter in-memory
   let items = await newsRepo.findAll({ orderBy: 'createdAt', order: 'desc', filters })
-  const q = search.toLowerCase()
-  items = items.filter(n => n.title?.toLowerCase().includes(q))
+
+  if (search) {
+    const q = search.toLowerCase()
+    items = items.filter(n => n.title?.toLowerCase().includes(q))
+  }
+  
+  if (isImportant === 'true')  items = items.filter(n => n.isImportant === true)
+  if (isImportant === 'false') items = items.filter(n => n.isImportant !== true)
+  if (scope && scope !== 'all') items = items.filter(n => n.scope === scope)
 
   const total = items.length
   return {

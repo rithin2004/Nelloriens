@@ -57,17 +57,20 @@ export class CrudService {
     const lim = Math.min(parseInt(limit) || 20, 100)
     const pg  = Math.max(parseInt(page)  || 1,  1)
 
-    // Build Firestore-native filters from the module's extraFilters config.
-    // Skip sentinel values that mean "show all" ('All', '', null, undefined).
     const firestoreFilters = []
+    const inMemoryFilters  = []
+
+    // Split filters: '==' can go to Firestore (if user has composite indexes), 
+    // but inequalities MUST be in-memory because Firestore forbids them if orderBy !== field
     for (const [field, op, value] of this.extraFilters(query)) {
       if (value !== undefined && value !== null && value !== '' && value !== 'All') {
-        firestoreFilters.push([field, op, value])
+        if (op === '==') firestoreFilters.push([field, op, value])
+        else             inMemoryFilters.push([field, op, value])
       }
     }
 
-    // ── Fast path: no text search → push everything to Firestore paginate() ──
-    if (!search) {
+    // Fast path: No text search AND no complex in-memory filters -> Firestore paginate
+    if (!search && inMemoryFilters.length === 0) {
       return this.repo.paginate({
         page:    pg,
         limit:   lim,
@@ -77,15 +80,25 @@ export class CrudService {
       })
     }
 
-    // ── Slow path: text search → narrow with Firestore filters, then search in-memory ──
+    // Slow path: Text search OR inequalities -> fetch narrowed dataset, filter in-memory
     let items = await this.repo.findAll({
       orderBy: this.orderBy,
       order:   this.order,
       filters: firestoreFilters,
     })
 
-    const q = search.toLowerCase()
-    items = items.filter(item => item[this.searchField]?.toLowerCase().includes(q))
+    // Apply JS inequalities
+    for (const [field, op, value] of inMemoryFilters) {
+      if      (op === '!=') items = items.filter(item => item[field] !== value)
+      else if (op === 'in') items = items.filter(item => Array.isArray(value) && value.includes(item[field]))
+      else if (op === '>=') items = items.filter(item => item[field] >= value)
+      else if (op === '<=') items = items.filter(item => item[field] <= value)
+    }
+
+    if (search) {
+      const q = search.toLowerCase()
+      items = items.filter(item => item[this.searchField]?.toLowerCase().includes(q))
+    }
 
     return {
       items:      items.slice((pg - 1) * lim, pg * lim),
