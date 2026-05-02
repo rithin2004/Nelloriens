@@ -1,3 +1,4 @@
+import crypto                  from 'crypto'
 import { bucket }              from '../../config/firebase.js'
 import { fileTypeFromBuffer }  from 'file-type'
 import path                    from 'path'

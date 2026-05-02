@@ -22,13 +22,15 @@ function ToolbarBtn({ onClick, active, title, children }) {
   )
 }
 
+const extensions = [
+  StarterKit,
+  Underline,
+  Link.configure({ openOnClick: false, autolink: true }),
+]
+
 export default function RichTextEditor({ value, onChange }) {
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Link.configure({ openOnClick: false, autolink: true }),
-    ],
+    extensions,
     content: value || '',
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
