@@ -64,7 +64,7 @@ export default function InlineCategoryAdd({ onAdd, placeholder = 'Enter name', l
           }}
         >
           <p className="text-xs font-semibold mb-2 text-slate-500">Add {label}</p>
-          <form onSubmit={handleSubmit}>
+          <div>
             <input
               ref={inputRef}
               id="inline-cat-input"
@@ -72,7 +72,10 @@ export default function InlineCategoryAdd({ onAdd, placeholder = 'Enter name', l
               autoComplete="off"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Escape') { setOpen(false); setValue('') } }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') { setOpen(false); setValue('') }
+                if (e.key === 'Enter') { e.preventDefault(); handleSubmit(e) }
+              }}
               placeholder={placeholder}
               className="w-full px-2.5 py-1.5 text-sm rounded-lg focus:outline-none mb-2"
               style={{ background: '#eef3fd', border: '1px solid #dce8fb', color: '#0F172A' }}
@@ -89,8 +92,9 @@ export default function InlineCategoryAdd({ onAdd, placeholder = 'Enter name', l
                 <X className="w-3 h-3" /> Cancel
               </button>
               <button
-                type="submit"
+                type="button"
                 disabled={loading || !value.trim()}
+                onClick={(e) => { e.stopPropagation(); handleSubmit(e) }}
                 className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg text-white transition-all disabled:opacity-40"
                 style={{ background: 'linear-gradient(135deg,#0a3d95,#072d6e)' }}
               >
@@ -98,7 +102,7 @@ export default function InlineCategoryAdd({ onAdd, placeholder = 'Enter name', l
                 {loading ? 'Adding...' : 'Add'}
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
     </div>

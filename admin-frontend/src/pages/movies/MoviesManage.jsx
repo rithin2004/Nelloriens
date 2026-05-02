@@ -7,6 +7,7 @@ export default function MoviesManage() {
   return (
     <TabbedManage
       title="Movies — Manage"
+      backTo="/movies/list"
       tabs={[
         {
           label: 'Genres',

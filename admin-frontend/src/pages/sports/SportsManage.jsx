@@ -6,6 +6,7 @@ export default function SportsManage() {
   return (
     <TabbedManage
       title="Sports — Manage"
+      backTo="/sports/list"
       tabs={[
         {
           label: 'Categories',

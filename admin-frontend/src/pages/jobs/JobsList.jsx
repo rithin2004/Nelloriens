@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Tag, MapPin } from 'lucide-react'
+import { Settings2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ModuleList from '../../components/common/ModuleList'
 import JobForm from '../../components/forms/JobForm'
@@ -73,16 +73,7 @@ export default function JobsList() {
             onMouseEnter={(e) => e.currentTarget.style.background = '#c8dafd'}
             onMouseLeave={(e) => e.currentTarget.style.background = '#dce8fb'}
           >
-            <Tag className="w-4 h-4" /> Job Categories
-          </button>
-          <button
-            onClick={() => navigate('/jobs/manage')}
-            className={btnBase}
-            style={{ background: '#dce8fb', border: '1px solid #dce8fb', color: '#0a3d95' }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#c8dafd'}
-            onMouseLeave={(e) => e.currentTarget.style.background = '#dce8fb'}
-          >
-            <MapPin className="w-4 h-4" /> Job Locations
+            <Settings2 className="w-4 h-4" /> Manage
           </button>
         </>
       }

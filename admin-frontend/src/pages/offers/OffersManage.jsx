@@ -6,6 +6,7 @@ export default function OffersManage() {
   return (
     <TabbedManage
       title="Offers — Manage"
+      backTo="/offers/list"
       tabs={[
         {
           label: 'Categories',

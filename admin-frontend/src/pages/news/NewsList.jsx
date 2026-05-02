@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Info, Tag, Star, Eye } from 'lucide-react'
+import { Plus, Pencil, Trash2, Info, Settings2, Star, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { newsApi, uploadApi } from '../../services/api'
 import useNewsStore from '../../store/newsStore'
@@ -256,7 +256,7 @@ export default function NewsList() {
               onMouseEnter={(e) => e.currentTarget.style.background = '#c8dafd'}
               onMouseLeave={(e) => e.currentTarget.style.background = PL}
             >
-              <Tag className="w-4 h-4" /> Categories
+              <Settings2 className="w-4 h-4" /> Manage
             </button>
             <button
               onClick={openCreate}

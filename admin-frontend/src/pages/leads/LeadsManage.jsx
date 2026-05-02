@@ -6,6 +6,7 @@ export default function LeadsManage() {
   return (
     <TabbedManage
       title="Leads — Manage"
+      backTo="/leads"
       tabs={[
         {
           label: 'Inquiry Types',

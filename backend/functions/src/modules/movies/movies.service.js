@@ -8,16 +8,25 @@ class MoviesService extends CrudService {
     const lim = Math.min(parseInt(limit) || 20, 100)
     const pg  = Math.max(parseInt(page)  || 1,  1)
 
-    // Fetch all ordered, then filter in-memory to avoid composite index requirement
-    let items = await this.repo.findAll({ orderBy: 'createdAt', order: 'desc' })
+    // Build Firestore-native filters
+    const filters = []
+    if (status && status !== 'All') filters.push(['status', '==', status])
 
-    if (search) {
-      const q = search.toLowerCase()
-      items = items.filter((m) => m.movieName?.toLowerCase().includes(q) || m.title?.toLowerCase().includes(q))
+    // ── Fast path: no text search → Firestore-level pagination ──
+    if (!search) {
+      return this.repo.paginate({
+        page:    pg,
+        limit:   lim,
+        orderBy: 'createdAt',
+        order:   'desc',
+        filters,
+      })
     }
-    if (status) {
-      items = items.filter((m) => m.status === status)
-    }
+
+    // ── Slow path: text search → narrow with Firestore filters, search in-memory ──
+    let items = await this.repo.findAll({ orderBy: 'createdAt', order: 'desc', filters })
+    const q = search.toLowerCase()
+    items = items.filter((m) => m.movieName?.toLowerCase().includes(q) || m.title?.toLowerCase().includes(q))
 
     const total = items.length
     return {

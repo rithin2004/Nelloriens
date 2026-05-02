@@ -6,6 +6,7 @@ export default function StaysManage() {
   return (
     <TabbedManage
       title="Stay — Manage"
+      backTo="/stays/list"
       tabs={[
         {
           label: 'Categories',

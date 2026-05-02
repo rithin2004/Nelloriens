@@ -6,6 +6,7 @@ export default function TourismManage() {
   return (
     <TabbedManage
       title="Tourism — Manage"
+      backTo="/tourism/list"
       tabs={[
         {
           label: 'Categories',

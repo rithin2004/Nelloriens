@@ -12,12 +12,12 @@ const P  = '#0a3d95'
 const PL = '#dce8fb'
 const PB = '#eef3fd'
 
-export default function TabbedManage({ title, tabs = [] }) {
+export default function TabbedManage({ title, tabs = [], backTo }) {
   const [active, setActive] = useState(0)
 
   return (
     <div className="animate-fade-in">
-      <PageHeader title={title} />
+      <PageHeader title={title} backTo={backTo} />
 
       {/* Tab bar */}
       <div className="flex gap-1 mb-6 flex-wrap" style={{ borderBottom: `2px solid ${PL}` }}>

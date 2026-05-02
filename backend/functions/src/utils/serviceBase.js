@@ -57,25 +57,35 @@ export class CrudService {
     const lim = Math.min(parseInt(limit) || 20, 100)
     const pg  = Math.max(parseInt(page)  || 1,  1)
 
-    // Fetch all — deleted items are in 'recyclebin', not here, so no deletedAt filter needed
-    let items = await this.repo.findAll({ orderBy: this.orderBy, order: this.order })
-
-    // Apply extra equality filters from query params
+    // Build Firestore-native filters from the module's extraFilters config.
+    // Skip sentinel values that mean "show all" ('All', '', null, undefined).
+    const firestoreFilters = []
     for (const [field, op, value] of this.extraFilters(query)) {
-      if (value !== undefined && value !== null && value !== '') {
-        if      (op === '==') items = items.filter(item => item[field] === value)
-        else if (op === '!=') items = items.filter(item => item[field] !== value)
-        else if (op === 'in') items = items.filter(item => Array.isArray(value) && value.includes(item[field]))
-        else if (op === '>=') items = items.filter(item => item[field] >= value)
-        else if (op === '<=') items = items.filter(item => item[field] <= value)
+      if (value !== undefined && value !== null && value !== '' && value !== 'All') {
+        firestoreFilters.push([field, op, value])
       }
     }
 
-    // Search
-    if (search) {
-      const q = search.toLowerCase()
-      items = items.filter(item => item[this.searchField]?.toLowerCase().includes(q))
+    // ── Fast path: no text search → push everything to Firestore paginate() ──
+    if (!search) {
+      return this.repo.paginate({
+        page:    pg,
+        limit:   lim,
+        orderBy: this.orderBy,
+        order:   this.order,
+        filters: firestoreFilters,
+      })
     }
+
+    // ── Slow path: text search → narrow with Firestore filters, then search in-memory ──
+    let items = await this.repo.findAll({
+      orderBy: this.orderBy,
+      order:   this.order,
+      filters: firestoreFilters,
+    })
+
+    const q = search.toLowerCase()
+    items = items.filter(item => item[this.searchField]?.toLowerCase().includes(q))
 
     return {
       items:      items.slice((pg - 1) * lim, pg * lim),

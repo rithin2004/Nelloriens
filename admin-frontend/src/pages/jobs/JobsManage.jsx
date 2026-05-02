@@ -6,6 +6,7 @@ export default function JobsManage() {
   return (
     <TabbedManage
       title="Jobs — Manage"
+      backTo="/jobs/list"
       tabs={[
         {
           label: 'Categories',

@@ -6,6 +6,7 @@ export default function NewsManage() {
   return (
     <TabbedManage
       title="News — Manage"
+      backTo="/news/list"
       tabs={[
         {
           label: 'Categories',

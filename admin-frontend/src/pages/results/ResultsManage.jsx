@@ -6,6 +6,7 @@ export default function ResultsManage() {
   return (
     <TabbedManage
       title="Results — Manage"
+      backTo="/results/list"
       tabs={[
         {
           label: 'Categories',

@@ -6,6 +6,7 @@ export default function UpdatesManage() {
   return (
     <TabbedManage
       title="Updates — Manage"
+      backTo="/updates/list"
       tabs={[
         {
           label: 'Categories',

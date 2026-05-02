@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, Trophy, Newspaper, Tag, Eye, Info } from 'lucide-react'
+import { Plus, Pencil, Trash2, Trophy, Newspaper, Settings2, Eye, Info } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { sportsApi, uploadApi } from '../../services/api'
@@ -231,7 +231,7 @@ export default function SportsList() {
               onMouseEnter={(e) => e.currentTarget.style.background = '#c8dafd'}
               onMouseLeave={(e) => e.currentTarget.style.background = PL}
             >
-              <Tag className="w-4 h-4" /> Sport Categories
+              <Settings2 className="w-4 h-4" /> Manage
             </button>
             <button
               onClick={openCreate}

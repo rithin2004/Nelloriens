@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Tag, Star, Users, Eye } from 'lucide-react'
+import { Plus, Pencil, Trash2, Settings2, Star, Users, Eye, Calendar } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { eventsApi, uploadApi } from '../../services/api'
 import useEventsStore from '../../store/eventsStore'
@@ -19,7 +19,7 @@ const PB = '#eef3fd'
 const PAGE_SIZE = 20
 
 const TABS = [
-  { key: 'events',     label: 'Events',            icon: Tag   },
+  { key: 'events',     label: 'Events',            icon: Calendar },
   { key: 'influencer', label: 'Influencer Events',  icon: Users },
 ]
 
@@ -365,7 +365,7 @@ export default function EventsList() {
               onMouseEnter={(e) => e.currentTarget.style.background = '#c8dafd'}
               onMouseLeave={(e) => e.currentTarget.style.background = PL}
             >
-              <Tag className="w-4 h-4" /> Categories
+              <Settings2 className="w-4 h-4" /> Manage
             </button>
             <button
               onClick={openCreate}

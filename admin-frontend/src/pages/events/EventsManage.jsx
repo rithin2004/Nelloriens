@@ -6,6 +6,7 @@ export default function EventsManage() {
   return (
     <TabbedManage
       title="Events — Manage"
+      backTo="/events/list"
       tabs={[
         {
           label: 'Categories',

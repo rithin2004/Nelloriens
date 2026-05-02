@@ -6,6 +6,7 @@ export default function RealEstateManage() {
   return (
     <TabbedManage
       title="Real Estate — Manage"
+      backTo="/realestate/list"
       tabs={[
         {
           label: 'Property Types',

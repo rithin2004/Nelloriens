@@ -232,12 +232,7 @@ export default function RealEstateList() {
             <button onClick={() => navigate('/realestate/manage')}
               className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
               style={{ background: PB, color: P, border: `1px solid ${PL}` }}>
-              <Settings2 className="w-4 h-4" /> Types
-            </button>
-            <button onClick={() => navigate('/realestate/manage')}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
-              style={{ background: PB, color: P, border: `1px solid ${PL}` }}>
-              <Settings2 className="w-4 h-4" /> Locations
+              <Settings2 className="w-4 h-4" /> Manage
             </button>
             <button
               onClick={openCreate}
