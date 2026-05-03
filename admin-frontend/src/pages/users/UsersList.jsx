@@ -12,7 +12,7 @@ import ConfirmModal from '../../components/common/ConfirmModal'
 import Pagination from '../../components/common/Pagination'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import toast from 'react-hot-toast'
-import { Plus, Pencil, Trash2, Search, Users, ShieldCheck, Loader } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, Users, ShieldCheck, Loader, Mail } from 'lucide-react'
 
 const P  = '#0a3d95'
 const PL = '#dce8fb'
@@ -41,7 +41,7 @@ export default function UsersList() {
   // Create modal
   const [createForm, setCreateForm] = useState({ name: '', email: '', phone: '', roleId: '' })
   const [creating,   setCreating]   = useState(false)
-  const [successLink, setSuccessLink] = useState('')
+  const [createOpen, setCreateOpen] = useState(false)
 
   // Edit modal
   const [editOpen, setEditOpen] = useState(false)
@@ -59,7 +59,10 @@ export default function UsersList() {
   useEffect(() => { fetchRoles({ limit: 100 }) }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Create ────────────────────────────────────────────────────────────────────
-  const openCreate = () => { setCreateForm({ name: '', email: '', phone: '', roleId: '' }); setCreateOpen(true) }
+  const openCreate = () => {
+    setCreateForm({ name: '', email: '', phone: '', roleId: '' })
+    setCreateOpen(true)
+  }
 
   const handleCreate = async (e) => {
     e.preventDefault()
@@ -67,8 +70,7 @@ export default function UsersList() {
     if (!createForm.roleId) { toast.error('Role is required'); return }
     setCreating(true)
     try {
-      const res = await usersApi.create(createForm)
-      const link = res.data?.data?.resetLink || res.data?.resetLink
+      await usersApi.create(createForm)
 
       // Trigger Firebase's official email template from the client side
       try {
@@ -78,15 +80,21 @@ export default function UsersList() {
         toast.success('User created, but email failed to send.')
       }
 
-      if (link) {
-        setSuccessLink(link)
-      } else {
-        setCreateOpen(false)
-      }
+      setCreateOpen(false)
       fetchUsers({ page, limit: PAGE_SIZE, search: debouncedSearch })
     } catch (err) {
       toast.error(err.response?.data?.message || 'Create failed')
     } finally { setCreating(false) }
+  }
+
+  const handleSendEmail = async (user) => {
+    const tid = toast.loading('Sending setup email...')
+    try {
+      await sendPasswordResetEmail(auth, user.email)
+      toast.success(`Setup email sent to ${user.email}`, { id: tid })
+    } catch {
+      toast.error('Failed to send email. Check Firebase settings.', { id: tid })
+    }
   }
 
   // ── Edit ──────────────────────────────────────────────────────────────────────
@@ -206,6 +214,12 @@ export default function UsersList() {
                       <td className="px-4 py-3">
                         {!isSA && (
                           <div className="flex gap-1">
+                            <button onClick={() => handleSendEmail(u)} title="Resend Setup Email"
+                              className="p-1.5 rounded-lg text-slate-400 transition-colors"
+                              onMouseEnter={(e) => { e.currentTarget.style.color = '#16A34A'; e.currentTarget.style.background = '#DCFCE7' }}
+                              onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.background = 'transparent' }}>
+                              <Mail className="w-4 h-4" />
+                            </button>
                             <button onClick={() => openEdit(u)} title="Edit"
                               className="p-1.5 rounded-lg text-slate-400 transition-colors"
                               onMouseEnter={(e) => { e.currentTarget.style.color = P; e.currentTarget.style.background = PB }}
@@ -327,31 +341,6 @@ export default function UsersList() {
       <ConfirmModal isOpen={!!deleteId} title="Delete User"
         message="This will permanently delete this user and their Firebase account."
         onConfirm={handleDelete} onCancel={() => setDeleteId(null)} loading={deleting} />
-
-      {/* ── Success Modal (Backup Link) ── */}
-      <FormModal isOpen={!!successLink} onClose={() => { setSuccessLink(''); setCreateOpen(false) }} title="User Created Successfully" maxWidth="max-w-md">
-        <div className="space-y-4">
-          <div className="p-3 rounded-xl bg-green-50 border border-green-100">
-            <p className="text-sm text-green-800">
-              An automated setup email has been triggered. If the user doesn't receive it, you can share this manual setup link:
-            </p>
-          </div>
-          <div className="relative">
-            <input readOnly value={successLink} className={inp} style={inpLocked} />
-            <button
-              onClick={() => { navigator.clipboard.writeText(successLink); toast.success('Link copied!') }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-bold rounded-lg transition-all"
-              style={{ background: PL, color: P }}>
-              COPY
-            </button>
-          </div>
-          <button onClick={() => { setSuccessLink(''); setCreateOpen(false) }}
-            className="w-full py-2.5 text-white font-semibold text-sm rounded-lg"
-            style={{ background: `linear-gradient(135deg,${P},#072d6e)` }}>
-            Done
-          </button>
-        </div>
-      </FormModal>
     </div>
   )
 }
