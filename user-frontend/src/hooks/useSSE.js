@@ -97,7 +97,7 @@ const useSSE = () => {
 
   // Connect once — stable, never reconnects on filter changes
   useEffect(() => {
-    const sseUrl = `${import.meta.env.VITE_API_BASE_URL}/realtime/sse`;
+    const sseUrl = `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, "")}/realtime/sse`;
 
     const connect = () => {
       if (eventSourceRef.current) eventSourceRef.current.close();
