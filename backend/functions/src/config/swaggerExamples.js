@@ -22,6 +22,12 @@ export const securitySchemes = {
       '3. Pass it here as `Bearer <idToken>`.\n\n' +
       'Tokens expire after 1 hour. Refresh using Firebase SDK `currentUser.getIdToken(true)`.',
   },
+  appCheck: {
+    type: 'apiKey',
+    in: 'header',
+    name: 'X-Firebase-AppCheck',
+    description: 'Firebase App Check token. Required for all secured requests in production.',
+  },
 }
 
 // ── Shared primitive schemas ───────────────────────────────────────────────

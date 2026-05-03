@@ -164,6 +164,7 @@ export const paths = {
       parameters: [
         ...pagQ,
         { name: 'search', in: 'query', schema: { type: 'string' }, description: 'Filter by name or email (case-insensitive prefix match).' },
+        { name: 'roleId', in: 'query', schema: { type: 'string' }, description: 'Filter by role ID (e.g. ROL00002).' },
         { name: 'active', in: 'query', schema: { type: 'boolean' }, description: 'Filter by active status.' },
       ],
       responses: { ...paginatedOk, ...fail },
@@ -715,6 +716,8 @@ export const paths = {
       parameters: [
         ...pagQ,
         { name: 'search',     in: 'query', schema: { type: 'string' }, description: 'Search by food name or restaurant name.' },
+        { name: 'category',   in: 'query', schema: { type: 'string' }, description: 'Filter by category ID.' },
+        { name: 'scope',      in: 'query', schema: { type: 'string', enum: ['nellore', 'worldwide'] }, description: 'Filter by region.' },
         { name: 'priceRange', in: 'query', schema: { type: 'string', enum: ['₹', '₹₹', '₹₹₹'] }, description: 'Filter by price tier.' },
         { name: 'isFamous',   in: 'query', schema: { type: 'boolean' }, description: 'Return only famous/must-try items.' },
       ],
@@ -779,7 +782,12 @@ export const paths = {
     get: {
       tags: ['Foods'],
       summary: 'List sweet records (public)',
-      parameters: [{ name: 'foodId', in: 'query', schema: { type: 'string' }, description: 'Filter by parent food document ID.' }],
+      parameters: [
+        ...pagQ,
+        { name: 'search', in: 'query', schema: { type: 'string' }, description: 'Search by name.' },
+        { name: 'scope',  in: 'query', schema: { type: 'string', enum: ['nellore', 'worldwide'] }, description: 'Filter by region.' },
+        { name: 'foodId', in: 'query', schema: { type: 'string' }, description: 'Filter by parent food document ID.' },
+      ],
       responses: { ...ok('Array of sweet documents.') },
     },
   },
@@ -794,7 +802,9 @@ export const paths = {
       summary: 'List health tips (public)',
       parameters: [
         ...pagQ,
-        { name: 'search', in: 'query', schema: { type: 'string' }, description: 'Search by title.' },
+        { name: 'search',   in: 'query', schema: { type: 'string' }, description: 'Search by title.' },
+        { name: 'category', in: 'query', schema: { type: 'string' }, description: 'Filter by category ID.' },
+        { name: 'scope',    in: 'query', schema: { type: 'string', enum: ['nellore', 'worldwide'] }, description: 'Filter by region.' },
       ],
       responses: { ...paginatedOk },
     },

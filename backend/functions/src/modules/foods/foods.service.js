@@ -3,7 +3,15 @@ import { CrudService, badReq, notFound }                    from '../../utils/se
 import { db }                                               from '../../config/firebase.js'
 import { getLimits }                                        from '../../utils/limits.js'
 
-export const foodsService = new CrudService(foodsRepo, { entityName: 'Food' })
+export const foodsService = new CrudService(foodsRepo, {
+  entityName: 'Food',
+  extraFilters: ({ category, scope }) => {
+    const f = []
+    if (category && category !== 'All') f.push(['category', '==', category])
+    if (scope && scope !== 'all')       f.push(['scope',    '==', scope])
+    return f
+  }
+})
 
 const PHOTOS_MAX = 5
 
@@ -120,15 +128,21 @@ export const healthTipsService = {
     await healthTipsRepo.incrementField(id, field)
   },
   async list(query = {}) {
-    const { page = 1, limit = 20, search = '' } = query
-    const all = await healthTipsRepo.findAll({ orderBy: 'createdAt', order: 'desc' })
-    const filtered = search
-      ? all.filter(t => t.title?.toLowerCase().includes(search.toLowerCase()))
-      : all
-    const total      = filtered.length
-    const totalPages = Math.ceil(total / limit) || 1
-    const items      = filtered.slice((page - 1) * limit, page * limit)
-    return { items, total, page: Number(page), totalPages }
+    const { page = 1, limit = 20, search = '', category, scope } = query
+    let items = await healthTipsRepo.findAll({ orderBy: 'createdAt', order: 'desc' })
+
+    if (category && category !== 'All') items = items.filter(t => t.category === category)
+    if (scope && scope !== 'all')       items = items.filter(t => t.scope === scope)
+
+    if (search) {
+      const q = search.toLowerCase()
+      items = items.filter(t => t.title?.toLowerCase().includes(q))
+    }
+
+    const total      = items.length
+    const totalPages = Math.max(1, Math.ceil(total / limit))
+    const pagedItems = items.slice((page - 1) * limit, page * limit)
+    return { items: pagedItems, total, page: Number(page), totalPages }
   },
   async create(data) {
     if (!data.title?.trim()) badReq('title is required')
@@ -155,10 +169,12 @@ export const sweetsService = {
     await sweetsRepo.incrementField(id, field)
   },
   async list(query = {}) {
-    const { page = 1, limit = 20, search = '' } = query
+    const { page = 1, limit = 20, search = '', scope } = query
     const lim = Math.min(parseInt(limit) || 20, 100)
     const pg  = Math.max(parseInt(page)  || 1,  1)
     let items = await sweetsRepo.findAll({ orderBy: 'name', order: 'asc' })
+    if (scope && scope !== 'all') items = items.filter(s => s.scope === scope)
+
     if (search) {
       const q = search.toLowerCase()
       items = items.filter(s => s.name?.toLowerCase().includes(q))

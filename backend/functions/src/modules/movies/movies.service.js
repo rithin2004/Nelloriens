@@ -4,7 +4,7 @@ import { getLimits }                                               from '../../u
 
 class MoviesService extends CrudService {
   async list(query = {}) {
-    const { page = 1, limit = 20, search = '', status } = query
+    const { page = 1, limit = 20, search = '', status, genre, language } = query
     const lim = Math.min(parseInt(limit) || 20, 100)
     const pg  = Math.max(parseInt(page)  || 1,  1)
 
@@ -16,9 +16,9 @@ class MoviesService extends CrudService {
       items = items.filter((m) => m.movieName?.toLowerCase().includes(q) || m.title?.toLowerCase().includes(q))
     }
 
-    if (status && status !== 'All') {
-      items = items.filter(m => m.status === status)
-    }
+    if (status && status !== 'All')   items = items.filter(m => m.status === status)
+    if (genre && genre !== 'All')     items = items.filter(m => m.genre === genre)
+    if (language && language !== 'All') items = items.filter(m => m.language === language)
 
     const total = items.length
     return {

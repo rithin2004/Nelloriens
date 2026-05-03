@@ -13,7 +13,6 @@ import { paths }                    from './swaggerPaths.js'
 
 const swaggerJsdoc = createRequire(import.meta.url)('swagger-jsdoc')
 
-const PORT = process.env.PORT || 5000
 
 export const swaggerSpec = swaggerJsdoc({
   definition: {
@@ -27,6 +26,7 @@ export const swaggerSpec = swaggerJsdoc({
         'Write endpoints and admin reads require a Firebase Bearer token.',
         '',
         '**Auth flow:** sign in via Firebase Auth → get ID token → pass as `Authorization: Bearer <token>`',
+        '**Security:** All secured requests must include `X-Firebase-AppCheck` header.',
       ].join('\n'),
       contact: {
         name:  'Nelloriens Dev',
@@ -34,12 +34,16 @@ export const swaggerSpec = swaggerJsdoc({
       },
     },
     servers: [
-      { url: `http://localhost:${PORT}`, description: 'Local dev' },
+      { url: 'https://api.nelloriens.in', description: 'Production API' },
+      { url: 'https://api-ogo7zhorta-uc.a.run.app', description: 'Production Cloud Run' },
     ],
     components: {
       securitySchemes,
       schemas,
     },
+    security: [
+      { appCheck: [] }
+    ],
     tags: [
       { name: 'Setup',        description: 'One-time superadmin bootstrap' },
       { name: 'Users',        description: 'Admin user management' },

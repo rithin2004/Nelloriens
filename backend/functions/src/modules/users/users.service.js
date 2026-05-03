@@ -31,11 +31,20 @@ export const usersService = {
   },
 
   async list(query = {}) {
-    const { page = 1, limit = 20, search = '' } = query
+    const { page = 1, limit = 20, search = '', roleId, active } = query
     const safeLimit = Math.min(Math.max(parseInt(limit) || 20, 1), 100)
     const safePage  = Math.max(parseInt(page)  || 1, 1)
 
     let items = await usersRepo.findAll({ orderBy: 'createdAt', order: 'desc' })
+
+    if (roleId && roleId !== 'All') {
+      items = items.filter(u => u.roleId === roleId)
+    }
+
+    if (active !== undefined && active !== '') {
+      const activeBool = active === 'true'
+      items = items.filter(u => u.active === activeBool)
+    }
 
     if (search) {
       const q = search.toLowerCase()

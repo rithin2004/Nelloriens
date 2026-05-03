@@ -16,10 +16,11 @@ export const offersService = new CrudService(offersRepo, {
     if (!data.validUntil?.trim())   badReq('validUntil is required')
     if (!data.description?.trim())  badReq('description is required')
   },
-  extraFilters: ({ type, location }) => {
+  extraFilters: ({ category, type, location }) => {
     const f = []
-    if (type)     f.push(['type',     '==', type])
-    if (location) f.push(['location', '==', location])
+    if (category && category !== 'All') f.push(['category', '==', category])
+    if (type && type !== 'All')         f.push(['type',     '==', type])
+    if (location && location !== 'All') f.push(['location', '==', location])
     return f
   },
 })
