@@ -156,7 +156,17 @@ export default function JobForm({ defaultValues, onSubmit, loading, contentId, o
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="job-type" className={lbl} style={lblStyle}>Job Type</label>
+            <div className="flex items-center gap-2 mb-1.5">
+              <label htmlFor="job-type" className={lbl} style={{ ...lblStyle, marginBottom: 0 }}>Job Type</label>
+              <InlineCategoryAdd
+                label="Job Type"
+                placeholder="e.g. Full-time"
+                onAdd={async (name) => {
+                  await jobsApi.createType({ name })
+                  await fetchTypes()
+                }}
+              />
+            </div>
             <select id="job-type" name="jobType" autoComplete="off" {...register('jobType')} className={inp}>
               <option value="">Select type</option>
               {jobTypes.map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}

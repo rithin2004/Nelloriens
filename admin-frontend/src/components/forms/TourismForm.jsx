@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import RichTextEditor from '../common/RichTextEditor'
 import ImageUpload from '../common/ImageUpload'
+import InlineCategoryAdd from '../common/InlineCategoryAdd'
 import MapPicker from '../common/MapPicker'
 import { tourismApi } from '../../services/api'
 
@@ -35,9 +36,12 @@ export default function TourismForm({ defaultValues, onSubmit, loading, contentI
   const [thumbnail, setThumbnail] = useState(defaultValues?.thumbnail || '')
   const [location, setLocation] = useState({ lat: defaultValues?.latitude, lng: defaultValues?.longitude })
 
+  const fetchCategories = () => tourismApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
+  const fetchLocations  = () => tourismApi.getLocations().then((r)  => setLocations(r.data.data  || [])).catch(() => {})
+
   useEffect(() => {
-    tourismApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
-    tourismApi.getLocations().then((r)  => setLocations(r.data.data  || [])).catch(() => {})
+    fetchCategories()
+    fetchLocations()
   }, [])
 
   const handleMapChange = ({ lat, lng }) => {
@@ -67,7 +71,17 @@ export default function TourismForm({ defaultValues, onSubmit, loading, contentI
           <input id="tur-name" name="placeName" autoComplete="off" {...register('placeName', { required: true })} className={input} />
         </div>
         <div>
-          <label htmlFor="tur-category" className={field}>Category *</label>
+          <div className="flex items-center gap-2 mb-1">
+            <label htmlFor="tur-category" className={field} style={{ marginBottom: 0 }}>Category *</label>
+            <InlineCategoryAdd
+              label="Category"
+              placeholder="e.g. Heritage"
+              onAdd={async (name) => {
+                await tourismApi.createCategory({ name })
+                await fetchCategories()
+              }}
+            />
+          </div>
           <select id="tur-category" name="category" autoComplete="off" {...register('category', { required: true })} className={input}>
             <option value="">Select</option>
             {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
@@ -136,7 +150,17 @@ export default function TourismForm({ defaultValues, onSubmit, loading, contentI
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="tourism-location" className={field}>Location</label>
+            <div className="flex items-center gap-2 mb-1">
+              <label htmlFor="tourism-location" className={field} style={{ marginBottom: 0 }}>Location</label>
+              <InlineCategoryAdd
+                label="Location"
+                placeholder="e.g. Mypadu"
+                onAdd={async (name) => {
+                  await tourismApi.createLocation({ name })
+                  await fetchLocations()
+                }}
+              />
+            </div>
             <select id="tourism-location" name="location" autoComplete="off" {...register('location')} className={input}>
               <option value="">Select location</option>
               {locations.map((l) => <option key={l._id} value={l.name}>{l.name}</option>)}

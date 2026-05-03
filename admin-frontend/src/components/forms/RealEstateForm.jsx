@@ -4,6 +4,7 @@ import { Upload, Loader } from 'lucide-react'
 import ImageUpload from '../common/ImageUpload'
 import MapPicker from '../common/MapPicker'
 import DateField from '../common/DateField'
+import InlineCategoryAdd from '../common/InlineCategoryAdd'
 import { realEstateApi, uploadApi } from '../../services/api'
 import toast from 'react-hot-toast'
 
@@ -47,9 +48,12 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
 
   useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
+  const fetchLocations = () => realEstateApi.getLocations().then((r) => setLocations(r.data.data || [])).catch(() => {})
+  const fetchTypes     = () => realEstateApi.getTypes().then((r) => setPropertyTypes(r.data.data || [])).catch(() => {})
+
   useEffect(() => {
-    realEstateApi.getLocations().then((r)  => setLocations(r.data.data     || [])).catch(() => {})
-    realEstateApi.getTypes().then((r)      => setPropertyTypes(r.data.data || [])).catch(() => {})
+    fetchLocations()
+    fetchTypes()
     realEstateApi.getAmenities().then((r)  => setAmenities(r.data.data     || [])).catch(() => {})
   }, [])
 
@@ -102,7 +106,17 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="res-type" className={field}>Type *</label>
+            <div className="flex items-center gap-2 mb-1">
+              <label htmlFor="res-type" className={field} style={{ marginBottom: 0 }}>Type *</label>
+              <InlineCategoryAdd
+                label="Type"
+                placeholder="e.g. Commercial"
+                onAdd={async (name) => {
+                  await realEstateApi.createType({ name })
+                  await fetchTypes()
+                }}
+              />
+            </div>
             <select id="res-type" name="type" autoComplete="off" {...register('type', { required: 'Required' })} className={input}>
               <option value="">Select type</option>
               {(propertyTypes.length > 0 ? propertyTypes.map((t) => t.name) : FALLBACK_TYPES).map((t) => <option key={t} value={t}>{t}</option>)}
@@ -110,7 +124,17 @@ export default function RealEstateForm({ defaultValues, onSubmit, loading, conte
             {errors.type && <p className="text-xs text-red-600 mt-1">{errors.type.message}</p>}
           </div>
           <div>
-            <label htmlFor="res-location" className={field}>Location</label>
+            <div className="flex items-center gap-2 mb-1">
+              <label htmlFor="res-location" className={field} style={{ marginBottom: 0 }}>Location</label>
+              <InlineCategoryAdd
+                label="Location"
+                placeholder="e.g. Dargamitta"
+                onAdd={async (name) => {
+                  await realEstateApi.createLocation({ name })
+                  await fetchLocations()
+                }}
+              />
+            </div>
             <select id="res-location" name="location" autoComplete="off" {...register('location')} className={input}>
               <option value="">Select location</option>
               {locations.map((l) => <option key={l._id} value={l.name}>{l.name}</option>)}

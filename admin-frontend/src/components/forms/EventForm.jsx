@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import RichTextEditor from '../common/RichTextEditor'
 import ImageUpload from '../common/ImageUpload'
+import InlineCategoryAdd from '../common/InlineCategoryAdd'
 import MapPicker from '../common/MapPicker'
 import DateField from '../common/DateField'
 import { eventsApi } from '../../services/api'
@@ -48,10 +49,13 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
 
   useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
+  const fetchCategories = () => eventsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
+  const fetchLocations  = () => eventsApi.getLocations().then((r) => setEventLocations(r.data.data || [])).catch(() => {})
+
   useEffect(() => {
     if (!isInfluencer) {
-      eventsApi.getCategories().then((r) => setCategories(r.data.data || [])).catch(() => {})
-      eventsApi.getLocations().then((r) => setEventLocations(r.data.data || [])).catch(() => {})
+      fetchCategories()
+      fetchLocations()
     }
   }, [isInfluencer])
 
@@ -111,7 +115,17 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
         {/* Category — only for regular events */}
         {!isInfluencer && (
           <div>
-            <label htmlFor="event-category" className={field}>Category *</label>
+            <div className="flex items-center gap-2 mb-1">
+              <label htmlFor="event-category" className={field} style={{ marginBottom: 0 }}>Category *</label>
+              <InlineCategoryAdd
+                label="Category"
+                placeholder="e.g. Workshop"
+                onAdd={async (name) => {
+                  await eventsApi.createCategory({ name })
+                  await fetchCategories()
+                }}
+              />
+            </div>
             <select id="event-category" name="category" autoComplete="off"
               {...register('category', { required: 'Category is required' })}
               className={input}>
@@ -257,7 +271,17 @@ export default function EventForm({ defaultValues, onSubmit, loading, contentId,
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="event-location" className={field}>Location</label>
+            <div className="flex items-center gap-2 mb-1">
+              <label htmlFor="event-location" className={field} style={{ marginBottom: 0 }}>Location</label>
+              <InlineCategoryAdd
+                label="Location"
+                placeholder="e.g. Downtown"
+                onAdd={async (name) => {
+                  await eventsApi.createLocation({ name })
+                  await fetchLocations()
+                }}
+              />
+            </div>
             <select id="event-location" name="location" autoComplete="off"
               {...register('location')} className={input}>
               <option value="">Select location</option>
