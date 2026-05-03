@@ -13,7 +13,21 @@ export default function Login() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!authLoading && user) navigate('/dashboard', { replace: true })
+    if (!authLoading && user) {
+      // Check if company is set up; if not, redirect to onboarding instead of dashboard.
+      companyApi.get()
+        .then((r) => {
+          if (!r.data.data?._exists) {
+            navigate('/onboarding/company', { replace: true })
+          } else {
+            navigate('/dashboard', { replace: true })
+          }
+        })
+        .catch(() => {
+          // If company check fails, fallback to dashboard
+          navigate('/dashboard', { replace: true })
+        })
+    }
   }, [user, authLoading, navigate])
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
@@ -28,14 +42,7 @@ export default function Login() {
     setError('')
     try {
       await login(email, password)
-      try {
-        const r = await companyApi.get()
-        if (!r.data.data?._exists) {
-          navigate('/onboarding/company', { replace: true })
-          return
-        }
-      } catch { /* company check optional — proceed to dashboard */ }
-      navigate('/dashboard')
+      // Navigation is now handled by the useEffect above once 'user' state updates.
     } catch {
       setError('Invalid email or password')
     }

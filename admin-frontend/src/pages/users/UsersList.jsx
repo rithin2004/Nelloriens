@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usersApi } from '../../services/api'
 import { useDebounce } from '../../hooks/useDebounce'
+import { sendPasswordResetEmail } from 'firebase/auth'
+import { auth } from '../../utils/firebase'
 import useUsersStore from '../../store/usersStore'
 import useRolesStore from '../../store/rolesStore'
 import PageHeader from '../../components/common/PageHeader'
@@ -37,9 +39,9 @@ export default function UsersList() {
   const roles = (rolesData || []).filter(r => r._id !== 'ROL00001')
 
   // Create modal
-  const [createOpen, setCreateOpen] = useState(false)
   const [createForm, setCreateForm] = useState({ name: '', email: '', phone: '', roleId: '' })
   const [creating,   setCreating]   = useState(false)
+  const [successLink, setSuccessLink] = useState('')
 
   // Edit modal
   const [editOpen, setEditOpen] = useState(false)
@@ -65,9 +67,22 @@ export default function UsersList() {
     if (!createForm.roleId) { toast.error('Role is required'); return }
     setCreating(true)
     try {
-      await usersApi.create(createForm)
-      toast.success('User created!')
-      setCreateOpen(false)
+      const res = await usersApi.create(createForm)
+      const link = res.data?.data?.resetLink || res.data?.resetLink
+
+      // Trigger Firebase's official email template from the client side
+      try {
+        await sendPasswordResetEmail(auth, createForm.email)
+        toast.success('User created and setup email sent!')
+      } catch {
+        toast.success('User created, but email failed to send.')
+      }
+
+      if (link) {
+        setSuccessLink(link)
+      } else {
+        setCreateOpen(false)
+      }
       fetchUsers({ page, limit: PAGE_SIZE, search: debouncedSearch })
     } catch (err) {
       toast.error(err.response?.data?.message || 'Create failed')
@@ -312,6 +327,31 @@ export default function UsersList() {
       <ConfirmModal isOpen={!!deleteId} title="Delete User"
         message="This will permanently delete this user and their Firebase account."
         onConfirm={handleDelete} onCancel={() => setDeleteId(null)} loading={deleting} />
+
+      {/* ── Success Modal (Backup Link) ── */}
+      <FormModal isOpen={!!successLink} onClose={() => { setSuccessLink(''); setCreateOpen(false) }} title="User Created Successfully" maxWidth="max-w-md">
+        <div className="space-y-4">
+          <div className="p-3 rounded-xl bg-green-50 border border-green-100">
+            <p className="text-sm text-green-800">
+              An automated setup email has been triggered. If the user doesn't receive it, you can share this manual setup link:
+            </p>
+          </div>
+          <div className="relative">
+            <input readOnly value={successLink} className={inp} style={inpLocked} />
+            <button
+              onClick={() => { navigator.clipboard.writeText(successLink); toast.success('Link copied!') }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-bold rounded-lg transition-all"
+              style={{ background: PL, color: P }}>
+              COPY
+            </button>
+          </div>
+          <button onClick={() => { setSuccessLink(''); setCreateOpen(false) }}
+            className="w-full py-2.5 text-white font-semibold text-sm rounded-lg"
+            style={{ background: `linear-gradient(135deg,${P},#072d6e)` }}>
+            Done
+          </button>
+        </div>
+      </FormModal>
     </div>
   )
 }
