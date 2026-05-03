@@ -1,0 +1,172 @@
+{
+  "apiVersion": "serving.knative.dev/v1",
+  "kind": "Service",
+  "metadata": {
+    "annotations": {
+      "cloudfunctions.googleapis.com/function-id": "api",
+      "run.googleapis.com/build-base-image": "us-central1-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs22",
+      "run.googleapis.com/build-enable-automatic-updates": "true",
+      "run.googleapis.com/build-environment-variables": "{\"GOOGLE_NODE_RUN_SCRIPTS\":\"\"}",
+      "run.googleapis.com/build-function-target": "api",
+      "run.googleapis.com/build-image-uri": "us-central1-docker.pkg.dev/nelloriens-c61bc/gcf-artifacts/nelloriens--c61bc__us--central1__api:version_1",
+      "run.googleapis.com/build-name": "projects/288588786037/locations/us-central1/builds/1f34eef4-74c7-47c8-8527-ef6820869560",
+      "run.googleapis.com/build-service-account": "projects/nelloriens-c61bc/serviceAccounts/288588786037-compute@developer.gserviceaccount.com",
+      "run.googleapis.com/build-source-location": "gs://gcf-v2-sources-288588786037-us-central1/api/function-source.zip#1777769281432887",
+      "run.googleapis.com/client-name": "cloud-console",
+      "run.googleapis.com/custom-audiences": "[\"https://us-central1-nelloriens-c61bc.cloudfunctions.net/api\"]",
+      "run.googleapis.com/ingress": "all",
+      "run.googleapis.com/ingress-status": "all",
+      "run.googleapis.com/invoker-iam-disabled": "true",
+      "run.googleapis.com/maxScale": "20",
+      "run.googleapis.com/operation-id": "cf9b6b20-fff3-4468-a9ae-98bb7d11c420",
+      "run.googleapis.com/urls": "[\"https://api-288588786037.us-central1.run.app\",\"https://us-central1-nelloriens-c61bc.cloudfunctions.net/api\",\"https://api-ogo7zhorta-uc.a.run.app\"]",
+      "serving.knative.dev/creator": "service-288588786037@gcf-admin-robot.iam.gserviceaccount.com",
+      "serving.knative.dev/lastModifier": "service-288588786037@gcf-admin-robot.iam.gserviceaccount.com"
+    },
+    "creationTimestamp": "2026-04-17T13:25:18.158026Z",
+    "generation": 33,
+    "labels": {
+      "cloud.googleapis.com/location": "us-central1",
+      "firebase-functions-hash": "e5ecdbbc4dd7a51dd9941fb86a739e62546a3d5a",
+      "goog-cloudfunctions-runtime": "nodejs22",
+      "goog-drz-cloudfunctions-id": "api",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "name": "api",
+    "namespace": "288588786037",
+    "resourceVersion": "AAZQ3y5BpDI",
+    "selfLink": "/apis/serving.knative.dev/v1/namespaces/288588786037/services/api",
+    "uid": "72819d41-d3ed-44de-9da0-7a67aa7c4b86"
+  },
+  "spec": {
+    "template": {
+      "metadata": {
+        "annotations": {
+          "autoscaling.knative.dev/maxScale": "20",
+          "cloudfunctions.googleapis.com/trigger-type": "HTTP_TRIGGER",
+          "run.googleapis.com/base-images": "{\"worker\":\"us-central1-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs22\"}",
+          "run.googleapis.com/client-name": "cloud-console",
+          "run.googleapis.com/startup-cpu-boost": "true"
+        },
+        "labels": {
+          "firebase-functions-hash": "e5ecdbbc4dd7a51dd9941fb86a739e62546a3d5a",
+          "goog-drz-cloudfunctions-id": "api",
+          "goog-drz-cloudfunctions-location": "us-central1",
+          "run.googleapis.com/startupProbeType": "Default"
+        },
+        "name": "api-00033-div"
+      },
+      "spec": {
+        "containerConcurrency": 80,
+        "containers": [
+          {
+            "env": [
+              {
+                "name": "ALLOWED_ORIGINS",
+                "value": "https://nelloriens.in,https://www.nelloriens.in,https://admin.nelloriens.in,https://nelloriens-c61bc.web.app,https://nelloriens-c61bc.firebaseapp.com,https://nelloriens-admin-1.web.app"
+              },
+              {
+                "name": "FB_STORAGE_BUCKET",
+                "value": "nelloriens-c61bc.firebasestorage.app"
+              },
+              {
+                "name": "SETUP_SECRET",
+                "value": "Munwar@Nelloriens645"
+              },
+              {
+                "name": "FIREBASE_CONFIG",
+                "value": "{\"projectId\":\"nelloriens-c61bc\",\"storageBucket\":\"nelloriens-c61bc.firebasestorage.app\"}"
+              },
+              {
+                "name": "GCLOUD_PROJECT",
+                "value": "nelloriens-c61bc"
+              },
+              {
+                "name": "EVENTARC_CLOUD_EVENT_SOURCE",
+                "value": "projects/nelloriens-c61bc/locations/us-central1/services/api"
+              },
+              {
+                "name": "FUNCTION_TARGET",
+                "value": "api"
+              },
+              {
+                "name": "LOG_EXECUTION_ID",
+                "value": "true"
+              }
+            ],
+            "image": "us-central1-docker.pkg.dev/nelloriens-c61bc/gcf-artifacts/nelloriens--c61bc__us--central1__api:version_1",
+            "name": "worker",
+            "ports": [
+              {
+                "containerPort": 8080,
+                "name": "http1"
+              }
+            ],
+            "resources": {
+              "limits": {
+                "cpu": "1",
+                "memory": "256Mi"
+              }
+            },
+            "startupProbe": {
+              "failureThreshold": 1,
+              "periodSeconds": 240,
+              "tcpSocket": {
+                "port": 8080
+              },
+              "timeoutSeconds": 240
+            }
+          }
+        ],
+        "runtimeClassName": "run.googleapis.com/linux-base-image-update",
+        "serviceAccountName": "288588786037-compute@developer.gserviceaccount.com",
+        "timeoutSeconds": 60
+      }
+    },
+    "traffic": [
+      {
+        "latestRevision": true,
+        "percent": 100
+      }
+    ]
+  },
+  "status": {
+    "address": {
+      "url": "https://api-ogo7zhorta-uc.a.run.app"
+    },
+    "conditions": [
+      {
+        "lastTransitionTime": "2026-05-03T00:49:04.246834Z",
+        "status": "True",
+        "type": "Ready"
+      },
+      {
+        "severity": "Info",
+        "status": "True",
+        "type": "BaseImageValidated"
+      },
+      {
+        "lastTransitionTime": "2026-05-03T00:48:42.414292Z",
+        "status": "True",
+        "type": "ConfigurationsReady"
+      },
+      {
+        "lastTransitionTime": "2026-05-03T00:49:04.206910Z",
+        "status": "True",
+        "type": "RoutesReady"
+      }
+    ],
+    "latestCreatedRevisionName": "api-00033-div",
+    "latestReadyRevisionName": "api-00033-div",
+    "observedGeneration": 33,
+    "traffic": [
+      {
+        "latestRevision": true,
+        "percent": 100,
+        "revisionName": "api-00033-div"
+      }
+    ],
+    "url": "https://api-ogo7zhorta-uc.a.run.app"
+  }
+}

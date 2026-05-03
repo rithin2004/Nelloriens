@@ -1,15 +1,48 @@
-import multer from 'multer'
+import busboy from 'busboy'
 import { uploadService, getModuleConfig } from './upload.service.js'
 import { badReq } from '../../utils/serviceBase.js'
 import { nextId } from '../../utils/sequentialId.js'
 
-// Memory storage — file.buffer available for magic byte check
-const multerUpload = multer({
-  storage: multer.memoryStorage(),
-  limits:  { fileSize: 50 * 1024 * 1024 }, // 50MB hard cap; per-module limits in service
-})
+// Firebase Functions pre-buffers the request into req.rawBody.
+// Multer cannot work here because it tries to pipe an already-consumed stream.
+// We use busboy directly and feed it req.rawBody.
+export const uploadMiddleware = (req, res, next) => {
+  if (req.method !== 'POST') return next()
 
-export const uploadMiddleware = multerUpload.single('file')
+  const bb = busboy({ headers: req.headers, limits: { fileSize: 50 * 1024 * 1024 } })
+  const body = {}
+  let fileData = null
+
+  bb.on('field', (fieldname, val) => {
+    body[fieldname] = val
+  })
+
+  bb.on('file', (fieldname, fileStream, info) => {
+    const { filename, mimeType } = info
+    const chunks = []
+    fileStream.on('data', (data) => chunks.push(data))
+    fileStream.on('end', () => {
+      const buffer = Buffer.concat(chunks)
+      fileData = {
+        fieldname,
+        originalname: filename,
+        mimetype: mimeType,
+        buffer,
+        size: buffer.length
+      }
+    })
+  })
+
+  bb.on('finish', () => {
+    req.body = { ...req.body, ...body }
+    if (fileData) req.file = fileData
+    next()
+  })
+
+  bb.on('error', (err) => next(err))
+
+  bb.end(req.rawBody)
+}
 
 export const uploadCtrl = {
   /** Reserve the next sequential ID for a given prefix before creating content.

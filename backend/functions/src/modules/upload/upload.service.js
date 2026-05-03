@@ -85,16 +85,15 @@ export const uploadService = {
       const fileRef   = bucket.file(fileName)
 
       console.log(`[UPLOAD DEBUG] Saving to Firebase Storage: ${fileName}`)
+      const token = crypto.randomUUID()
       await fileRef.save(file.buffer, {
         metadata: {
           contentType: effectiveMime,
-          metadata:    { firebaseStorageDownloadTokens: crypto.randomUUID() },
+          metadata:    { firebaseStorageDownloadTokens: token },
         },
       })
 
-      console.log(`[UPLOAD DEBUG] Making file public...`)
-      await fileRef.makePublic()
-      const url = `https://storage.googleapis.com/${bucket.name}/${fileName}`
+      const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(fileName)}?alt=media&token=${token}`
       console.log(`[UPLOAD DEBUG] Upload complete: ${url}`)
       return { url, fileName, size: file.size, mimeType: effectiveMime }
     } catch (error) {

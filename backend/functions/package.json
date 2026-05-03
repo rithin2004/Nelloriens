@@ -14,19 +14,19 @@
     "logs": "firebase functions:log"
   },
   "dependencies": {
+    "busboy": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "file-type": "^22.0.1",
     "firebase-admin": "^13.8.0",
     "firebase-functions": "^7.0.0",
-
-    "express": "^4.19.2",
-    "cors": "^2.8.5",
     "helmet": "^8.1.0",
     "morgan": "^1.10.0",
-    "express-rate-limit": "^7.3.1",
-    "dotenv": "^16.4.5",
-    "swagger-ui-express": "^5.0.1",
-    "swagger-jsdoc": "^6.2.8",
     "multer": "^1.4.5-lts.1",
-    "file-type": "^22.0.1"
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "overrides": {
     "uuid": "^14.0.0",

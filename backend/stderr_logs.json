@@ -1,0 +1,134 @@
+[
+  {
+    "errorGroups": [
+      {
+        "id": "COaG1Kig8eGcew"
+      }
+    ],
+    "insertId": "69f69c1c00035dfbdf6d5475",
+    "labels": {
+      "execution_id": "p224yh7w0znd",
+      "firebase-functions-hash": "e5ecdbbc4dd7a51dd9941fb86a739e62546a3d5a",
+      "goog-drz-cloudfunctions-id": "api",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "0007b734d9bc94fc1a1027ba96c07d7269eb630ba79cecf113b1a5f00d553a5f9d41424964b49e549fe31af1db9eec2c949524f32f024ead8937b6c6931e1a73378ca83d184f82783af0e10484d2ca",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs22:nodejs22_20260412_22_22_0_RC00"
+    },
+    "logName": "projects/nelloriens-c61bc/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2026-05-03T00:51:40.225809274Z",
+    "resource": {
+      "labels": {
+        "configuration_name": "api",
+        "location": "us-central1",
+        "project_id": "nelloriens-c61bc",
+        "revision_name": "api-00033-div",
+        "service_name": "api"
+      },
+      "type": "cloud_run_revision"
+    },
+    "spanId": "9730260607981533546",
+    "textPayload": "[ERROR] Error: Unexpected end of form\n    at Multipart._final (/workspace/node_modules/busboy/lib/types/multipart.js:588:17)\n    at prefinish (node:internal/streams/writable:916:14)\n    at finishMaybe (node:internal/streams/writable:930:5)\n    at Writable.end (node:internal/streams/writable:845:5)\n    at onend (node:internal/streams/readable:948:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:85:11) {\n  storageErrors: []\n}\n",
+    "timestamp": "2026-05-03T00:51:40.220667Z"
+  },
+  {
+    "insertId": "69f66c430002c2c36a343a73",
+    "labels": {
+      "firebase-functions-hash": "e64f74e8a31de7bb54a12a7bf7649835db581cf4",
+      "goog-drz-cloudfunctions-id": "api",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "0007b734d9a2efd9b03533310610ffdba9e6644cb3da6c5d795dc410511b55b72287abe3fd17502a7bd2a39766bac26317675bbfad193a6b52d97a69a32e7df245a8249fd021af8d5c3de6206a44",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs22:nodejs22_20260412_22_22_0_RC00"
+    },
+    "logName": "projects/nelloriens-c61bc/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2026-05-02T21:27:31.503468259Z",
+    "resource": {
+      "labels": {
+        "configuration_name": "api",
+        "location": "us-central1",
+        "project_id": "nelloriens-c61bc",
+        "revision_name": "api-00032-wud",
+        "service_name": "api"
+      },
+      "type": "cloud_run_revision"
+    },
+    "textPayload": "15: 0x55f5b7314476  [node]",
+    "timestamp": "2026-05-02T21:27:31.180931Z"
+  },
+  {
+    "insertId": "69f66c430002bd5ef12bd3e6",
+    "labels": {
+      "firebase-functions-hash": "e64f74e8a31de7bb54a12a7bf7649835db581cf4",
+      "goog-drz-cloudfunctions-id": "api",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "0007b734d9a2efd9b03533310610ffdba9e6644cb3da6c5d795dc410511b55b72287abe3fd17502a7bd2a39766bac26317675bbfad193a6b52d97a69a32e7df245a8249fd021af8d5c3de6206a44",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs22:nodejs22_20260412_22_22_0_RC00"
+    },
+    "logName": "projects/nelloriens-c61bc/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2026-05-02T21:27:31.503468259Z",
+    "resource": {
+      "labels": {
+        "configuration_name": "api",
+        "location": "us-central1",
+        "project_id": "nelloriens-c61bc",
+        "revision_name": "api-00032-wud",
+        "service_name": "api"
+      },
+      "type": "cloud_run_revision"
+    },
+    "textPayload": "14: 0x55f5b6d576cb v8::internal::Runtime_ObjectEntries(int, unsigned long*, v8::internal::Isolate*) [node]",
+    "timestamp": "2026-05-02T21:27:31.179550Z"
+  },
+  {
+    "insertId": "69f66c430002b96d7168fb96",
+    "labels": {
+      "firebase-functions-hash": "e64f74e8a31de7bb54a12a7bf7649835db581cf4",
+      "goog-drz-cloudfunctions-id": "api",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "0007b734d9a2efd9b03533310610ffdba9e6644cb3da6c5d795dc410511b55b72287abe3fd17502a7bd2a39766bac26317675bbfad193a6b52d97a69a32e7df245a8249fd021af8d5c3de6206a44",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs22:nodejs22_20260412_22_22_0_RC00"
+    },
+    "logName": "projects/nelloriens-c61bc/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2026-05-02T21:27:31.503468259Z",
+    "resource": {
+      "labels": {
+        "configuration_name": "api",
+        "location": "us-central1",
+        "project_id": "nelloriens-c61bc",
+        "revision_name": "api-00032-wud",
+        "service_name": "api"
+      },
+      "type": "cloud_run_revision"
+    },
+    "textPayload": "13: 0x55f5b6b42fbf v8::internal::GetOwnValuesOrEntries(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSReceiver>, v8::internal::PropertyFilter, bool, bool) [node]",
+    "timestamp": "2026-05-02T21:27:31.178541Z"
+  },
+  {
+    "insertId": "69f66c430002b5b4f769be6d",
+    "labels": {
+      "firebase-functions-hash": "e64f74e8a31de7bb54a12a7bf7649835db581cf4",
+      "goog-drz-cloudfunctions-id": "api",
+      "goog-drz-cloudfunctions-location": "us-central1",
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "0007b734d9a2efd9b03533310610ffdba9e6644cb3da6c5d795dc410511b55b72287abe3fd17502a7bd2a39766bac26317675bbfad193a6b52d97a69a32e7df245a8249fd021af8d5c3de6206a44",
+      "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs22:nodejs22_20260412_22_22_0_RC00"
+    },
+    "logName": "projects/nelloriens-c61bc/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2026-05-02T21:27:31.503468259Z",
+    "resource": {
+      "labels": {
+        "configuration_name": "api",
+        "location": "us-central1",
+        "project_id": "nelloriens-c61bc",
+        "revision_name": "api-00032-wud",
+        "service_name": "api"
+      },
+      "type": "cloud_run_revision"
+    },
+    "textPayload": "12: 0x55f5b6b42989 v8::internal::FastGetOwnValuesOrEntries(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSReceiver>, bool, v8::internal::Handle<v8::internal::FixedArray>*) [node]",
+    "timestamp": "2026-05-02T21:27:31.177588Z"
+  }
+]
