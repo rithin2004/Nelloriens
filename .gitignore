@@ -28,6 +28,8 @@ dist-ssr
 .hintrc
 CLAUDE.md
 USER_SIDE_DEVELOPER_GUIDE.md
-functions/.env*
-!functions/.env.example
-functions/.env.production
+backend/functions/.env*
+!backend/functions/.env.example
+backend/functions/.env.production
+# Firebase
+.firebase/
